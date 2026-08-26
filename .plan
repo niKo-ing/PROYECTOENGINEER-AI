@@ -1,0 +1,64 @@
+# Plan: Fix Paris Connector Tests (15 failures)
+
+## Root Causes
+
+Three distinct issues cause all 15 test failures:
+
+### 1. Parser JS string unescaping is broken (`parser.py:54-63`)
+The `_extract_chunks` method uses `raw.encode("utf-8").decode("unicode_escape")` which fails when encountering truncated unicode escapes like `\u00f ` (3 hex chars + space instead of complete `\u00fa`). On failure, it falls back to the raw still-escaped string, so `json.loads()` always fails on chunks containing `\"` sequences.
+
+**Impact**: Parser returns `RawProductData()` (all `None`) for `HTML_FULL_PRODUCT` → all JSON-LD and RSC data lost.
+
+### 2. Parser doesn't merge JSON-LD + RSC data (`parser.py:42-52`)
+When both JSON-LD and RSC product data exist, only JSON-LD is returned. RSC provides fields JSON-LD lacks: `sku`, `product_id` (key), `image_url`.
+
+**Impact**: `sku` is `None`, `product_id` is `None`, `image_url` is `None` → connector's `external_id` is `None` → `test_price_change_creates_new_history` fails with UNIQUE constraint (can't find existing offer to update).
+
+### 3. Test fixtures have truncated unicode escapes (`test_paris_connector.py:34,37,165`)
+- `\\u00f tbol` should be `\\u00fatbol` (ú = U+00FA, "fútbol")
+- `\\u00e anico` should be `\\u00e1nico` (á = U+00E1, "mecánico")
+
+Even with a fixed unescaper, these truncated escapes would produce wrong characters.
+
+---
+
+## Changes
+
+### Fix 1: `app/ingestion/connectors/paris/parser.py` — Replace unescaper
+
+Replace the `unicode_escape` approach in `_extract_chunks` with a custom JS string unescaper that handles `\"`, `\\`, `\n`, `\t`, `\r`, and `\uXXXX` without failing on edge cases.
+
+**Edit `_extract_chunks`** (lines 54-63): Replace `try/except unicode_escape` with call to new `_unescape_js` static method.
+
+**Add `_unescape_js`** static method: Iterates through the string character by character, handling backslash escape sequences (`\"` → `"`, `\\` → `\`, `\uXXXX` → chr, etc.).
+
+### Fix 2: `app/ingestion/connectors/paris/parser.py` — Merge JSON-LD + RSC data
+
+**Edit `parse` method** (lines 42-52): When JSON-LD is found, also check for RSC product data. If both exist, merge them (JSON-LD as primary, RSC fills missing fields).
+
+**Add `_merge`** static method: Creates a new `RawProductData` using `primary.field or secondary.field` for each field, plus concatenates `sources`.
+
+### Fix 3: `tests/test_paris_connector.py` — Fix unicode escapes
+
+- Line 34: `\\u00f tbol` → `\\u00fatbol`
+- Line 37: `\\u00f tbol` → `\\u00fatbol`
+- Line 165: `\\u00e anico` → `\\u00e1nico`
+
+---
+
+## Expected Test Results
+
+All 45 Paris tests should pass (30 already pass, 15 currently failing).
+
+Key test validations:
+- `test_extracts_product_from_jsonld` → name from merged JSON-LD ✓
+- `test_extracts_price` → price from JSON-LD offers ✓
+- `test_extracts_sku_from_rsc` → sku from merged RSC data ✓
+- `test_extracts_image_from_rsc` → image from merged RSC data ✓
+- `test_product_key_used_as_id` → product_id from merged RSC data ✓
+- `test_price_change_creates_new_history` → external_id found, offer updated ✓
+- `test_full_pipeline_creates_product_store_offer_price_history` → full data merged ✓
+
+## Verification
+1. `pytest tests/test_paris_connector.py -v` — all 45 pass
+2. `pytest -q` — full suite still passes
