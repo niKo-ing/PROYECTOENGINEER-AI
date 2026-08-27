@@ -98,6 +98,8 @@ class AIMatcher:
             incoming, candidates, self.config.prompt_version
         )
 
+        candidate_ids = {c.product_id for c in candidates}
+
         # Check cache
         if self.cache is not None:
             cached = self.cache.get(request)
@@ -114,6 +116,25 @@ class AIMatcher:
                 decision=AIMatchStatus.AMBIGUOUS,
                 confidence=0.0,
                 reason=f"AI provider error: {type(e).__name__}",
+            )
+
+        # Validate matched_product_id is in the candidate set
+        if (
+            result.matched_product_id is not None
+            and result.matched_product_id not in candidate_ids
+        ):
+            log.warning(
+                "AI returned product_id %d not in candidate set %s",
+                result.matched_product_id,
+                candidate_ids,
+            )
+            return AIMatchResult(
+                decision=AIMatchStatus.AMBIGUOUS,
+                confidence=0.0,
+                reason=f"AI selected product {result.matched_product_id} not in candidate set",
+                evidence=result.evidence,
+                model=result.model,
+                prompt_version=result.prompt_version,
             )
 
         # Apply confidence policy

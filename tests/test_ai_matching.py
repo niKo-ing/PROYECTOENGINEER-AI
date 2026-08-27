@@ -274,7 +274,7 @@ class TestAIMatchReusesProduct:
     def test_ai_match_returns_existing_product(self):
         """AI MATCH → deterministic MatchResult with existing Product."""
         with TestSession() as db:
-            product = Product(name="HP Laptop", brand="HP", model="pavilion 15")
+            product = Product(name="HP Pavilion 15", brand="HP")
             db.add(product)
             db.commit()
 
@@ -283,7 +283,7 @@ class TestAIMatchReusesProduct:
                 decision=AIMatchStatus.MATCH,
                 confidence=0.97,
                 matched_product_id=product.id,
-                reason="Same MPN and brand",
+                reason="Same product line and brand",
             )
             matcher = ProductMatcher(db)
 
@@ -291,7 +291,7 @@ class TestAIMatchReusesProduct:
                 gtin = None
                 mpn = None
                 brand = "HP"
-                model = "pavilion 15"
+                model = None
                 sku = None
                 name = "HP Pavilion 15 Laptop"
 
@@ -353,14 +353,14 @@ class TestAIAmbiguousNoMerge:
     def test_ai_ambiguous_keeps_original_ambiguous(self):
         """AI AMBIGUOUS → original AMBIGUOUS result preserved."""
         with TestSession() as db:
-            product = Product(name="ASUS RTX 5070", brand="ASUS")
+            product = Product(name="ASUS ProArt PX13", brand="ASUS")
             db.add(product)
             db.commit()
 
             ai_matcher, provider = _make_ai_matcher(
                 db,
                 decision=AIMatchStatus.AMBIGUOUS,
-                confidence=0.6,
+                confidence=0.75,
                 reason="Cannot determine",
             )
             matcher = ProductMatcher(db)
@@ -371,11 +371,11 @@ class TestAIAmbiguousNoMerge:
                 brand = "ASUS"
                 model = None
                 sku = None
-                name = "ASUS RTX 5070 Variant"
+                name = "ASUS ProArt PX13 OLED"
 
             result = matcher.match(FakeOffer(), ai_matcher=ai_matcher)
             assert result.is_ambiguous
-            assert result.strategy == "fuzzy_high"
+            assert result.strategy == "fuzzy_medium"
 
 
 # ══════════════════════════════════════════════════════════════════
