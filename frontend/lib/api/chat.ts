@@ -9,14 +9,17 @@ export type ChatResult = {
   } | null;
 };
 
-export async function sendChatMessage(message: string, accessToken: string): Promise<ChatResult> {
+export async function sendChatMessage(message: string, accessToken: string, productId?: number | null): Promise<ChatResult> {
+  const body: Record<string, unknown> = { message };
+  if (productId) body.product_id = productId;
+
   const response = await fetch("/api/v1/ai/chat", {
     method: "POST",
     headers: {
       Authorization: `Bearer ${accessToken}`,
       "Content-Type": "application/json",
     },
-    body: JSON.stringify({ message }),
+    body: JSON.stringify(body),
   });
 
   const payload: unknown = await response.json().catch(() => null);

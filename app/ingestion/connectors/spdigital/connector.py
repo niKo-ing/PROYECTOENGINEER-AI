@@ -24,9 +24,12 @@ class SPDigitalConnector(StoreConnector):
     max_concurrent: int = 3
     request_delay: float = 0.5
 
-    def __init__(self, urls: list[str] | None = None) -> None:
+    def __init__(self, urls: list[str] | None = None, url_category_map: dict[str, str] | None = None) -> None:
+        super().__init__()
         self._urls = urls or []
         self._parser = SPDigitalParser()
+        if url_category_map:
+            self.set_url_category_map(url_category_map)
 
     def extract(self) -> Iterable[Mapping[str, Any]]:
         for i, url in enumerate(self._urls):
@@ -57,7 +60,9 @@ class SPDigitalConnector(StoreConnector):
             availability=data.availability if data.availability is not None else True,
             stock=self._map_stock(data.availability),
             image_url=data.image_url,
-            category=None,
+            images=data.images or None,
+            description=None,
+            category=record.get("category"),
             scraped_at=now,
         )
 
@@ -71,7 +76,7 @@ class SPDigitalConnector(StoreConnector):
         if data.name is None or data.price is None:
             return None
 
-        return {"url": url, "raw": data}
+        return self._record_with_category(url, data)
 
     @staticmethod
     def _resolve_external_id(data: RawProductData) -> str | None:

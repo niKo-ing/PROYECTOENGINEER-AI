@@ -406,6 +406,25 @@ class TestParisConnectorNormalize:
         offer = connector.normalize(record)
         assert offer.external_id is None
 
+    def test_normalize_propagates_mapped_category_slug(self):
+        url = "https://www.paris.cl/test.html"
+        connector = ParisConnector(
+            urls=[url],
+            url_category_map={url: "notebooks"},
+        )
+        data = RawProductData(
+            name="Test", price=Decimal("100"), currency="CLP",
+            availability=True, brand="X",
+        )
+        record = connector._record_with_category(url, data)
+        offer = connector.normalize(record)
+        assert offer.category == "notebooks"
+
+    def test_normalize_category_none_without_url_category_map(self):
+        record = self._make_record(HTML_FULL_PRODUCT)
+        offer = self.connector.normalize(record)
+        assert offer.category is None
+
     def test_stock_in_stock(self):
         record = self._make_record(HTML_FULL_PRODUCT)
         offer = self.connector.normalize(record)

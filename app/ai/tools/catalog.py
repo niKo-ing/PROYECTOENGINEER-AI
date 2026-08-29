@@ -1,7 +1,22 @@
 from sqlalchemy.orm import Session
 
 from app.ai.schemas.tools import GetPriceHistoryInput, GetProductInput, GetProductOffersInput, ProductToolResult, SearchProductsInput
+from app.models.catalog import Product
 from app.services.product_service import ProductService
+
+
+def _project(product: Product) -> dict:
+    return ProductToolResult(
+        id=product.id,
+        name=product.name,
+        category=product.category,
+        price_clp=product.price_clp,
+        rating=float(product.rating) if product.rating is not None else None,
+        brand=product.brand,
+        lowest_price=product.lowest_price,
+        lowest_price_store=product.lowest_price_store,
+        offer_count=product.offer_count,
+    ).model_dump()
 
 
 class SearchProductsTool:
@@ -12,13 +27,13 @@ class SearchProductsTool:
         products, total = self.service.search(
             query=params.query,
             category=params.category,
+            brand=params.brand,
             min_price_clp=params.min_price_clp,
             max_price_clp=params.max_price_clp,
             limit=params.limit,
             offset=0,
         )
-        items = [ProductToolResult(id=item.id, name=item.name, category=item.category, price_clp=item.price_clp, rating=float(item.rating) if item.rating is not None else None).model_dump() for item in products]
-        return {"items": items, "total": total}
+        return {"items": [_project(item) for item in products], "total": total}
 
 
 class GetProductTool:
@@ -27,7 +42,7 @@ class GetProductTool:
 
     def execute(self, params: GetProductInput) -> dict:
         product = self.service.get(params.product_id)
-        return ProductToolResult(id=product.id, name=product.name, category=product.category, price_clp=product.price_clp, rating=float(product.rating) if product.rating is not None else None).model_dump()
+        return _project(product)
 
 
 class GetProductOffersTool:

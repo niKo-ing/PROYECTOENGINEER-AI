@@ -455,6 +455,90 @@ class TestMatchByManufacturerSKU:
             result = matcher.match_by_manufacturer_sku("ABCDEF", "ASUS")
             assert result.is_no_match
 
+    def test_pure_numeric_sku_matches_when_source_declares_identity(self):
+        """Paris declares numeric SKUs as identity → they match exactly."""
+        with TestSession() as db:
+            product = Product(
+                name="Notebook Gamer ROG",
+                brand="ASUS",
+                manufacturer_sku="502788999",
+            )
+            db.add(product)
+            db.commit()
+
+            matcher = ProductMatcher(db)
+            result = matcher.match_by_manufacturer_sku(
+                "502788999", "ASUS", numeric_is_identity=True
+            )
+            assert result.is_match
+            assert result.product is not None
+            assert result.product.id == product.id
+            assert result.strategy == "manufacturer_sku"
+
+    def test_pure_numeric_sku_still_skipped_for_store_internal(self):
+        """A source that does NOT declare numeric identity keeps the guard."""
+        with TestSession() as db:
+            product = Product(
+                name="Product",
+                brand="ASUS",
+                manufacturer_sku="502788999",
+            )
+            db.add(product)
+            db.commit()
+
+            matcher = ProductMatcher(db)
+            result = matcher.match_by_manufacturer_sku(
+                "502788999", "ASUS", numeric_is_identity=False
+            )
+            assert result.is_no_match
+
+    def test_match_delegates_numeric_identity_via_offer_flag(self):
+        """match() honors sku_is_identity on the incoming offer.
+
+        - offer(True): numeric SKU is usable as manufacturer identity → MATCH.
+        - offer(False): numeric SKU is NOT used as identity; with an identical
+          name the product is still detected via fuzzy fallback (AMBIGUOUS),
+          and the exact-SKU guard remains NO_MATCH.
+        """
+        with TestSession() as db:
+            product = Product(
+                name="Notebook Gamer ROG",
+                brand="ASUS",
+                manufacturer_sku="502788999",
+            )
+            db.add(product)
+            db.commit()
+
+            def offer(sku_is_identity):
+                return NormalizedOffer(
+                    source="paris:www.paris.cl",
+                    external_id="502788999",
+                    product_url="https://www.paris.cl/p",
+                    name="Notebook Gamer ROG",
+                    brand="ASUS",
+                    model=None,
+                    mpn=None,
+                    gtin=None,
+                    sku="502788999",
+                    price=Decimal("100"),
+                    previous_price=None,
+                    currency="CLP",
+                    availability=True,
+                    stock="in_stock",
+                    image_url=None,
+                    category="notebooks",
+                    scraped_at=datetime.now(timezone.utc),
+                    sku_is_identity=sku_is_identity,
+                )
+
+            matcher = ProductMatcher(db)
+            # With identity declared → exact MATCH by manufacturer_sku.
+            assert matcher.match(offer(True)).is_match
+            # Without declaration → exact-SKU guard holds (NO_MATCH strategy).
+            assert matcher.match_by_manufacturer_sku("502788999", "ASUS", False).is_no_match
+            # Full match still runs fuzzy fallback; identical name → AMBIGUOUS.
+            assert matcher.match(offer(False)).is_ambiguous
+
 
 # ══════════════════════════════════════════════════════════════════
 #  6. BRAND + MODEL MATCHING
@@ -887,3 +971,205 @@ class TestLegacyCompatibility:
 
             result = matcher.match_legacy(FakeOffer())
             assert result is None
+
+
+# ══════════════════════════════════════════════════════════════════
+#  10. NUMERIC SKU IDENTITY + COUNTER SEMANTICS (Paris regression)
+# ══════════════════════════════════════════════════════════════════
+
+
+def _identity_connector(store_domain, *, numeric_sku_is_identity, records):
+    """Build a connector that can declare numeric SKU identity for tests."""
+
+    class _ConnBase(StoreConnector):
+        def __init__(self, recs):
+            self._recs = recs
+
+        def extract(self):
+            yield from self._recs
+
+        def normalize(self, record):
+            now = datetime.now(timezone.utc)
+
+            return NormalizedOffer(
+                source=self.source_name,
+                external_id=record.get("external_id"),
+                product_url=record.get("url", f"https://{store_domain}/p"),
+                name=record.get("name", "Product"),
+                brand=record.get("brand"),
+                model=record.get("model"),
+                mpn=record.get("mpn"),
+                gtin=record.get("gtin"),
+                sku=record.get("sku"),
+                price=Decimal(str(record.get("price", 1000))),
+                previous_price=None,
+                currency="CLP",
+                availability=True,
+                stock="in_stock",
+                image_url=None,
+                category=record.get("category"),
+                scraped_at=now,
+                sku_is_identity=numeric_sku_is_identity,
+            )
+
+    _Conn = type(
+        "_Conn",
+        (_ConnBase,),
+        {
+            "store_name": store_domain,
+            "store_domain": store_domain,
+            "source_name": f"mock:{store_domain}",
+            "numeric_sku_is_identity": numeric_sku_is_identity,
+        },
+    )
+
+    return _Conn(records)
+
+class TestNumericSkuIdentityAndCounters:
+    """Regression for Paris numeric SKU duplication (run 4)."""
+
+    def setup_method(self):
+        with TestSession() as db:
+            _reset(db)
+
+    _PARIS_NUMERIC = {
+        "url": "https://www.paris.cl/notebook-gamer",
+        "external_id": "502788999",
+        "name": "Notebook Gamer ROG Zephyrus Duo 16",
+        "brand": "ASUS",
+        "sku": "502788999",
+    }
+
+    def test_paris_numeric_sku_matches_and_reuses_product(self):
+        """Paris numeric SKU → exact MATCH and single Product."""
+        with TestSession() as db:
+            service = CatalogIngestionService(db)
+            conn = _identity_connector(
+                "www.paris.cl", numeric_sku_is_identity=True,
+                records=[dict(self._PARIS_NUMERIC)],
+            )
+            report1 = IngestionPipeline(service).run(conn)
+            assert report1.products_created == 1
+            assert report1.products_matched == 0
+            assert db.query(Product).count() == 1
+
+            # Same Store, offer already exists → no new offer, product reused
+            report2 = IngestionPipeline(service).run(_identity_connector(
+                "www.paris.cl", numeric_sku_is_identity=True,
+                records=[dict(self._PARIS_NUMERIC, price=550000)],
+            ))
+            assert report2.products_created == 0
+            assert report2.products_matched == 1
+            assert report2.offers_created == 0
+            assert report2.offers_updated == 1
+            assert db.query(Product).count() == 1
+
+    def test_paris_numeric_sku_does_not_create_duplicate(self):
+        """Existing numeric SKU never duplicates a Product on re-ingest."""
+        with TestSession() as db:
+            service = CatalogIngestionService(db)
+
+            def run(sku):
+                return IngestionPipeline(service).run(_identity_connector(
+                    "www.paris.cl", numeric_sku_is_identity=True,
+                    records=[dict(self._PARIS_NUMERIC, external_id=sku, sku=sku)],
+                ))
+
+            # Seed 5 distinct numeric-SKU products across two passes
+            run("502788999")
+            run("502788999")
+            run("424615999")
+            run("502788999")
+            run("424617999")
+            assert db.query(Product).count() == 3  # distinct SKUs, no duplicates
+
+    def test_connector_without_numeric_identity_keeps_guard(self):
+        """Non-declaring source keeps the numeric-SKU protection."""
+        with TestSession() as db:
+            service = CatalogIngestionService(db)
+            conn = _identity_connector(
+                "www.otro.cl", numeric_sku_is_identity=False,
+                records=[dict(self._PARIS_NUMERIC)],
+            )
+            IngestionPipeline(service).run(conn)
+            first_count = db.query(Product).count()
+
+            # A second identical numeric SKU from a non-declaring source:
+            # guard still active → product is NOT reused, but fuzzy also
+            # cannot confirm, so a new Product is created (guard preserved).
+            conn2 = _identity_connector(
+                "www.otro.cl", numeric_sku_is_identity=False,
+                records=[dict(self._PARIS_NUMERIC, external_id="502788999", sku="502788999")],
+            )
+            IngestionPipeline(service).run(conn2)
+            assert db.query(Product).count() >= first_count
+
+            # The guard specifically means the exact SKU match must NOT fire:
+            with TestSession() as db2:
+                matcher = ProductMatcher(db2)
+                result = matcher.match_by_manufacturer_sku("502788999", "ASUS", False)
+                assert result.is_no_match
+
+    def test_products_created_counts_real_products(self):
+        """products_created tracks real Product rows, not offers."""
+        with TestSession() as db:
+            service = CatalogIngestionService(db)
+            conn = _identity_connector(
+                "www.paris.cl", numeric_sku_is_identity=True,
+                records=[dict(self._PARIS_NUMERIC)],
+            )
+            report = IngestionPipeline(service).run(conn)
+            assert report.products_created == 1
+            assert report.products_matched == 0
+            assert report.offers_created == 1
+            assert report.offers_updated == 0
+
+    def test_products_updated_counts_real_products(self):
+        """products_updated tracks reused Products, not updated offers."""
+        with TestSession() as db:
+            service = CatalogIngestionService(db)
+            conn = _identity_connector(
+                "www.paris.cl", numeric_sku_is_identity=True,
+                records=[dict(self._PARIS_NUMERIC)],
+            )
+            IngestionPipeline(service).run(conn)
+
+            report2 = IngestionPipeline(service).run(_identity_connector(
+                "www.paris.cl", numeric_sku_is_identity=True,
+                records=[dict(self._PARIS_NUMERIC, price=600000)],
+            ))
+            assert report2.products_created == 0
+            assert report2.products_matched == 1
+            assert report2.offers_created == 0
+            assert report2.offers_updated == 1
+
+    def test_offers_counters_unchanged(self):
+        """offers_created/offers_updated still count Offers."""
+        with TestSession() as db:
+            service = CatalogIngestionService(db)
+            conn = _identity_connector(
+                "www.paris.cl", numeric_sku_is_identity=True,
+                records=[dict(self._PARIS_NUMERIC)],
+            )
+            r1 = IngestionPipeline(service).run(conn)
+            assert r1.offers_created == 1
+            assert r1.offers_updated == 0
+
+            r2 = IngestionPipeline(service).run(_identity_connector(
+                "www.paris.cl", numeric_sku_is_identity=True,
+                records=[dict(self._PARIS_NUMERIC, price=610000)],
+            ))
+            assert r2.offers_created == 0
+            assert r2.offers_updated == 1
+
+    def test_new_legitimate_paris_product_counts_correctly(self):
+        """A genuinely new Paris Product is counted as created."""
+        with TestSession() as db:
+            service = CatalogIngestionService(db)
+            for sku in ["424615999", "424617999", "424619999"]:
+                IngestionPipeline(service).run(_identity_connector(
+                    "www.paris.cl", numeric_sku_is_identity=True,
+                    records=[dict(self._PARIS_NUMERIC, external_id=sku, sku=sku)],
+                ))
+            assert db.query(Product).count() == 3
+            assert service is not None

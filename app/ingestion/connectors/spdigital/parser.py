@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import re
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from decimal import Decimal, InvalidOperation
 from typing import Any
 
@@ -24,6 +24,7 @@ class RawProductData:
     product_id: str | None = None
     product_url: str | None = None
     image_url: str | None = None
+    images: list[str] = field(default_factory=list)
     condition: str | None = None
 
 
@@ -33,7 +34,7 @@ class SPDigitalParser:
     def parse(self, html: str) -> RawProductData:
         soup = BeautifulSoup(html, "html.parser")
         meta = self._extract_meta_tags(soup)
-        return self._map_to_raw(meta)
+        return self._map_to_raw(meta, soup)
 
     def _extract_meta_tags(self, soup: BeautifulSoup) -> dict[str, str]:
         tags: dict[str, str] = {}
@@ -44,7 +45,7 @@ class SPDigitalParser:
                 tags[name.lower().strip()] = content.strip()
         return tags
 
-    def _map_to_raw(self, meta: dict[str, str]) -> RawProductData:
+    def _map_to_raw(self, meta: dict[str, str], soup: BeautifulSoup) -> RawProductData:
         name = self._clean_name(meta)
         price = self._parse_price(meta)
         currency = meta.get("product:price:currency") or meta.get("product:price:currency".replace(":", ":"))
@@ -55,6 +56,7 @@ class SPDigitalParser:
         product_id = meta.get("product-id")
         product_url = self._resolve_url(meta)
         image_url = meta.get("og:image")
+        images = self._extract_gallery(soup, image_url)
         condition = meta.get("product:condition")
 
         return RawProductData(
@@ -68,8 +70,31 @@ class SPDigitalParser:
             product_id=product_id,
             product_url=product_url,
             image_url=image_url,
+            images=images,
             condition=condition,
         )
+
+    def _extract_gallery(self, soup: BeautifulSoup, og_image: str | None) -> list[str]:
+        """Collect the product gallery images and normalize them to a full-size variant.
+
+        SP Digital serves gallery thumbnails (.._thumbnail_256.jpg) plus the og:image
+        (.._thumbnail_4096.jpg). Both share the same base path, so every thumbnail is
+        upgraded to the 4096 variant.
+        """
+        pattern = re.compile(r"(https:)?//media\.spdigital\.cl/thumbnails/products/.+?_thumbnail_256\.jpg")
+        images: list[str] = []
+        for img in soup.find_all("img", src=pattern):
+            src = img.get("src")
+            if not src:
+                continue
+            if src.startswith("//"):
+                src = f"https:{src}"
+            normalized = src.replace("_thumbnail_256.jpg", "_thumbnail_4096.jpg")
+            if normalized not in images:
+                images.append(normalized)
+        if og_image and og_image.startswith("http") and og_image not in images:
+            images.insert(0, og_image)
+        return images
 
     def _clean_name(self, meta: dict[str, str]) -> str | None:
         raw = meta.get("og:title") or meta.get("title")

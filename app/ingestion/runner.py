@@ -19,6 +19,7 @@ from sqlalchemy.orm import Session
 
 from app.ingestion.category import CategoryFilter, check_url_eligibility
 from app.ingestion.connectors import StoreConnector
+from app.ingestion.limits import get_ingestion_limits
 from app.ingestion.pipeline import IngestionPipeline, IngestionReport
 from app.ingestion.service import CatalogIngestionService
 from app.models.catalog import IngestionRun
@@ -49,12 +50,15 @@ class IngestionRunner:
 
         start = monotonic()
         try:
+            limits = get_ingestion_limits()
             service = CatalogIngestionService(db)
-            report = IngestionPipeline(service).run(connector)
+            report = IngestionPipeline(service).run(
+                connector, max_products=limits.max_products,
+            )
 
             run.urls_processed = report.urls_processed
-            run.products_created = report.offers_created
-            run.products_updated = report.offers_updated
+            run.products_created = report.products_created
+            run.products_updated = report.products_matched
             run.price_changes = report.price_changes
             run.errors_count = len(report.errors)
             if report.errors:
@@ -68,17 +72,7 @@ class IngestionRunner:
             run.duration_ms = int((monotonic() - start) * 1000)
             log.exception("Ingestion run failed for %s", connector.source_name)
 
-        run.finished_at = datetime.now(timezone.utc)
-
-        # Update store's last run timestamp
-        from app.models.catalog import Store
-        store = db.get(Store, run.store_id)
-        if store:
-            store.sync_last_run_at = run.finished_at
-
-        db.commit()
-        db.refresh(run)
-        return run
+        return self._finalize_run(db, run, start)
 
     def run_with_discovery(
         self,
@@ -110,17 +104,37 @@ class IngestionRunner:
         db.refresh(run)
 
         try:
+            limits = get_ingestion_limits()
+
+            # Apply dev limits to categories
+            effective_categories = categories
+            if limits.max_categories > 0:
+                effective_categories = categories[: limits.max_categories]
+                log.info(
+                    "Dev limit: categories capped %d → %d",
+                    len(categories), len(effective_categories),
+                )
+
+            # Apply dev limit to URLs per category
+            effective_max_urls = max_urls_per_category
+            if limits.max_urls_per_category > 0:
+                effective_max_urls = min(max_urls_per_category, limits.max_urls_per_category)
+                log.info(
+                    "Dev limit: max_urls_per_category capped %d → %d",
+                    max_urls_per_category, effective_max_urls,
+                )
+
             # Phase 1: Discover URLs
             fetcher = DiscoveryFetcher(
                 request_delay=getattr(url_discovery, 'request_delay', 0.5),
                 timeout=15.0,
             )
             discovery_report = url_discovery.discover(
-                categories=categories,
+                categories=effective_categories,
                 category_mapper=category_mapper,
                 category_filter=category_filter,
                 fetcher=fetcher,
-                max_urls_per_category=max_urls_per_category,
+                max_urls_per_category=effective_max_urls,
             )
 
             urls = [c.url for c in discovery_report.candidates]
@@ -166,13 +180,23 @@ class IngestionRunner:
                 return run
 
             # Phase 2: Run connector on eligible URLs
-            connector = connector_factory(urls=eligible_urls)
+            url_category_map = {
+                c.url: c.mapped_category
+                for c in discovery_report.candidates
+                if c.mapped_category
+            }
+            connector = connector_factory(
+                urls=eligible_urls,
+                url_category_map=url_category_map,
+            )
             service = CatalogIngestionService(db)
-            pipeline_report = IngestionPipeline(service).run(connector)
+            pipeline_report = IngestionPipeline(service).run(
+                connector, max_products=limits.max_products,
+            )
 
             run.urls_processed = pipeline_report.urls_processed
-            run.products_created = pipeline_report.offers_created
-            run.products_updated = pipeline_report.offers_updated
+            run.products_created = pipeline_report.products_created
+            run.products_updated = pipeline_report.products_matched
             run.price_changes = pipeline_report.price_changes
             run.errors_count = len(pipeline_report.errors)
             if pipeline_report.errors:
@@ -191,12 +215,41 @@ class IngestionRunner:
             run.duration_ms = int((monotonic() - start) * 1000)
             log.exception("Discovery run failed for %s", store_domain)
 
-        run.finished_at = datetime.now(timezone.utc)
+        return self._finalize_run(db, run, start)
 
+    @staticmethod
+    def _finalize_run(db: Session, run: IngestionRun, start: float) -> IngestionRun:
+        """Persist the terminal state of an ingestion run.
+
+        Guards against leaving a run stuck in ``running``: if the final commit
+        fails (e.g. a stale pooler connection), the transaction is rolled back,
+        the run is force-marked ``error`` with the cause appended, and a second
+        commit is attempted. Raises only if the database stays unreachable after
+        the retry.
+        """
+        from app.models.catalog import Store
+
+        run.finished_at = datetime.now(timezone.utc)
         store = db.get(Store, run.store_id)
         if store:
             store.sync_last_run_at = run.finished_at
 
+        try:
+            db.commit()
+            db.refresh(run)
+            return run
+        except Exception as exc:
+            log.exception("Final commit failed for run %s; retrying as error", run.id)
+            commit_error = exc
+
+        db.rollback()
+        run.status = "error"
+        run.errors_count += 1
+        prev = json.loads(run.error_messages) if run.error_messages else []
+        prev = prev if isinstance(prev, list) else []
+        prev.append(f"finalization commit failed: {str(commit_error)[:500]}")
+        run.error_messages = json.dumps(prev[:20])
+        run.finished_at = datetime.now(timezone.utc)
         db.commit()
         db.refresh(run)
         return run

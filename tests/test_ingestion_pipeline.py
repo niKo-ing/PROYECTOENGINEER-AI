@@ -67,3 +67,76 @@ def test_validator_rejects_invalid_normalized_offers_without_writing_catalog():
         pass
     else:
         raise AssertionError("La oferta inválida debía ser rechazada")
+
+
+def test_product_image_persisted_on_create():
+    with Session() as db:
+        reset(db)
+        service = CatalogIngestionService(db)
+        connector = MockStoreConnector(
+            store_name="Tienda A", store_domain="a.mock", price=100000,
+            external_id="a-product-a", image_url="https://cdn.example.com/a.jpg",
+        )
+        report = IngestionPipeline(service).run(connector)
+        assert not report.errors
+        assert len(report.outcomes) == 1
+        assert report.outcomes[0].product_created
+        product = db.query(Product).one()
+        assert product.image_url == "https://cdn.example.com/a.jpg"
+
+
+def test_product_image_backfilled_on_match_when_missing():
+    with Session() as db:
+        reset(db)
+        service = CatalogIngestionService(db)
+        first = MockStoreConnector(store_name="Tienda A", store_domain="a.mock", price=100000, external_id="a-product-a")
+        IngestionPipeline(service).run(first)
+        product = db.query(Product).one()
+        assert product.image_url is None
+
+        second = MockStoreConnector(
+            store_name="Tienda B", store_domain="b.mock", price=98000,
+            external_id="b-product-a", image_url="https://cdn.example.com/b.jpg",
+        )
+        report = IngestionPipeline(service).run(second)
+        assert not report.errors
+        assert report.outcomes[0].product_matched
+        db.refresh(product)
+        assert db.query(Product).count() == 1
+        assert product.image_url == "https://cdn.example.com/b.jpg"
+
+
+def test_product_image_not_overwritten_on_match():
+    with Session() as db:
+        reset(db)
+        service = CatalogIngestionService(db)
+        first = MockStoreConnector(
+            store_name="Tienda A", store_domain="a.mock", price=100000,
+            external_id="a-product-a", image_url="https://cdn.example.com/original.jpg",
+        )
+        IngestionPipeline(service).run(first)
+        product = db.query(Product).one()
+        assert product.image_url == "https://cdn.example.com/original.jpg"
+
+        second = MockStoreConnector(
+            store_name="Tienda B", store_domain="b.mock", price=98000,
+            external_id="b-product-a", image_url="https://cdn.example.com/changed.jpg",
+        )
+        report = IngestionPipeline(service).run(second)
+        assert not report.errors
+        assert report.outcomes[0].product_matched
+        db.refresh(product)
+        assert product.image_url == "https://cdn.example.com/original.jpg"
+
+
+def test_product_image_stays_null_when_offer_has_none():
+    with Session() as db:
+        reset(db)
+        service = CatalogIngestionService(db)
+        first = MockStoreConnector(store_name="Tienda A", store_domain="a.mock", price=100000, external_id="a-product-a")
+        IngestionPipeline(service).run(first)
+        second = MockStoreConnector(store_name="Tienda B", store_domain="b.mock", price=98000, external_id="b-product-a")
+        report = IngestionPipeline(service).run(second)
+        assert not report.errors
+        product = db.query(Product).one()
+        assert product.image_url is None

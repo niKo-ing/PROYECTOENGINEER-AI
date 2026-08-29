@@ -26,9 +26,11 @@ class FakeProvider(LLMProvider):
     final: ProviderResponse = field(default_factory=lambda: ProviderResponse(text="Respuesta final."))
     outputs: list[dict] = field(default_factory=list)
     definitions: list[dict] = field(default_factory=list)
+    received_message: str | None = None
 
     def request_tools(self, message: str, tools: list[dict]) -> ProviderResponse:
         self.definitions = tools
+        self.received_message = message
         return self.initial
 
     def generate_final(self, message: str, initial: ProviderResponse, tool_outputs: list[dict]) -> ProviderResponse:
@@ -127,6 +129,42 @@ def test_chat_executes_get_user_profile_for_authenticated_user():
     assert response.status_code == 200
     assert provider.outputs[0]["output"]["display_name"] == "Ana"
     assert "user_id" not in provider.outputs[0]["output"]
+
+
+def test_chat_with_product_context_anchors_request_to_product():
+    reset_database()
+    product_id = add_product()
+    provider = FakeProvider(initial=ProviderResponse(text="Te ayudo con ese producto."))
+    set_context(provider)
+    response = client.post("/api/v1/ai/chat", json={"message": "¿Cuánto cuesta?", "product_id": product_id})
+    assert response.status_code == 200
+    assert provider.received_message is not None
+    assert str(product_id) in provider.received_message
+    assert "Contexto del sistema" in provider.received_message
+
+
+def test_chat_get_user_profile_without_profile_returns_empty_not_error():
+    reset_database()
+    provider = FakeProvider(initial=ProviderResponse(text="", tool_calls=[ToolCall(id="call-1", name="get_user_profile", arguments={})]))
+    set_context(provider, "nobody")
+    response = client.post("/api/v1/ai/chat", json={"message": "¿Cuáles son mis preferencias?"})
+    assert response.status_code == 200
+    output = provider.outputs[0]["output"]
+    assert "error" not in output
+    assert output["display_name"] is None
+    assert output["favorite_categories"] == []
+    assert "inicializado" not in str(output)
+
+
+def test_system_instructions_catalog_completeness_guidance():
+    from app.ai.providers.gemini_provider import SYSTEM_INSTRUCTIONS as GEMINI_SYSTEM
+    from app.ai.providers.openai_provider import SYSTEM_INSTRUCTIONS as OPENAI_SYSTEM
+
+    for instructions in (GEMINI_SYSTEM, OPENAI_SYSTEM):
+        assert "no hay más productos fuera de él" in instructions
+        assert "no está en el catálogo actual" in instructions
+        assert "Nunca hables" in instructions
+        assert "get_user_profile" in instructions
 
 
 def test_unknown_tool_and_invalid_arguments_are_returned_as_safe_tool_errors():

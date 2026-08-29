@@ -14,6 +14,15 @@ from app.ingestion.validation import OfferValidationError, OfferValidator
 
 log = logging.getLogger(__name__)
 
+MAX_DESCRIPTION_LENGTH = 5000
+
+
+def _clip(value: str | None, limit: int = MAX_DESCRIPTION_LENGTH) -> str | None:
+    """Keep store descriptions within the API contract (max 5000 chars)."""
+    if not value:
+        return None
+    return value if len(value) <= limit else value[:limit]
+
 
 @dataclass(frozen=True)
 class IngestionOutcome:
@@ -21,6 +30,8 @@ class IngestionOutcome:
     offer_id: int
     price_changed: bool
     is_new: bool
+    product_created: bool = False
+    product_matched: bool = False
 
 
 class CatalogIngestionService:
@@ -47,13 +58,19 @@ class CatalogIngestionService:
             log.warning("Identity conflict for %s: %s", normalized.product_url, conflict)
 
         match_result = self.matcher.match(normalized, ai_matcher=self.ai_matcher)
+        product_created = False
+        product_matched = False
         if match_result.status == MatchStatus.AMBIGUOUS:
             # Ambiguous: create new product to avoid silent incorrect merges
             product = self._create_product(normalized)
+            product_created = True
         elif match_result.is_match and match_result.product:
             product = match_result.product
+            product_matched = True
+            self._backfill_product_media(product, normalized)
         else:
             product = self._create_product(normalized)
+            product_created = True
         offer = self._find_offer(store.id, normalized)
         price = self._price_to_int(normalized)
         if offer is None:
@@ -97,7 +114,14 @@ class CatalogIngestionService:
                 self._record_history(offer, normalized)
         self.db.commit()
         self.db.refresh(offer)
-        return IngestionOutcome(product_id=product.id, offer_id=offer.id, price_changed=changed, is_new=is_new)
+        return IngestionOutcome(
+            product_id=product.id,
+            offer_id=offer.id,
+            price_changed=changed,
+            is_new=is_new,
+            product_created=product_created,
+            product_matched=product_matched,
+        )
 
     def record_failure(self, store_id: int, external_id: str | None, product_url: str) -> None:
         offer = self._find_offer(store_id, NormalizedOffer(source="failure", external_id=external_id, product_url=product_url, name="failure", brand=None, model=None, mpn=None, gtin=None, sku=None, price=0, previous_price=None, currency="CLP", availability=False, stock=None, image_url=None, category=None, scraped_at=self._now()))
@@ -116,11 +140,53 @@ class CatalogIngestionService:
         return store
 
     def _create_product(self, offer: NormalizedOffer) -> Product:
-        category = self._get_or_create_category(offer.category) if offer.category else None
-        product = Product(name=offer.name, brand=offer.brand, model=offer.model, mpn=offer.mpn, gtin=offer.gtin, manufacturer_sku=offer.sku, image_url=offer.image_url, category_entity=category)
+        category = self._resolve_category(offer.category)
+        product = Product(name=offer.name, brand=offer.brand, model=offer.model, mpn=offer.mpn, gtin=offer.gtin, manufacturer_sku=offer.sku, image_url=offer.image_url, images=offer.images, description=_clip(offer.description), specs=offer.specs, category_entity=category)
         self.db.add(product)
         self.db.flush()
         return product
+
+    @staticmethod
+    def _backfill_product_media(product: Product, offer: NormalizedOffer) -> None:
+        """Fill missing product media during re-ingestion without overwriting valid data."""
+        if not product.image_url and offer.image_url:
+            product.image_url = offer.image_url
+        if not product.images and offer.images:
+            product.images = offer.images
+        if not product.description and offer.description:
+            product.description = _clip(offer.description)
+        if not product.specs and offer.specs:
+            product.specs = offer.specs
+
+    @staticmethod
+    def _is_slug(value: str) -> bool:
+        """A discovery mapped category is a kebab-case slug; manual input is a display name."""
+        return bool(re.fullmatch(r"[a-z0-9]+(?:-[a-z0-9]+)*", value))
+
+    def _resolve_category(self, value: str | None) -> Category | None:
+        """Choose category resolution by origin: discovery slots resolve by slug,
+        manual display names by name."""
+        if not value:
+            return None
+        if self._is_slug(value):
+            return self._get_or_create_category_by_slug(value)
+        return self._get_or_create_category(value)
+
+    def _get_or_create_category_by_slug(self, slug: str) -> Category:
+        """Resolve a discovery mapped category by its internal slug.
+
+        Reuses the exact existing row when present, otherwise creates it with
+        the given slug and a humanized name. The unique slug constraint
+        guarantees no duplicates.
+        """
+        category = self.db.scalar(select(Category).where(Category.slug == slug))
+        if category:
+            return category
+        name = slug.replace("-", " ").strip().title() or slug
+        category = Category(name=name, slug=slug)
+        self.db.add(category)
+        self.db.flush()
+        return category
 
     def _get_or_create_category(self, name: str) -> Category:
         category = self.db.scalar(select(Category).where(Category.name == name))

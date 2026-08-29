@@ -118,6 +118,7 @@ class ProductMatcher:
         brand = getattr(incoming, "brand", None)
         model = getattr(incoming, "model", None)
         sku = getattr(incoming, "sku", None)
+        sku_is_identity = getattr(incoming, "sku_is_identity", False)
         name = getattr(incoming, "name", None)
 
         # Strategy 1: GTIN (strongest)
@@ -131,7 +132,7 @@ class ProductMatcher:
             return result
 
         # Strategy 3: manufacturer_sku (only if it looks like a manufacturer ID)
-        result = self.match_by_manufacturer_sku(sku, brand)
+        result = self.match_by_manufacturer_sku(sku, brand, sku_is_identity)
         if result.status != MatchStatus.NO_MATCH:
             return result
 
@@ -268,26 +269,28 @@ class ProductMatcher:
         return MatchResult(status=MatchStatus.NO_MATCH)
 
     def match_by_manufacturer_sku(
-        self, sku: str | None, brand: str | None
+        self, sku: str | None, brand: str | None, numeric_is_identity: bool = False
     ) -> MatchResult:
         """Match by manufacturer SKU + brand.
 
         Only matches if the SKU looks like a manufacturer identifier
-        (not a store-internal numeric ID).
+        (not a store-internal numeric ID), UNLESS the source declared its
+        numeric SKUs as reliable identity (numeric_is_identity=True).
         """
         norm_sku = normalize_manufacturer_sku(sku)
         if not norm_sku:
             return MatchResult(status=MatchStatus.NO_MATCH)
 
-        # Skip pure numeric IDs — those are store-internal
-        if norm_sku.isdigit():
-            return MatchResult(status=MatchStatus.NO_MATCH)
+        if not numeric_is_identity:
+            # Skip pure numeric IDs — those are store-internal
+            if norm_sku.isdigit():
+                return MatchResult(status=MatchStatus.NO_MATCH)
 
-        # Must contain letters + digits (manufacturer SKU pattern)
-        has_alpha = any(c.isalpha() for c in norm_sku)
-        has_digit = any(c.isdigit() for c in norm_sku)
-        if not (has_alpha and has_digit):
-            return MatchResult(status=MatchStatus.NO_MATCH)
+            # Must contain letters + digits (manufacturer SKU pattern)
+            has_alpha = any(c.isalpha() for c in norm_sku)
+            has_digit = any(c.isdigit() for c in norm_sku)
+            if not (has_alpha and has_digit):
+                return MatchResult(status=MatchStatus.NO_MATCH)
 
         norm_brand = normalize_brand(brand)
         if norm_brand:

@@ -41,15 +41,29 @@ class IngestionScheduler:
         self._job_ids: list[str] = []
 
     def start(self) -> None:
-        """Read enabled stores from DB and register a job for each."""
+        """Read enabled stores from DB and register a job for each.
+
+        Gracefully degrades if the database schema is not yet migrated
+        (e.g. sync_enabled column missing).  The app can still serve
+        requests; the scheduler will simply not start any sync jobs.
+        """
         db = self._session_factory()
         try:
             from app.models.catalog import Store
             from sqlalchemy import select
 
-            stores = db.scalars(
-                select(Store).where(Store.sync_enabled == True, Store.sync_interval_min.isnot(None))
-            ).all()
+            try:
+                stores = db.scalars(
+                    select(Store).where(Store.sync_enabled == True, Store.sync_interval_min.isnot(None))
+                ).all()
+            except Exception as exc:
+                log.warning(
+                    "Cannot query store sync configuration "
+                    "(database schema may need migration): %s",
+                    exc,
+                )
+                db.rollback()
+                return
 
             for store in stores:
                 interval = store.sync_interval_min or 30

@@ -8,7 +8,15 @@ from openai import APIConnectionError, APIStatusError, APITimeoutError, OpenAI
 from app.ai.providers.base import LLMProvider, ProviderError, ProviderInvalidResponseError, ProviderResponse, ProviderTimeoutError, ToolCall, Usage
 
 logger = logging.getLogger(__name__)
-SYSTEM_INSTRUCTIONS = "Responde en español. Usa herramientas solo cuando necesites datos del catálogo o perfil. No inventes productos, precios ni preferencias."
+SYSTEM_INSTRUCTIONS = (
+    "Responde en español basándote solo en los datos del catálogo y las herramientas. "
+    "No inventes productos, precios ni preferencias. "
+    "Cuando la búsqueda no devuelva resultados, o el usuario pregunte por tiendas, "
+    "categorías o marcas que no están en el catálogo, respondé que ese artículo/tienda "
+    "no está en el catálogo actual y que no hay más productos fuera de él. "
+    "Nunca hables de 'iniciar sesión', 'cuenta', 'perfil' ni 'sesión'. "
+    "Usá get_user_profile únicamente si el usuario pregunta por sus preferencias o presupuesto personales."
+)
 
 
 class OpenAIProvider(LLMProvider):

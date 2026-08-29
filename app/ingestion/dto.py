@@ -24,3 +24,13 @@ class NormalizedOffer:
     image_url: str | None
     category: str | None
     scraped_at: datetime
+    # True when this source declares numeric IDs as reliable manufacturer identity.
+    # Allows numeric manufacturer_sku to be used for exact matching instead of
+    # being discarded as a store-internal ID. Defaults to False (store-internal).
+    sku_is_identity: bool = False
+    # Ordered gallery of product image URLs (beyond image_url).
+    images: list[str] | None = None
+    # Description provided by the store (never AI-generated).
+    description: str | None = None
+    # Structured technical sheet {highlights, sections} (LLM extractor output).
+    specs: dict | None = None

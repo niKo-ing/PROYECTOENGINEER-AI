@@ -5,7 +5,7 @@ import sys
 from pathlib import Path
 
 
-def test_alembic_migrates_legacy_products_without_dropping_legacy_columns(tmp_path: Path):
+def test_alembic_migrates_then_drops_legacy_products_columns(tmp_path: Path):
     database = tmp_path / "legacy.db"
     connection = sqlite3.connect(database)
     connection.executescript("""
@@ -19,8 +19,10 @@ def test_alembic_migrates_legacy_products_without_dropping_legacy_columns(tmp_pa
     subprocess.run([sys.executable, "-m", "alembic", "upgrade", "head"], cwd=Path(__file__).parents[1], env=environment, check=True, capture_output=True, text=True)
 
     connection = sqlite3.connect(database)
-    product = connection.execute("SELECT category, price_clp, category_id FROM products WHERE id = 1").fetchone()
-    assert product == ("Notebooks", 100000, 1)
+    columns = [row[0] for row in connection.execute("PRAGMA table_info(products)").fetchall()]
+    assert "category" not in columns, "legacy category column should be dropped"
+    assert "price_clp" not in columns, "legacy price_clp column should be dropped"
+    assert connection.execute("SELECT category_id FROM products WHERE id = 1").fetchone() == (1,)
     assert connection.execute("SELECT price FROM store_offers").fetchone()[0] == 100000
     assert connection.execute("SELECT price FROM price_history").fetchone()[0] == 100000
     connection.close()

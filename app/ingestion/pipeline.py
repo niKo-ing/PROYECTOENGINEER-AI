@@ -60,7 +60,7 @@ class IngestionPipeline:
         self.category_filter = category_filter
         self.eligibility_enabled = eligibility_enabled
 
-    def run(self, connector: StoreConnector) -> IngestionReport:
+    def run(self, connector: StoreConnector, max_products: int = 0) -> IngestionReport:
         report = IngestionReport()
         start = time.monotonic()
 
@@ -93,6 +93,12 @@ class IngestionPipeline:
                     report.offers_created += 1
                 else:
                     report.offers_updated += 1
+                if outcome.product_created:
+                    report.products_created += 1
+                if outcome.product_matched:
+                    report.products_matched += 1
+                if max_products > 0 and len(report.outcomes) >= max_products:
+                    break
             except OfferValidationError as error:
                 report.errors.append(str(error))
                 report.validation_errors += 1

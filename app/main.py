@@ -152,7 +152,10 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
         session_factory=SessionLocal,
         job_callback=_run_store_sync,
     )
-    scheduler.start()
+    try:
+        scheduler.start()
+    except Exception:
+        log.warning("Ingestion scheduler could not start", exc_info=True)
     app.state.ingestion_scheduler = scheduler
     try:
         yield

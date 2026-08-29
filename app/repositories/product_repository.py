@@ -1,8 +1,9 @@
 import re
 
-from sqlalchemy import func, select
+from sqlalchemy import and_, func, or_, select
 from sqlalchemy.orm import Session, selectinload
 
+from app.catalog.synonyms import expand_query
 from app.models.catalog import Category, Product, Store, StoreOffer
 from app.schemas.product import ProductCreate
 
@@ -35,8 +36,21 @@ class ProductRepository:
         statement = select(Product).join(StoreOffer).outerjoin(Category)
         filters = []
         if query:
-            needle = f"%{query.strip()}%"
-            filters.append(Product.name.ilike(needle) | Product.brand.ilike(needle) | Product.model.ilike(needle))
+            token_sets = expand_query(query)
+            if token_sets:
+                token_conditions = [
+                    or_(
+                        *(
+                            Product.name.ilike(f"%{term}%")
+                            | Product.brand.ilike(f"%{term}%")
+                            | Product.model.ilike(f"%{term}%")
+                            | Category.name.ilike(f"%{term}%")
+                            for term in token_set
+                        )
+                    )
+                    for token_set in token_sets
+                ]
+                filters.append(and_(*token_conditions))
         if category:
             filters.append(Category.name.ilike(category.strip()))
         if brand:

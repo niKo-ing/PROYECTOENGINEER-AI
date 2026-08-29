@@ -24,6 +24,7 @@ class RawProductData:
     product_id: str | None = None
     product_url: str | None = None
     image_url: str | None = None
+    images: list[str] = field(default_factory=list)
     description: str | None = None
     seller: str | None = None
     sources: list[str] = field(default_factory=list)
@@ -118,10 +119,22 @@ class ParisRSCParser:
             product_id=primary.product_id or secondary.product_id,
             product_url=primary.product_url or secondary.product_url,
             image_url=primary.image_url or secondary.image_url,
+            images=ParisRSCParser._dedupe(primary.images + secondary.images),
             description=primary.description or secondary.description,
             seller=primary.seller or secondary.seller,
             sources=primary.sources + secondary.sources,
         )
+
+    @staticmethod
+    def _dedupe(values: list[str]) -> list[str]:
+        seen: set[str] = set()
+        result: list[str] = []
+        for value in values:
+            if not value or value in seen:
+                continue
+            seen.add(value)
+            result.append(value)
+        return result
 
     def _find_jsonld_product(self, chunks: list[str]) -> dict[str, Any] | None:
         for chunk in chunks:
@@ -175,6 +188,7 @@ class ParisRSCParser:
         mpn = data.get("mpn")
         sku = data.get("sku") or data.get("productID")
         image_url = self._extract_image(data)
+        images = self._extract_images(data)
         product_url = offer_url or data.get("url")
         description = data.get("description")
 
@@ -190,6 +204,7 @@ class ParisRSCParser:
             product_id=sku,
             product_url=product_url,
             image_url=image_url,
+            images=images,
             description=description,
             seller=seller,
             sources=["json-ld"],
@@ -202,6 +217,7 @@ class ParisRSCParser:
         price = None
         currency = None
         image_url = None
+        image_urls: list[str] = []
 
         mv = data.get("masterVariant", {})
         if isinstance(mv, dict):
@@ -220,10 +236,11 @@ class ParisRSCParser:
                         pass
                 currency = value.get("currencyCode")
             images = mv.get("images", [])
-            if isinstance(images, list) and images:
-                first = images[0]
-                if isinstance(first, dict):
-                    image_url = first.get("url")
+            if isinstance(images, list):
+                for image in images:
+                    if isinstance(image, dict) and isinstance(image.get("url"), str):
+                        image_urls.append(image["url"])
+            image_url = image_urls[0] if image_urls else None
 
         product_url = None
         slug = data.get("slug")
@@ -245,6 +262,7 @@ class ParisRSCParser:
             product_id=key or sku,
             product_url=product_url,
             image_url=image_url,
+            images=image_urls,
             sources=["rsc-product"],
         )
 
@@ -308,6 +326,22 @@ class ParisRSCParser:
             if isinstance(first, str):
                 return first
         return None
+
+    def _extract_images(self, data: dict[str, Any]) -> list[str]:
+        images: list[str] = []
+        img = data.get("image")
+        if isinstance(img, str):
+            images.append(img)
+        elif isinstance(img, list):
+            images.extend(u for u in img if isinstance(u, str))
+        for item in data.get("images", []):
+            if isinstance(item, str):
+                images.append(item)
+            elif isinstance(item, dict):
+                url = item.get("url")
+                if isinstance(url, str):
+                    images.append(url)
+        return self._dedupe(images)
 
     def _parse_price(self, value: Any) -> Decimal | None:
         if value is None:

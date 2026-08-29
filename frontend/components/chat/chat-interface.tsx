@@ -1,90 +1,237 @@
 "use client";
 
-import { FormEvent, KeyboardEvent, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { Info, Sparkles } from "lucide-react";
 
-import { sendChatMessage } from "@/lib/api/chat";
+import { MarkdownContent } from "@/components/chat/markdown-content";
+import { ProductRecommendations } from "@/components/chat/product-recommendations";
+import { SuggestionChips } from "@/components/chat/suggestion-chips";
+import { ChatComposer } from "@/components/chat/chat-composer";
+import { TypingIndicator } from "@/components/chat/typing-indicator";
+import {
+  buildProductContext,
+  isProbablyCatalogQuery,
+  sendCatalogAwareMessage,
+  type CatalogReference,
+} from "@/lib/api/ai";
+import type { ProductRead } from "@/types/product";
 
 type ChatMessage = {
   id: string;
   role: "user" | "assistant";
   text: string;
   toolsUsed?: string[];
+  references?: CatalogReference[];
+  products?: ProductRead[];
 };
 
 type ChatInterfaceProps = {
   accessToken: string;
+  productId?: number | null;
+  productName?: string | null;
 };
 
-export function ChatInterface({ accessToken }: ChatInterfaceProps) {
+export function ChatInterface({ accessToken, productId, productName }: ChatInterfaceProps) {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [draft, setDraft] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [isLoadingContext, setIsLoadingContext] = useState(() => Boolean(productId));
   const [error, setError] = useState("");
+  const [thinkingLabel, setThinkingLabel] = useState("");
+  const scrollRef = useRef<HTMLDivElement>(null);
 
-  async function submit() {
-    const message = draft.trim();
-    if (!message || isLoading) return;
+  useEffect(() => {
+    if (!productId) return;
+    let cancelled = false;
+    void (async () => {
+      try {
+        const context = await buildProductContext(productId);
+        if (cancelled) return;
+        setMessages([
+          {
+            id: "product-context",
+            role: "assistant",
+            text: context.intro,
+            references: context.references,
+            products: context.products,
+          },
+        ]);
+      } catch {
+        if (cancelled) return;
+        setMessages([
+          {
+            id: "product-context",
+            role: "assistant",
+            text: `Podés preguntarme por el precio, las ofertas o el historial de "${productName ?? `#${productId}`}".`,
+          },
+        ]);
+      } finally {
+        if (!cancelled) setIsLoadingContext(false);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [productId, productName]);
+
+  useEffect(() => {
+    const element = scrollRef.current;
+    if (!element) return;
+    element.scrollTo({ top: element.scrollHeight, behavior: "smooth" });
+  }, [messages, isLoading, isLoadingContext]);
+
+  async function submit(message = draft) {
+    const trimmed = message.trim();
+    if (!trimmed || isLoading) return;
+    const isCatalog = isProbablyCatalogQuery(trimmed, productId);
 
     setDraft("");
     setError("");
-    setMessages((current) => [...current, { id: crypto.randomUUID(), role: "user", text: message }]);
+    setThinkingLabel(isCatalog ? "Buscando en el catálogo…" : "Consultando al asistente…");
+    setMessages((current) => [...current, { id: crypto.randomUUID(), role: "user", text: trimmed }]);
     setIsLoading(true);
+
     try {
-      const result = await sendChatMessage(message, accessToken);
-      setMessages((current) => [...current, { id: crypto.randomUUID(), role: "assistant", text: result.answer, toolsUsed: result.tools_used }]);
+      const result = await sendCatalogAwareMessage(trimmed, accessToken, productId);
+      setMessages((current) => [
+        ...current,
+        {
+          id: crypto.randomUUID(),
+          role: "assistant",
+          text: result.answer,
+          toolsUsed: result.tools_used.length > 0 ? result.tools_used : undefined,
+          references: result.catalog.references.length > 0 ? result.catalog.references : undefined,
+          products: result.catalog.products.length > 0 ? result.catalog.products : undefined,
+        },
+      ]);
     } catch (requestError) {
       setError(requestError instanceof Error ? requestError.message : "No fue posible enviar el mensaje.");
     } finally {
       setIsLoading(false);
+      setThinkingLabel("");
     }
   }
 
-  function handleSubmit(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    void submit();
-  }
-
-  function handleKeyDown(event: KeyboardEvent<HTMLTextAreaElement>) {
-    if (event.key === "Enter" && !event.shiftKey) {
-      event.preventDefault();
-      void submit();
+  const lastAssistant = useMemo(() => {
+    for (let index = messages.length - 1; index >= 0; index -= 1) {
+      const message = messages[index];
+      if (message.role === "assistant") return message;
     }
-  }
+    return undefined;
+  }, [messages]);
+
+  const recommendations = useMemo(
+    () => lastAssistant?.products ?? [],
+    [lastAssistant]
+  );
+
+  const hasConversation = messages.length > 0;
+  const contextLoading = isLoadingContext && !hasConversation;
 
   return (
-    <section className="flex min-h-[580px] flex-col overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm">
-      <div className="border-b border-slate-100 px-5 py-4 sm:px-7">
-        <h1 className="text-lg font-semibold text-slate-950">Asistente de compras</h1>
-        <p className="mt-1 text-sm text-slate-500">Consulta productos y precios disponibles en SoloTodo.</p>
-      </div>
-
-      <div className="flex-1 space-y-5 overflow-y-auto px-5 py-6 sm:px-7" aria-live="polite">
-        {messages.length === 0 && (
-          <div className="mx-auto mt-16 max-w-sm text-center">
-            <div className="mx-auto flex size-12 items-center justify-center rounded-2xl bg-indigo-100 text-xl" aria-hidden="true">✦</div>
-            <h2 className="mt-4 text-lg font-semibold text-slate-900">¿Qué estás buscando?</h2>
-            <p className="mt-2 text-sm leading-6 text-slate-500">Describe el producto, categoría o presupuesto que te interesa.</p>
+    <div className="grid items-start gap-5 lg:grid-cols-[minmax(0,1fr)_320px]">
+      <section className="flex h-[70vh] min-h-[520px] flex-col overflow-hidden rounded-3xl border bg-card shadow-sm lg:h-[calc(100dvh-8.5rem)]">
+        <header className="flex items-center gap-3 border-b px-5 py-4 sm:px-6">
+          <div className="flex size-9 items-center justify-center rounded-xl bg-primary/10 text-primary" aria-hidden="true">
+            <Sparkles className="size-4" />
           </div>
-        )}
-        {messages.map((message) => (
-          <article key={message.id} className={`flex ${message.role === "user" ? "justify-end" : "justify-start"}`}>
-            <div className={`max-w-[88%] rounded-2xl px-4 py-3 text-sm leading-6 sm:max-w-[75%] ${message.role === "user" ? "rounded-br-md bg-slate-950 text-white" : "rounded-bl-md bg-slate-100 text-slate-800"}`}>
-              <p className="whitespace-pre-wrap">{message.text}</p>
-              {message.toolsUsed && message.toolsUsed.length > 0 && <p className="mt-2 border-t border-slate-200 pt-2 text-xs text-slate-500">Consultó: {message.toolsUsed.join(", ")}</p>}
-            </div>
-          </article>
-        ))}
-        {isLoading && <div className="flex items-center gap-2 text-sm text-slate-500"><span className="size-2 animate-pulse rounded-full bg-indigo-500" /><span>Gemini está consultando SoloTodo…</span></div>}
-      </div>
+          <div className="min-w-0">
+            <h1 className="text-base font-semibold tracking-tight text-foreground">SoloTodo AI</h1>
+            <p className="truncate text-xs text-muted-foreground">
+              Tu asistente para encontrar y comparar productos
+            </p>
+          </div>
+          {productName ? (
+            <span className="ml-auto hidden max-w-48 truncate rounded-full bg-muted px-3 py-1 text-xs font-medium text-muted-foreground sm:inline-block">
+              {productName}
+            </span>
+          ) : null}
+        </header>
 
-      <form className="border-t border-slate-100 p-4 sm:p-5" onSubmit={handleSubmit}>
-        {error && <p className="mb-3 rounded-xl bg-rose-50 px-3 py-2 text-sm text-rose-700" role="alert">{error}</p>}
-        <div className="flex items-end gap-3 rounded-2xl border border-slate-300 bg-white p-2 transition focus-within:border-indigo-500 focus-within:ring-4 focus-within:ring-indigo-100">
-          <textarea className="min-h-11 flex-1 resize-none bg-transparent px-2 py-2 text-sm outline-none placeholder:text-slate-400" rows={1} placeholder="Ej. notebook para programación por menos de $800.000" value={draft} onChange={(event) => setDraft(event.target.value)} onKeyDown={handleKeyDown} disabled={isLoading} aria-label="Mensaje para el asistente" />
-          <button className="rounded-xl bg-indigo-600 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-indigo-700 disabled:cursor-not-allowed disabled:opacity-50" type="submit" disabled={!draft.trim() || isLoading}>Enviar</button>
+        <div
+          ref={scrollRef}
+          role="log"
+          aria-live="polite"
+          aria-label="Conversación con el asistente"
+          className="flex-1 space-y-5 overflow-y-auto overscroll-contain px-4 py-6 sm:px-6"
+        >
+          {!hasConversation && (
+            <div className="mx-auto mt-10 max-w-md px-2 text-center">
+              <div className="mx-auto flex size-12 items-center justify-center rounded-2xl bg-primary/10 text-primary" aria-hidden="true">
+                <Sparkles className="size-5" />
+              </div>
+              <h2 className="mt-4 text-lg font-semibold tracking-tight text-foreground">
+                ¿Qué estás buscando hoy?
+              </h2>
+              <p className="mt-2 text-sm leading-6 text-muted-foreground">
+                Buscá productos, compará precios o preguntá por el historial de una oferta. Estas
+                sugerencias te muestran por dónde empezar.
+              </p>
+              <div className="mt-6">
+                <SuggestionChips onPick={(text) => void submit(text)} />
+              </div>
+            </div>
+          )}
+
+          {messages.map((message) =>
+            message.role === "user" ? (
+              <article
+                key={message.id}
+                className="animate-message-in flex justify-end"
+              >
+                <div className="max-w-[92%] rounded-2xl rounded-br-md bg-primary px-4 py-2.5 text-sm leading-6 text-primary-foreground shadow-sm sm:max-w-[78%]">
+                  <p className="whitespace-pre-wrap">{message.text}</p>
+                </div>
+              </article>
+            ) : (
+              <article key={message.id} className="animate-message-in flex items-start gap-2.5">
+                <div
+                  className="mt-1 flex size-7 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary"
+                  aria-hidden="true"
+                >
+                  <Sparkles className="size-4" />
+                </div>
+                <div className="min-w-0 max-w-[92%] flex-1 rounded-2xl rounded-bl-md bg-muted px-4 py-3 sm:max-w-[82%] lg:max-w-[78%]">
+                  <MarkdownContent markdown={message.text} />
+                  {message.toolsUsed && message.toolsUsed.length > 0 ? (
+                    <div className="mt-2.5 flex flex-wrap gap-1.5 border-t border-border/70 pt-2.5">
+                      {message.toolsUsed.map((tool) => (
+                        <span key={tool} className="rounded-full bg-background px-2 py-0.5 text-[11px] font-medium text-muted-foreground">
+                          {tool}
+                        </span>
+                      ))}
+                    </div>
+                  ) : null}
+                </div>
+              </article>
+            )
+          )}
+
+          {isLoading ? <TypingIndicator label={thinkingLabel} /> : null}
+
+          {contextLoading ? (
+            <div className="animate-message-in flex items-center gap-2 text-sm text-muted-foreground">
+              <Info className="size-4 text-primary/70" aria-hidden="true" />
+              Cargando el contexto real del producto desde el catálogo…
+            </div>
+          ) : null}
+
+          {error ? (
+            <div className="animate-message-in rounded-xl border border-destructive/40 bg-destructive/10 px-4 py-2.5 text-sm text-destructive" role="alert">
+              {error}
+            </div>
+          ) : null}
         </div>
-        <p className="mt-2 px-2 text-xs text-slate-400">Enter para enviar · Shift + Enter para una nueva línea</p>
-      </form>
-    </section>
+
+        <ChatComposer
+          draft={draft}
+          isLoading={isLoading}
+          onChange={setDraft}
+          onSend={() => void submit()}
+        />
+      </section>
+
+      <ProductRecommendations products={recommendations} messageId={lastAssistant?.id} />
+    </div>
   );
 }

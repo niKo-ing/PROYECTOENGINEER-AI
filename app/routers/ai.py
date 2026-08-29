@@ -24,4 +24,4 @@ def execute_tool(payload: ToolExecutionRequest, user: CurrentUser, db: DbSession
 
 @router.post("/chat", response_model=ChatResponse)
 def chat(payload: ChatRequest, user: CurrentUser, db: DbSession, provider: Annotated[LLMProvider, Depends(get_llm_provider)]):
-    return ChatService(db, user, provider).chat(payload.message)
+    return ChatService(db, user, provider).chat(payload.message, product_id=payload.product_id)

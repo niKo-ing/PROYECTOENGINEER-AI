@@ -19,6 +19,24 @@ class StoreConnector(ABC):
     store_type: StoreType = StoreType.RETAILER
     max_concurrent: int = 1
     request_delay: float = 0.0
+    # True when this source declares its numeric SKUs/IDs as reliable
+    # manufacturer identity (not merely store-internal IDs). Subclasses opt in.
+    numeric_sku_is_identity: bool = False
+
+    def __init__(self) -> None:
+        # Maps a discovered product URL to its mapped internal category slug
+        # (provided by discovery mode). When absent, records carry no category.
+        self.url_category_map: dict[str, str] | None = None
+
+    def set_url_category_map(self, url_category_map: dict[str, str]) -> None:
+        self.url_category_map = url_category_map
+
+    def _record_with_category(self, url: str, raw: Any) -> Mapping[str, Any]:
+        """Build an extraction record, attaching the mapped category slug if known."""
+        record: dict[str, Any] = {"url": url, "raw": raw}
+        if self.url_category_map and url in self.url_category_map:
+            record["category"] = self.url_category_map[url]
+        return record
 
     @abstractmethod
     def extract(self) -> Iterable[Mapping[str, Any]]:
@@ -57,12 +75,13 @@ class StoreConnector(ABC):
 class MockStoreConnector(StoreConnector):
     """Test-only connector; it demonstrates the connector contract without network I/O."""
 
-    def __init__(self, *, store_name: str, store_domain: str, price: int, external_id: str):
+    def __init__(self, *, store_name: str, store_domain: str, price: int, external_id: str, image_url: str | None = None):
         self.store_name = store_name
         self.store_domain = store_domain
         self.source_name = f"mock:{store_domain}"
         self._price = price
         self._external_id = external_id
+        self._image_url = image_url
 
     def extract(self) -> Iterable[Mapping[str, Any]]:
         return [{"price": self._price, "external_id": self._external_id}]
@@ -83,7 +102,7 @@ class MockStoreConnector(StoreConnector):
             currency="CLP",
             availability=True,
             stock="in_stock",
-            image_url=None,
+            image_url=self._image_url,
             category="Notebooks",
             scraped_at=datetime.now(timezone.utc),
         )

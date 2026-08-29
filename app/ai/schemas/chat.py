@@ -3,6 +3,7 @@ from pydantic import BaseModel, Field
 
 class ChatRequest(BaseModel):
     message: str = Field(min_length=1, max_length=2_000)
+    product_id: int | None = Field(default=None, ge=1)
 
 
 class ChatUsage(BaseModel):

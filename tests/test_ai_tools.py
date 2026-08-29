@@ -73,7 +73,17 @@ def test_search_products_tool_returns_compact_filtered_results():
     assert response.status_code == 200
     data = response.json()["data"]
     assert data["total"] == 1
-    assert data["items"][0] == {"id": data["items"][0]["id"], "name": "Notebook Gamer", "category": "notebook", "price_clp": 899990, "rating": 4.5}
+    assert data["items"][0] == {
+        "id": data["items"][0]["id"],
+        "name": "Notebook Gamer",
+        "category": "notebook",
+        "price_clp": 899990,
+        "rating": 4.5,
+        "brand": None,
+        "lowest_price": 899990,
+        "lowest_price_store": "Tienda Notebook Gamer",
+        "offer_count": 1,
+    }
 
 
 def test_get_product_tool_returns_product_summary():
@@ -118,6 +128,22 @@ def test_get_user_profile_tool_uses_authenticated_identity_only():
     assert response.status_code == 200
     assert response.json()["data"]["display_name"] == "Ana"
     assert "user_id" not in response.json()["data"]
+
+
+def test_get_user_profile_tool_without_profile_returns_empty_not_error():
+    reset_database()
+    set_user("nobody")
+
+    response = client.post("/api/v1/ai/tools", json={"tool": "get_user_profile", "parameters": {}})
+    assert response.status_code == 200
+    data = response.json()["data"]
+    assert data["display_name"] is None
+    assert data["typical_budget_clp"] is None
+    assert data["favorite_categories"] == []
+    assert data["favorite_brands"] == []
+    assert data["rejected_brands"] == []
+    assert data["shopping_preferences"] == {}
+    assert "inicializado" not in str(response.json())
 
 
 def test_unregistered_tool_and_invalid_parameters_are_rejected():

@@ -16,6 +16,7 @@ class ToolExecutionResult(BaseModel):
 class SearchProductsInput(BaseModel):
     query: str | None = Field(default=None, min_length=1, max_length=120)
     category: str | None = Field(default=None, min_length=1, max_length=100)
+    brand: str | None = Field(default=None, min_length=1, max_length=100)
     min_price_clp: int | None = Field(default=None, ge=0)
     max_price_clp: int | None = Field(default=None, ge=0)
     limit: int = Field(default=10, ge=1, le=20)
@@ -51,6 +52,10 @@ class ProductToolResult(BaseModel):
     category: str
     price_clp: int
     rating: float | None
+    brand: str | None = None
+    lowest_price: int | None = None
+    lowest_price_store: str | None = None
+    offer_count: int = 0
 
 
 class UserProfileToolResult(BaseModel):

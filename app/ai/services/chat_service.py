@@ -14,9 +14,10 @@ class ChatService:
         self.tool_engine = AIEngine(db, user)
         self.provider = provider
 
-    def chat(self, message: str) -> ChatResponse:
+    def chat(self, message: str, product_id: int | None = None) -> ChatResponse:
+        prompt = self._with_product_context(message, product_id)
         try:
-            initial = self.provider.request_tools(message, self.tool_engine.tool_definitions())
+            initial = self.provider.request_tools(prompt, self.tool_engine.tool_definitions())
             if not initial.tool_calls:
                 return self._response(initial.text, [], initial.usage)
 
@@ -31,10 +32,21 @@ class ChatService:
                 except HTTPException as error:
                     outputs.append({"call_id": call.id, "name": call.name, "output": {"error": {"code": error.status_code, "detail": error.detail}}})
 
-            final = self.provider.generate_final(message, initial, outputs)
+            final = self.provider.generate_final(prompt, initial, outputs)
             return self._response(final.text, used_tools, self._combine_usage(initial.usage, final.usage))
         except ProviderError as error:
             raise HTTPException(status_code=error.status_code, detail=error.detail) from error
+
+    @staticmethod
+    def _with_product_context(message: str, product_id: int | None) -> str:
+        if product_id is None:
+            return message
+        return (
+            f"{message}\n\n"
+            f"[Contexto del sistema: el usuario consulta desde la página del producto con id {product_id}. "
+            f"Si su pregunta se refiere a 'este producto' o al producto, usá ese id con los tools del catálogo. "
+            f"No inventes datos.]"
+        )
 
     def _response(self, text: str, tools_used: list[str], usage: Usage | None) -> ChatResponse:
         if not text.strip():

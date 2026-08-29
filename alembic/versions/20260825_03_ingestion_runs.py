@@ -53,7 +53,7 @@ def upgrade() -> None:
     # ── Configure existing stores for periodic sync ──
     op.execute(
         sa.text(
-            "UPDATE stores SET sync_enabled = 1, sync_interval_min = 30 "
+            "UPDATE stores SET sync_enabled = TRUE, sync_interval_min = 30 "
             "WHERE domain IN ('www.spdigital.cl', 'www.paris.cl')"
         )
     )
