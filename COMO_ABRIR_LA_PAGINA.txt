@@ -1,0 +1,76 @@
+COMO ABRIR SOLOTODO AI
+
+1. Backend
+
+Desde la raiz del proyecto:
+
+  .venv/bin/uvicorn app.main:app --host 127.0.0.1 --port 8000
+
+Verificar que funciona:
+
+  http://127.0.0.1:8000/health
+
+API principal:
+
+  http://127.0.0.1:8000/api/v1/products
+
+
+2. Frontend
+
+En otra terminal, entrar a la carpeta frontend:
+
+  cd frontend
+
+Luego iniciar Next.js:
+
+  pnpm dev
+
+Abrir la pagina:
+
+  http://127.0.0.1:3000
+
+
+3. Paginas utiles
+
+Home:
+
+  http://127.0.0.1:3000
+
+Busqueda/catalogo:
+
+  http://127.0.0.1:3000/search
+
+Producto ejemplo:
+
+  http://127.0.0.1:3000/product/49
+
+Chat:
+
+  http://127.0.0.1:3000/chat
+
+Login:
+
+  http://127.0.0.1:3000/login
+
+Registro:
+
+  http://127.0.0.1:3000/register
+
+
+4. Si quieres usar modo produccion del frontend
+
+Desde frontend:
+
+  pnpm build
+  pnpm start
+
+Luego abrir:
+
+  http://127.0.0.1:3000
+
+
+5. Notas
+
+- Backend debe estar corriendo antes de usar catalogo, producto, ofertas, historial o chat.
+- Frontend usa /api/v1 como proxy/ruta hacia el backend configurado en Next.
+- No cierres la terminal donde esta corriendo cada proceso.

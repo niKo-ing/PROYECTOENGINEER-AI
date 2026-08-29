@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { ShoppingBag, MessageSquareText } from "lucide-react";
+import { MessageSquareText, Settings, ShoppingBag } from "lucide-react";
 import { useState } from "react";
 
 import { Button } from "@/components/ui/button";
@@ -50,6 +50,12 @@ export function SiteHeader() {
             <Link href="/chat">
               <MessageSquareText className="h-4 w-4" />
               <span className="hidden sm:inline">Chat IA</span>
+            </Link>
+          </Button>
+          <Button variant="ghost" asChild className="gap-2">
+            <Link href="/admin">
+              <Settings className="h-4 w-4" />
+              <span className="hidden sm:inline">Admin</span>
             </Link>
           </Button>
           <ProfileMenu />

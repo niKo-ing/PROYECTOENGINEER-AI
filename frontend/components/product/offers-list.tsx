@@ -13,6 +13,14 @@ import {
 } from "@/lib/utils";
 import type { StoreOfferRead } from "@/types/offer";
 
+const CONDITION_LABELS: Record<string, string> = {
+  new: "Nuevo",
+  used: "Usado",
+  semi_new: "Seminuevo",
+  refurbished: "Reacondicionado",
+  open_box: "Open box",
+};
+
 export function OffersList({ offers, isLoading, isError }: { offers: StoreOfferRead[] | undefined; isLoading: boolean; isError: boolean }) {
   if (isLoading) {
     return (
@@ -84,6 +92,7 @@ export function OffersList({ offers, isLoading, isError }: { offers: StoreOfferR
                 {available}
               </span>
               {offer.payment_condition ? <span>{offer.payment_condition}</span> : null}
+              {CONDITION_LABELS[offer.condition] ? <span>Condición: {CONDITION_LABELS[offer.condition]}</span> : null}
               {offer.currency ? <span>Moneda: {offer.currency}</span> : null}
             </div>
 

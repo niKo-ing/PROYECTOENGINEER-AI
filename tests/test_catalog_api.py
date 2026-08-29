@@ -7,7 +7,7 @@ from sqlalchemy.pool import StaticPool
 
 from app.db import Base, get_db
 from app.main import app
-from app.models.catalog import Category, PriceHistory, Product, Store, StoreOffer
+from app.models.catalog import Category, CategorySpecificationDefinition, PriceHistory, Product, ProductSpecValue, ProductSpecValueHistory, Store, StoreOffer
 
 engine = create_engine("sqlite://", connect_args={"check_same_thread": False}, poolclass=StaticPool)
 Session = sessionmaker(bind=engine)
@@ -29,7 +29,7 @@ def use_catalog_db():
 
 def reset_catalog():
     with Session() as db:
-        for model in (PriceHistory, StoreOffer, Product, Store, Category):
+        for model in (PriceHistory, StoreOffer, ProductSpecValueHistory, ProductSpecValue, Product, Store, CategorySpecificationDefinition, Category):
             db.execute(delete(model))
         db.commit()
 
@@ -78,3 +78,32 @@ def test_catalog_filters_categories_and_price_history_are_public():
     assert categories.status_code == 200
     assert categories.json()[0]["name"] == "Notebooks"
     assert [item["price"] for item in history.json()] == [99000, 95000]
+
+
+def test_product_endpoint_returns_canonical_specs_grouped_by_definition():
+    use_catalog_db()
+    reset_catalog()
+    with Session() as db:
+        category = Category(name="Notebooks", slug="notebooks")
+        product = Product(name="Notebook X", brand="Lenovo", model="X1", category_entity=category, specs={"sections": []})
+        ram_def = CategorySpecificationDefinition(category=category, key="ram_capacity", label="Capacidad RAM", group="Memoria", data_type="integer", unit="GB", sort_order=10)
+        screen_def = CategorySpecificationDefinition(category=category, key="screen_resolution", label="Resolución pantalla", group="Pantalla", data_type="text", sort_order=20)
+        store = Store(name="Tienda A", domain="a.test")
+        db.add_all([category, product, ram_def, screen_def, store, StoreOffer(product=product, store=store, url="https://a.test/x", price=100000)])
+        db.flush()
+        db.add_all([
+            ProductSpecValue(product=product, definition=ram_def, value_kind="number", value_number=16, unit="GB", raw_value="16 GB", source_type="ai", verification_status="review"),
+            ProductSpecValue(product=product, definition=screen_def, value_kind="text", value_text="1920 × 1080", raw_value="FHD", source_type="ai", verification_status="review"),
+        ])
+        db.commit()
+        product_id = product.id
+
+    response = client.get(f"/api/v1/products/{product_id}")
+
+    assert response.status_code == 200
+    sections = response.json()["canonical_specs"]["sections"]
+    assert sections[0]["title"] == "Información general"
+    by_title = {section["title"]: section for section in sections}
+    assert by_title["Memoria"]["items"][0]["value"] == "16 GB"
+    assert by_title["Memoria"]["items"][0]["verification_status"] == "review"
+    assert by_title["Pantalla"]["items"][0]["value"] == "1920 × 1080"

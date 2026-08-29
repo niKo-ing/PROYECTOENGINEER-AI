@@ -16,7 +16,7 @@ from app.ingestion.connectors.paris.parser import ParisRSCParser, RawProductData
 from app.ingestion.dto import NormalizedOffer
 from app.ingestion.pipeline import IngestionPipeline
 from app.ingestion.service import CatalogIngestionService
-from app.models.catalog import Category, PriceHistory, Product, Store, StoreOffer
+from app.models.catalog import Category, CategorySpecificationDefinition, PriceHistory, Product, Store, StoreOffer
 
 # ---------------------------------------------------------------------------
 # HTML Fixtures — based on real Paris RSC structure
@@ -300,6 +300,10 @@ class TestParisRSCParser:
         assert data.product_url is not None
         assert "paris.cl" in data.product_url
 
+    def test_extracts_condition_from_jsonld_offer(self):
+        data = self.parser.parse(HTML_FULL_PRODUCT)
+        assert data.condition == "https://schema.org/NewCondition"
+
     def test_no_rsc_returns_empty(self):
         data = self.parser.parse(HTML_NO_RSC)
         assert data.name is None
@@ -370,6 +374,7 @@ class TestParisConnectorNormalize:
         assert offer.sku == "607430002"
         assert offer.gtin is None
         assert offer.image_url is not None
+        assert offer.condition == "new"
 
     def test_external_id_uses_sku(self):
         record = self._make_record(HTML_FULL_PRODUCT)
@@ -485,7 +490,7 @@ Base.metadata.create_all(engine)
 
 
 def _reset(db):
-    for model in (PriceHistory, StoreOffer, Product, Store, Category):
+    for model in (PriceHistory, StoreOffer, Product, Store, CategorySpecificationDefinition, Category):
         db.query(model).delete()
     db.commit()
 

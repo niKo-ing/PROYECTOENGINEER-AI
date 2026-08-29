@@ -4,7 +4,7 @@ from sqlalchemy import and_, func, or_, select
 from sqlalchemy.orm import Session, selectinload
 
 from app.catalog.synonyms import expand_query
-from app.models.catalog import Category, Product, Store, StoreOffer
+from app.models.catalog import Category, Product, ProductSpecValue, Store, StoreOffer
 from app.schemas.product import ProductCreate
 
 
@@ -29,7 +29,7 @@ class ProductRepository:
         return self.get(product.id)  # type: ignore[return-value]
 
     def get(self, product_id: int) -> Product | None:
-        statement = select(Product).where(Product.id == product_id).options(selectinload(Product.category_entity), selectinload(Product.offers).selectinload(StoreOffer.store))
+        statement = select(Product).where(Product.id == product_id).options(selectinload(Product.category_entity), selectinload(Product.spec_values).selectinload(ProductSpecValue.definition), selectinload(Product.offers).selectinload(StoreOffer.store))
         return self.db.scalar(statement)
 
     def search(self, *, query: str | None, category: str | None, min_price_clp: int | None, max_price_clp: int | None, limit: int, offset: int, brand: str | None = None) -> tuple[list[Product], int]:
@@ -70,7 +70,7 @@ class ProductRepository:
             self.db.scalars(
                 statement.group_by(Product.id)
                 .order_by(func.min(StoreOffer.price).asc())
-                .options(selectinload(Product.category_entity), selectinload(Product.offers).selectinload(StoreOffer.store))
+                .options(selectinload(Product.category_entity), selectinload(Product.spec_values).selectinload(ProductSpecValue.definition), selectinload(Product.offers).selectinload(StoreOffer.store))
                 .limit(limit)
                 .offset(offset)
             )

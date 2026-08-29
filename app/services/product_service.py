@@ -1,6 +1,7 @@
 from fastapi import HTTPException, status
 from sqlalchemy.orm import Session
 
+from app.catalog.spec_sheet import build_canonical_spec_sheet
 from app.repositories.product_repository import ProductRepository
 from app.repositories.store_offer_repository import StoreOfferRepository
 from app.schemas.product import ProductCreate
@@ -18,10 +19,14 @@ class ProductService:
         product = self.repository.get(product_id)
         if product is None:
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Producto no encontrado")
+        product.canonical_specs = build_canonical_spec_sheet(product)
         return product
 
     def search(self, **filters):
-        return self.repository.search(**filters)
+        products, total = self.repository.search(**filters)
+        for product in products:
+            product.canonical_specs = build_canonical_spec_sheet(product)
+        return products, total
 
     def offers(self, product_id: int):
         self.get(product_id)

@@ -110,11 +110,11 @@ export default function ProductPage() {
                 <Sparkles className="h-3.5 w-3.5" />
                 Descripción generada con IA
               </span>
-              <p className="text-sm leading-relaxed text-foreground sm:text-base">{product.description_ai}</p>
+              <div className="whitespace-pre-line text-sm leading-relaxed text-foreground sm:text-base">{product.description_ai}</div>
             </div>
           ) : null}
 
-          <SpecSheet specs={product.specs} />
+          <SpecSheet canonicalSpecs={product.canonical_specs} specs={product.specs} />
 
           {product.description ? (
             product.description.length > 300 ? (

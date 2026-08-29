@@ -28,6 +28,28 @@ class ProductSpecs(BaseModel):
     sections: list[SpecSection] = Field(default_factory=list)
 
 
+class CanonicalSpecItem(BaseModel):
+    key: str
+    label: str
+    value: str
+    raw_value: str | None = None
+    unit: str | None = None
+    value_kind: str | None = None
+    source_type: str | None = None
+    source_name: str | None = None
+    verification_status: str | None = None
+    conflict_status: str | None = None
+
+
+class CanonicalSpecSection(BaseModel):
+    title: str
+    items: list[CanonicalSpecItem] = Field(default_factory=list)
+
+
+class CanonicalProductSpecs(BaseModel):
+    sections: list[CanonicalSpecSection] = Field(default_factory=list)
+
+
 class ProductRead(ProductCreate):
     model_config = ConfigDict(from_attributes=True)
     id: int
@@ -36,6 +58,7 @@ class ProductRead(ProductCreate):
     images: Annotated[list[str], Field(default_factory=list)]
     description_ai: str | None = None
     specs: ProductSpecs | None = None
+    canonical_specs: CanonicalProductSpecs | None = None
     lowest_price: int | None = None
     lowest_price_store: str | None = None
     offer_count: int = 0
@@ -63,6 +86,7 @@ class StoreOfferRead(BaseModel):
     original_price: int | None
     currency: str
     stock_status: str
+    condition: str
     availability: bool
     payment_condition: str | None
     seller_name: str | None

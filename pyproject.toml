@@ -27,6 +27,7 @@ dev = ["pytest>=8.0,<9.0"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
+pythonpath = ["."]
 markers = [
   "slow: tests that perform real-world or expensive discovery operations",
 ]

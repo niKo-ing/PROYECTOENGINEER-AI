@@ -44,15 +44,19 @@ SYSTEM_INSTRUCTIONS = (
     "2. Si una característica no aparece en el origen, omitela: jamás la anotes como "
     "   'No' o 'Sí'.\n"
     "3. Etiquetas cortas y valor técnico concreto (ej. label 'RAM', value '16 GB DDR5 (4800 MHz)').\n"
-    "4. Agrupa los datos en secciones con títulos típicos según la categoría.\n"
+    "4. Desglosa todo lo explícito: si el origen dice '16GB RAM 512GB SSD 15.6 FHD', crea ítems separados para RAM, almacenamiento, pantalla y resolución.\n"
+    "5. Incluye siempre una sección 'Información general' con marca, modelo/serie, categoría, color o MPN si esos datos están explícitos.\n"
+    "6. Agrupa los datos en secciones con títulos típicos según la categoría.\n"
     "   Notebooks: Procesador, RAM, Almacenamiento, Pantalla, Tarjeta de video, Puertos, "
     "   Batería, Peso y dimensiones, Sistema operativo, Otros.\n"
     "   Celulares: Pantalla, Procesador, RAM, Almacenamiento, Cámara trasera, Cámara "
     "   frontal, Batería y carga, Conectividad, Dimensiones y peso, Sistema operativo, Otros.\n"
-    "5. Incluye solo secciones con al menos un dato real extraído.\n"
-    "6. 'highlights' debe listar las 4 a 6 características que un consumidor busca "
+    "7. Para notebooks intenta separar: procesador/modelo, núcleos si aparecen, RAM/capacidad/tipo, almacenamiento/capacidad/tipo, pantalla/tamaño/resolución/tasa/touch, GPU, sistema operativo, color y MPN.\n"
+    "8. Para celulares intenta separar: pantalla/tamaño/tipo/Hz, procesador, RAM, almacenamiento, cámaras, batería/carga, conectividad, SIM, resistencia, color y dimensiones.\n"
+    "9. Incluye solo secciones con al menos un dato real extraído.\n"
+    "10. 'highlights' debe listar las 5 a 7 características que un consumidor busca "
     "   primero para decidir (al final de arriba).\n"
-    "7. Responde ÚNICAMENTE con un JSON válido con este esquema:\n"
+    "11. Responde ÚNICAMENTE con un JSON válido con este esquema:\n"
     '   {"highlights": [string], "sections": [{"title": string, "items": [{"label": string, "value": string}]}]}\n'
     "   Sin texto adicional, sin comentarios, sin marcas de código."
 )
@@ -79,8 +83,6 @@ def _source_description(product: Product, limit: int = 6000) -> str:
     parts = []
     if product.description:
         parts.append(product.description)
-    if product.description_ai:
-        parts.append(f"Resumen IA: {product.description_ai}")
     return "\n".join(parts)[:limit]
 
 
@@ -159,12 +161,12 @@ def _digest(specs: dict) -> dict:
     highlights = specs.get("highlights") or []
     if not isinstance(highlights, list):
         highlights = []
-    highlights = [str(h).strip() for h in highlights if str(h).strip()][:6]
+    highlights = [str(h).strip() for h in highlights if str(h).strip()][:7]
 
     sections = []
     raw_sections = specs.get("sections")
     if isinstance(raw_sections, list):
-        for sec in raw_sections[:10]:
+        for sec in raw_sections[:12]:
             if not isinstance(sec, dict):
                 continue
             title = str(sec.get("title", "")).strip()
@@ -172,7 +174,7 @@ def _digest(specs: dict) -> dict:
             raw_items = sec.get("items") or []
             if not isinstance(raw_items, list):
                 continue
-            for item in raw_items[:8]:
+            for item in raw_items[:12]:
                 if not isinstance(item, dict):
                     continue
                 label = str(item.get("label", "")).strip()
@@ -197,7 +199,7 @@ def call_gemini(client: genai.Client, model: str, timeout_seconds: float, prompt
                 config=types.GenerateContentConfig(
                     systemInstruction=SYSTEM_INSTRUCTIONS,
                     temperature=0.2,
-                    maxOutputTokens=1200,
+                    maxOutputTokens=2000,
                 ),
             )
             return (getattr(response, "text", "") or "").strip()
@@ -212,6 +214,7 @@ def call_gemini(client: genai.Client, model: str, timeout_seconds: float, prompt
 def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("--product-id", type=int, help="Generar solo para este producto")
+    parser.add_argument("--force", action="store_true", help="Regenerar aunque ya exista ficha técnica")
     parser.add_argument("--dry-run", action="store_true", help="Imprimir la ficha sin llamar al LLM")
     args = parser.parse_args()
 
@@ -223,7 +226,9 @@ def main() -> None:
     db = SessionLocal()
     generated = 0
     try:
-        query = db.query(Product).filter(Product.specs.is_(None))
+        query = db.query(Product)
+        if not args.force:
+            query = query.filter(Product.specs.is_(None))
         if args.product_id:
             query = query.filter(Product.id == args.product_id)
         products = query.order_by(Product.id).all()

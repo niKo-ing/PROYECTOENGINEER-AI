@@ -51,8 +51,8 @@ def _build_user_prompt(request: AIMatchRequest) -> str:
         lines.append(f"- MPN: {request.incoming_mpn}")
     if request.incoming_gtin:
         lines.append(f"- GTIN: {request.incoming_gtin}")
-    if request.incoming_manufacturer_sku:
-        lines.append(f"- Manufacturer SKU: {request.incoming_manufacturer_sku}")
+    if request.incoming_sku:
+        lines.append(f"- SKU tienda: {request.incoming_sku} (no usar como manufacturer_sku)")
     if request.incoming_specifications:
         lines.append("- Especificaciones:")
         for k, v in request.incoming_specifications.items():

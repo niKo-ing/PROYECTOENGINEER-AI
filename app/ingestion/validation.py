@@ -2,6 +2,7 @@ from decimal import Decimal
 from urllib.parse import urlparse
 
 from app.ingestion.dto import NormalizedOffer
+from app.models.catalog import OfferCondition
 
 
 class OfferValidationError(ValueError):
@@ -18,5 +19,7 @@ class OfferValidator:
             raise OfferValidationError("price debe ser mayor a 0")
         if len(offer.currency) != 3 or not offer.currency.isalpha():
             raise OfferValidationError("currency debe ser un código ISO de tres letras")
+        if offer.condition not in {condition.value for condition in OfferCondition}:
+            raise OfferValidationError("condition no es válida")
         if offer.scraped_at.tzinfo is None:
             raise OfferValidationError("scraped_at debe incluir zona horaria")

@@ -13,6 +13,7 @@ export interface StoreOfferRead {
   original_price: number | null;
   currency: string;
   stock_status: string;
+  condition: string;
   availability: boolean;
   payment_condition: string | null;
   seller_name: string | null;

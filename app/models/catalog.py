@@ -20,6 +20,57 @@ class StockStatus(StrEnum):
     UNKNOWN = "unknown"
 
 
+class OfferCondition(StrEnum):
+    NEW = "new"
+    USED = "used"
+    SEMI_NEW = "semi_new"
+    REFURBISHED = "refurbished"
+    OPEN_BOX = "open_box"
+    UNKNOWN = "unknown"
+
+
+class SpecValueKind(StrEnum):
+    TEXT = "text"
+    NUMBER = "number"
+    BOOLEAN = "boolean"
+    ENUM = "enum"
+    RANGE = "range"
+    DIMENSION = "dimension"
+    LIST = "list"
+    JSON = "json"
+
+
+class SpecValueSourceType(StrEnum):
+    STORE = "store"
+    MANUFACTURER = "manufacturer"
+    EXTERNAL = "external"
+    SCRAPER = "scraper"
+    INGESTION = "ingestion"
+    AI = "ai"
+    ADMIN = "admin"
+    UNKNOWN = "unknown"
+
+
+class SpecVerificationStatus(StrEnum):
+    AUTO = "auto"
+    REVIEW = "review"
+    VERIFIED = "verified"
+
+
+class SpecConflictStatus(StrEnum):
+    NONE = "none"
+    PENDING = "pending"
+    RESOLVED = "resolved"
+
+
+class SpecValueHistoryAction(StrEnum):
+    CREATED = "created"
+    VALUE_CHANGED = "value_changed"
+    SOURCE_UPDATED = "source_updated"
+    CONFLICT_DETECTED = "conflict_detected"
+    VERIFIED = "verified"
+
+
 class IngestionSourceType(StrEnum):
     API = "api"
     FEED = "feed"
@@ -45,6 +96,35 @@ class Category(Base):
     parent: Mapped["Category | None"] = relationship(remote_side="Category.id", back_populates="children")
     children: Mapped[list["Category"]] = relationship(back_populates="parent")
     products: Mapped[list["Product"]] = relationship(back_populates="category_entity")
+    spec_definitions: Mapped[list["CategorySpecificationDefinition"]] = relationship(
+        back_populates="category",
+        cascade="all, delete-orphan",
+        order_by="CategorySpecificationDefinition.sort_order",
+    )
+
+
+class CategorySpecificationDefinition(Base):
+    __tablename__ = "category_specification_definitions"
+    __table_args__ = (
+        UniqueConstraint("category_id", "key", name="uq_category_spec_definition_key"),
+        Index("ix_category_spec_definitions_category_id", "category_id"),
+    )
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    category_id: Mapped[int] = mapped_column(ForeignKey("categories.id", ondelete="CASCADE"), index=True)
+    key: Mapped[str] = mapped_column(String(80))
+    label: Mapped[str] = mapped_column(String(120))
+    group: Mapped[str] = mapped_column("spec_group", String(80), default="General")
+    data_type: Mapped[str] = mapped_column(String(32), default="text")
+    unit: Mapped[str | None] = mapped_column(String(32))
+    filter_type: Mapped[str] = mapped_column(String(32), default="text")
+    required: Mapped[bool] = mapped_column(Boolean, default=False)
+    comparable: Mapped[bool] = mapped_column(Boolean, default=True)
+    facetable: Mapped[bool] = mapped_column(Boolean, default=True)
+    sort_order: Mapped[int] = mapped_column(Integer, default=0)
+    options: Mapped[list[str] | None] = mapped_column(JSON)
+
+    category: Mapped[Category] = relationship(back_populates="spec_definitions")
 
 
 class Product(Base):
@@ -70,6 +150,7 @@ class Product(Base):
 
     category_entity: Mapped[Category | None] = relationship(back_populates="products")
     specifications: Mapped[list["ProductSpecification"]] = relationship(back_populates="product", cascade="all, delete-orphan")
+    spec_values: Mapped[list["ProductSpecValue"]] = relationship(back_populates="product", cascade="all, delete-orphan")
     offers: Mapped[list["StoreOffer"]] = relationship(back_populates="product", cascade="all, delete-orphan")
 
     @property
@@ -115,6 +196,73 @@ class ProductSpecification(Base):
     product: Mapped[Product] = relationship(back_populates="specifications")
 
 
+class ProductSpecValue(Base):
+    """Canonical current value for one category-defined product specification."""
+
+    __tablename__ = "product_spec_values"
+    __table_args__ = (
+        UniqueConstraint("product_id", "definition_id", name="uq_product_spec_value_definition"),
+        Index("ix_product_spec_values_definition_value", "definition_id", "value_text"),
+        Index("ix_product_spec_values_definition_number", "definition_id", "value_number"),
+    )
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    product_id: Mapped[int] = mapped_column(ForeignKey("products.id", ondelete="CASCADE"), index=True)
+    definition_id: Mapped[int] = mapped_column(ForeignKey("category_specification_definitions.id", ondelete="CASCADE"), index=True)
+    value_kind: Mapped[str] = mapped_column(String(32), default=SpecValueKind.TEXT.value)
+    raw_value: Mapped[str | None] = mapped_column(Text())
+    value_text: Mapped[str | None] = mapped_column(String(500), index=True)
+    value_number: Mapped[float | None] = mapped_column(Numeric(18, 6), index=True)
+    value_boolean: Mapped[bool | None] = mapped_column(Boolean)
+    value_json: Mapped[dict | list | None] = mapped_column(JSON)
+    unit: Mapped[str | None] = mapped_column(String(32))
+    normalized_value: Mapped[dict | None] = mapped_column(JSON)
+    source_type: Mapped[str] = mapped_column(String(32), default=SpecValueSourceType.UNKNOWN.value)
+    source_name: Mapped[str | None] = mapped_column(String(160))
+    source_url: Mapped[str | None] = mapped_column(String(2048))
+    extraction_method: Mapped[str | None] = mapped_column(String(120))
+    confidence: Mapped[float | None] = mapped_column(Numeric(3, 2))
+    verification_status: Mapped[str] = mapped_column(String(32), default=SpecVerificationStatus.AUTO.value)
+    conflict_status: Mapped[str] = mapped_column(String(32), default=SpecConflictStatus.NONE.value)
+    verified_by: Mapped[str | None] = mapped_column(String(160))
+    verified_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
+
+    product: Mapped[Product] = relationship(back_populates="spec_values")
+    definition: Mapped[CategorySpecificationDefinition] = relationship()
+    history: Mapped[list["ProductSpecValueHistory"]] = relationship(back_populates="spec_value", cascade="all, delete-orphan")
+
+
+class ProductSpecValueHistory(Base):
+    """Audit event for how a canonical specification value changed or conflicted."""
+
+    __tablename__ = "product_spec_value_history"
+    __table_args__ = (Index("ix_product_spec_value_history_spec_time", "spec_value_id", "created_at"),)
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    spec_value_id: Mapped[int] = mapped_column(ForeignKey("product_spec_values.id", ondelete="CASCADE"), index=True)
+    product_id: Mapped[int] = mapped_column(ForeignKey("products.id", ondelete="CASCADE"), index=True)
+    definition_id: Mapped[int] = mapped_column(ForeignKey("category_specification_definitions.id", ondelete="CASCADE"), index=True)
+    action: Mapped[str] = mapped_column(String(32))
+    previous_value: Mapped[dict | None] = mapped_column(JSON)
+    new_value: Mapped[dict | None] = mapped_column(JSON)
+    incoming_value: Mapped[dict | None] = mapped_column(JSON)
+    source_type: Mapped[str] = mapped_column(String(32), default=SpecValueSourceType.UNKNOWN.value)
+    source_name: Mapped[str | None] = mapped_column(String(160))
+    source_url: Mapped[str | None] = mapped_column(String(2048))
+    extraction_method: Mapped[str | None] = mapped_column(String(120))
+    verification_status: Mapped[str | None] = mapped_column(String(32))
+    conflict_status: Mapped[str | None] = mapped_column(String(32))
+    changed_by: Mapped[str | None] = mapped_column(String(160))
+    note: Mapped[str | None] = mapped_column(Text())
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+
+    spec_value: Mapped[ProductSpecValue] = relationship(back_populates="history")
+    product: Mapped[Product] = relationship()
+    definition: Mapped[CategorySpecificationDefinition] = relationship()
+
+
 class Store(Base):
     __tablename__ = "stores"
 
@@ -152,6 +300,7 @@ class StoreOffer(Base):
     original_price: Mapped[int | None] = mapped_column(Integer)
     currency: Mapped[str] = mapped_column(String(3), default="CLP")
     stock_status: Mapped[str] = mapped_column(String(32), default=StockStatus.UNKNOWN.value)
+    condition: Mapped[str] = mapped_column(String(32), default=OfferCondition.UNKNOWN.value)
     availability: Mapped[bool] = mapped_column(Boolean, default=True)
     payment_condition: Mapped[str | None] = mapped_column(String(255))
     seller_name: Mapped[str | None] = mapped_column(String(160))

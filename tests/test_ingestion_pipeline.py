@@ -1,4 +1,5 @@
 from datetime import datetime, timedelta, timezone
+from decimal import Decimal
 
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
@@ -10,7 +11,7 @@ from app.ingestion.dto import NormalizedOffer
 from app.ingestion.pipeline import IngestionPipeline, IngestionReport
 from app.ingestion.service import CatalogIngestionService
 from app.ingestion.validation import OfferValidationError, OfferValidator
-from app.models.catalog import Category, PriceHistory, Product, Store, StoreOffer
+from app.models.catalog import Category, CategorySpecificationDefinition, PriceHistory, Product, ProductSpecValue, ProductSpecValueHistory, Store, StoreOffer
 
 engine = create_engine("sqlite://", connect_args={"check_same_thread": False}, poolclass=StaticPool)
 Session = sessionmaker(bind=engine)
@@ -18,7 +19,7 @@ Base.metadata.create_all(engine)
 
 
 def reset(db):
-    for model in (PriceHistory, StoreOffer, Product, Store, Category):
+    for model in (PriceHistory, StoreOffer, ProductSpecValueHistory, ProductSpecValue, Product, Store, CategorySpecificationDefinition, Category):
         db.query(model).delete()
     db.commit()
 
@@ -140,3 +141,54 @@ def test_product_image_stays_null_when_offer_has_none():
         assert not report.errors
         product = db.query(Product).one()
         assert product.image_url is None
+
+
+def test_ingestion_structured_specs_create_store_sourced_canonical_values():
+    with Session() as db:
+        reset(db)
+        category = Category(name="Notebooks", slug="notebooks")
+        db.add_all([
+            category,
+            CategorySpecificationDefinition(category=category, key="ram_capacity", label="Capacidad RAM", group="Memoria", data_type="integer", unit="GB"),
+        ])
+        db.commit()
+
+        class SpecsConnector(StoreConnector):
+            store_name = "Tienda Specs"
+            store_domain = "specs.mock"
+            source_name = "mock:specs"
+
+            def extract(self):
+                yield {"url": "https://specs.mock/p1"}
+
+            def normalize(self, record):
+                return NormalizedOffer(
+                    source=self.source_name,
+                    external_id="spec-1",
+                    product_url=record["url"],
+                    name="Notebook 16 GB RAM",
+                    brand="Lenovo",
+                    model=None,
+                    mpn="SPEC-1",
+                    gtin=None,
+                    sku=None,
+                    price=Decimal("100000"),
+                    previous_price=None,
+                    currency="CLP",
+                    availability=True,
+                    stock="in_stock",
+                    image_url=None,
+                    category="notebooks",
+                    scraped_at=datetime.now(timezone.utc),
+                    specs={"sections": [{"title": "RAM", "items": [{"label": "Capacidad", "value": "16 GB"}]}]},
+                )
+
+        report = IngestionPipeline(CatalogIngestionService(db)).run(SpecsConnector())
+
+        assert not report.errors
+        value = db.query(ProductSpecValue).one()
+        assert value.value_number == 16
+        assert value.unit == "GB"
+        assert value.source_type == "store"
+        assert value.source_name == "Tienda Specs"
+        assert value.extraction_method == "mock:specs:structured_specs"

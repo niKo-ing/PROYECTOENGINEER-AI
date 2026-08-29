@@ -13,6 +13,28 @@ export interface ProductSpecs {
   sections: SpecSection[];
 }
 
+export interface CanonicalSpecItem {
+  key: string;
+  label: string;
+  value: string;
+  raw_value: string | null;
+  unit: string | null;
+  value_kind: string | null;
+  source_type: string | null;
+  source_name: string | null;
+  verification_status: string | null;
+  conflict_status: string | null;
+}
+
+export interface CanonicalSpecSection {
+  title: string;
+  items: CanonicalSpecItem[];
+}
+
+export interface CanonicalProductSpecs {
+  sections: CanonicalSpecSection[];
+}
+
 export interface ProductRead {
   id: number;
   name: string;
@@ -22,6 +44,7 @@ export interface ProductRead {
   description: string | null;
   description_ai: string | null;
   specs: ProductSpecs | null;
+  canonical_specs: CanonicalProductSpecs | null;
   rating: number | null;
   image_url: string | null;
   images: string[];

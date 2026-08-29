@@ -16,7 +16,7 @@ from app.ingestion.connectors.spdigital.parser import RawProductData, SPDigitalP
 from app.ingestion.dto import NormalizedOffer
 from app.ingestion.pipeline import IngestionPipeline
 from app.ingestion.service import CatalogIngestionService
-from app.models.catalog import Category, PriceHistory, Product, Store, StoreOffer
+from app.models.catalog import Category, CategorySpecificationDefinition, PriceHistory, Product, Store, StoreOffer
 
 # ---------------------------------------------------------------------------
 # HTML Fixtures — based on real SP Digital VTEX meta tag structure
@@ -335,6 +335,7 @@ class TestSPDigitalConnectorNormalize:
         assert offer.previous_price is None
         assert offer.model is None
         assert offer.category is None
+        assert offer.condition == "new"
 
     def test_external_id_uses_product_id(self):
         record = self._make_record(HTML_FULL_PRODUCT)
@@ -438,7 +439,7 @@ Base.metadata.create_all(engine)
 
 
 def _reset(db):
-    for model in (PriceHistory, StoreOffer, Product, Store, Category):
+    for model in (PriceHistory, StoreOffer, Product, Store, CategorySpecificationDefinition, Category):
         db.query(model).delete()
     db.commit()
 

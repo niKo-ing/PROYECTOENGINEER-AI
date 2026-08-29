@@ -24,7 +24,7 @@ from app.ingestion.category import (
     get_leaf_slugs,
     get_taxonomy_node,
 )
-from app.models.catalog import Category, PriceHistory, Product, Store, StoreOffer
+from app.models.catalog import Category, CategorySpecificationDefinition, PriceHistory, Product, Store, StoreOffer
 from app.repositories.category_repository import CategoryRepository
 from app.services.category_service import CategoryService
 
@@ -34,7 +34,7 @@ Base.metadata.create_all(engine)
 
 
 def _reset(db):
-    for model in (PriceHistory, StoreOffer, Product, Store, Category):
+    for model in (PriceHistory, StoreOffer, Product, Store, CategorySpecificationDefinition, Category):
         db.query(model).delete()
     db.commit()
 
@@ -104,8 +104,8 @@ def test_seed_creates_all_categories():
         service = CategoryService(db)
         service.seed_initial_taxonomy()
         all_cats = CategoryRepository(db).list_all()
-        # 7 groups (Tecnología + 6 branches) + 36 leaves = 43
-        assert len(all_cats) == 43
+        # 8 groups (Tecnología + 7 branches) + 36 leaves = 44
+        assert len(all_cats) == 44
 
 
 def test_seed_twice_no_duplicates():
@@ -118,7 +118,7 @@ def test_seed_twice_no_duplicates():
         service.seed_initial_taxonomy()
         count_second = len(CategoryRepository(db).list_all())
 
-        assert count_first == count_second == 43
+        assert count_first == count_second == 44
 
 
 def test_tecnologia_is_group_in_db():
@@ -142,10 +142,10 @@ def test_leaf_categories_have_correct_priority():
         tech = repo.get_by_name_and_parent("Tecnología", None)
         assert tech is not None
 
-        computacion = repo.get_by_name_and_parent("Computación", tech.id)
-        assert computacion is not None
+        computadores = repo.get_by_name_and_parent("Computadores", tech.id)
+        assert computadores is not None
 
-        notebooks = repo.get_by_name_and_parent("Notebooks", computacion.id)
+        notebooks = repo.get_by_name_and_parent("Notebooks", computadores.id)
         assert notebooks is not None
         assert notebooks.priority == "P0"
         assert notebooks.is_group is False
@@ -159,12 +159,57 @@ def test_leaf_categories_have_correct_priority():
         assert sillas.is_group is False
 
 
+def test_category_spec_definitions_seeded_by_category():
+    with Session() as db:
+        _reset(db)
+        service = CategoryService(db)
+        service.seed_initial_taxonomy()
+
+        cpu = CategoryRepository(db).get_by_slug("procesadores")
+        gpu = CategoryRepository(db).get_by_slug("tarjetas-graficas")
+        notebooks = CategoryRepository(db).get_by_slug("notebooks")
+
+        assert cpu is not None
+        assert gpu is not None
+        assert notebooks is not None
+        assert {spec.key for spec in cpu.spec_definitions} >= {"socket", "cores", "threads", "tdp", "integrated_graphics"}
+        assert {spec.key for spec in gpu.spec_definitions} >= {"vram", "memory_type", "memory_bus", "tdp"}
+        assert {spec.key for spec in notebooks.spec_definitions} >= {"processor", "ram", "storage", "gpu", "screen"}
+
+
+def test_category_spec_definitions_are_idempotent():
+    with Session() as db:
+        _reset(db)
+        service = CategoryService(db)
+        service.seed_initial_taxonomy()
+        first = db.query(CategorySpecificationDefinition).count()
+
+        service.seed_initial_taxonomy()
+        second = db.query(CategorySpecificationDefinition).count()
+
+        assert first == second
+        assert first > 0
+
+
 def test_seed_preserves_products():
     with Session() as db:
         _reset(db)
         service = CategoryService(db)
         service.seed_initial_taxonomy()
-        assert len(CategoryRepository(db).list_all()) == 43
+        assert len(CategoryRepository(db).list_all()) == 44
+
+
+def test_seed_deletes_obsolete_empty_categories():
+    with Session() as db:
+        _reset(db)
+        obsolete = Category(name="Computación", slug="computacion", priority="P0", is_group=True)
+        db.add(obsolete)
+        db.commit()
+
+        CategoryService(db).seed_initial_taxonomy()
+
+        assert CategoryRepository(db).get_by_slug("computacion") is None
+        assert len(CategoryRepository(db).list_all()) == 44
 
 
 # ══════════════════════════════════════════════════════════════════
@@ -276,7 +321,7 @@ def test_filter_whitelist_only_allowed():
 
 def test_filter_group_node_rejected():
     f = CategoryFilter()
-    result = f.check("computacion")
+    result = f.check("computadores")
     assert result.allowed is False
     assert result.reason == RejectReason.IS_GROUP_NODE
 

@@ -7,9 +7,11 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from app.catalog.matching import MatchStatus, ProductMatcher
+from app.catalog.spec_backfill import backfill_product_specs
 from app.ingestion.connectors import StoreConnector
 from app.ingestion.dto import NormalizedOffer
-from app.models.catalog import Category, PriceHistory, Product, Store, StoreOffer
+from app.models.catalog import Category, PriceHistory, Product, SpecValueSourceType, Store, StoreOffer
+from app.services.product_spec_value_service import ProductSpecValueService
 from app.ingestion.validation import OfferValidationError, OfferValidator
 
 log = logging.getLogger(__name__)
@@ -74,7 +76,7 @@ class CatalogIngestionService:
         offer = self._find_offer(store.id, normalized)
         price = self._price_to_int(normalized)
         if offer is None:
-            offer = StoreOffer(product=product, store=store, url=normalized.product_url, external_id=normalized.external_id, price=price, original_price=self._previous_price(normalized), currency=normalized.currency.upper(), stock_status=normalized.stock or "unknown", availability=normalized.availability, source=normalized.source, ingestion_status="success", error_count=0, last_checked_at=normalized.scraped_at, last_seen_at=normalized.scraped_at)
+            offer = StoreOffer(product=product, store=store, url=normalized.product_url, external_id=normalized.external_id, price=price, original_price=self._previous_price(normalized), currency=normalized.currency.upper(), stock_status=normalized.stock or "unknown", condition=normalized.condition, availability=normalized.availability, source=normalized.source, ingestion_status="success", error_count=0, last_checked_at=normalized.scraped_at, last_seen_at=normalized.scraped_at)
             self.db.add(offer)
             self.db.flush()
             self._record_history(offer, normalized)
@@ -104,6 +106,7 @@ class CatalogIngestionService:
             offer.price = price
             offer.currency = normalized.currency.upper()
             offer.stock_status = normalized.stock or "unknown"
+            offer.condition = normalized.condition
             offer.availability = normalized.availability
             offer.source = normalized.source
             offer.ingestion_status = "success"
@@ -112,6 +115,7 @@ class CatalogIngestionService:
             offer.last_seen_at = normalized.scraped_at
             if changed:
                 self._record_history(offer, normalized)
+        self._backfill_canonical_specs(product, store, normalized)
         self.db.commit()
         self.db.refresh(offer)
         return IngestionOutcome(
@@ -222,6 +226,23 @@ class CatalogIngestionService:
 
     def _record_history(self, offer: StoreOffer, normalized: NormalizedOffer) -> None:
         self.db.add(PriceHistory(store_offer=offer, price=offer.price, original_price=offer.original_price, currency=offer.currency, observed_at=normalized.scraped_at))
+
+    def _backfill_canonical_specs(self, product: Product, store: Store, normalized: NormalizedOffer) -> None:
+        if not normalized.specs:
+            return
+        product.specs = normalized.specs
+        if product.category_entity is None:
+            return
+        source_type = normalized.specs_source_type or SpecValueSourceType.STORE.value
+        source_name = normalized.specs_source_name or store.name
+        extraction_method = normalized.specs_extraction_method or f"{normalized.source}:structured_specs"
+        backfill_product_specs(
+            product,
+            ProductSpecValueService(self.db, auto_commit=False),
+            source_type=source_type,
+            source_name=source_name,
+            extraction_method=extraction_method,
+        )
 
     @staticmethod
     def _now():

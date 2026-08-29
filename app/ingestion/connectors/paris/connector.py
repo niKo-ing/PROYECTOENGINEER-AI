@@ -10,6 +10,7 @@ from typing import Any
 
 from app.ingestion.connectors import StoreConnector
 from app.ingestion.connectors.paris.parser import ParisRSCParser, RawProductData
+from app.ingestion.condition import normalize_offer_condition
 from app.ingestion.dto import NormalizedOffer
 from app.models.catalog import StoreType
 
@@ -60,6 +61,7 @@ class ParisConnector(StoreConnector):
             currency=data.currency or "CLP",
             availability=data.availability if data.availability is not None else True,
             stock=self._map_stock(data.availability),
+            condition=normalize_offer_condition(data.condition),
             image_url=data.image_url,
             images=data.images or None,
             description=data.description,

@@ -26,6 +26,7 @@ class RawProductData:
     image_url: str | None = None
     images: list[str] = field(default_factory=list)
     description: str | None = None
+    condition: str | None = None
     seller: str | None = None
     sources: list[str] = field(default_factory=list)
 
@@ -121,6 +122,7 @@ class ParisRSCParser:
             image_url=primary.image_url or secondary.image_url,
             images=ParisRSCParser._dedupe(primary.images + secondary.images),
             description=primary.description or secondary.description,
+            condition=primary.condition or secondary.condition,
             seller=primary.seller or secondary.seller,
             sources=primary.sources + secondary.sources,
         )
@@ -183,7 +185,7 @@ class ParisRSCParser:
         if isinstance(offers, dict):
             offers = [offers]
 
-        price, currency, availability, seller, offer_url = self._best_offer(offers)
+        price, currency, availability, seller, offer_url, condition = self._best_offer(offers)
         gtin = self._extract_gtin(data)
         mpn = data.get("mpn")
         sku = data.get("sku") or data.get("productID")
@@ -206,6 +208,7 @@ class ParisRSCParser:
             image_url=image_url,
             images=images,
             description=description,
+            condition=condition,
             seller=seller,
             sources=["json-ld"],
         )
@@ -268,7 +271,7 @@ class ParisRSCParser:
 
     def _best_offer(
         self, offers: list[dict[str, Any]]
-    ) -> tuple[Decimal | None, str | None, bool | None, str | None, str | None]:
+    ) -> tuple[Decimal | None, str | None, bool | None, str | None, str | None, str | None]:
         if not offers:
             return None, None, None, None, None
 
@@ -294,8 +297,11 @@ class ParisRSCParser:
         seller_obj = best.get("seller", {})
         seller = seller_obj.get("name") if isinstance(seller_obj, dict) else None
         url = best.get("url")
+        condition = best.get("itemCondition")
+        if condition is None:
+            condition = next((o.get("itemCondition") for o in offers if o.get("itemCondition")), None)
 
-        return price, currency, availability, seller, url
+        return price, currency, availability, seller, url, condition
 
     def _extract_brand(self, data: dict[str, Any]) -> str | None:
         brand = data.get("brand")

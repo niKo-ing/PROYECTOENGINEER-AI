@@ -4,18 +4,24 @@ from __future__ import annotations
 
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Query
 from pydantic import BaseModel, HttpUrl
-from sqlalchemy import select
+from sqlalchemy.orm import Session, selectinload
+from sqlalchemy import func, select
 
 from app.core.security import AuthenticatedUser, get_current_user
-from app.db import SessionLocal
+from app.catalog.catalog_quality import CatalogQualityService
+from app.db import SessionLocal, get_db
 from app.ingestion.discovery.discovery import StoreDiscovery
 from app.ingestion.discovery.result import DiscoveryResult, PlatformDetection
 from app.ingestion.runner import IngestionRunner
+from app.models.catalog import Product, ProductSpecValue, ProductSpecValueHistory, Store, StoreOffer
+from app.repositories.product_spec_value_repository import ProductSpecValueRepository
+from app.services.product_spec_value_service import ProductSpecValueService
 
 router = APIRouter(prefix="/admin", tags=["admin"])
 CurrentUser = Annotated[AuthenticatedUser, Depends(get_current_user)]
+DbSession = Annotated[Session, Depends(get_db)]
 
 
 class DiscoverRequest(BaseModel):
@@ -72,6 +78,82 @@ class IngestionRunSchema(BaseModel):
     duration_ms: int | None = None
 
 
+class AdminSpecValueSchema(BaseModel):
+    id: int
+    product_id: int
+    product_name: str
+    category: str | None
+    definition_key: str
+    label: str
+    group: str
+    value: str
+    raw_value: str | None
+    source_type: str
+    source_name: str | None
+    source_url: str | None
+    extraction_method: str | None
+    verification_status: str
+    conflict_status: str
+    history_count: int
+
+
+class AdminSpecReviewResponse(BaseModel):
+    items: list[AdminSpecValueSchema]
+
+
+class VerifySpecValueRequest(BaseModel):
+    note: str | None = None
+
+
+class AdminDashboardMetrics(BaseModel):
+    products: int
+    offers: int
+    stores: int
+    specs_pending: int
+    conflicts: int
+    products_without_specs: int
+    products_unverified: int
+    products_verified: int
+
+
+class AdminActivityItem(BaseModel):
+    id: int
+    action: str
+    product_id: int
+    product_name: str
+    label: str
+    group: str
+    previous_value: dict | None = None
+    new_value: dict | None = None
+    incoming_value: dict | None = None
+    source_type: str
+    changed_by: str | None = None
+    created_at: str
+
+
+class AdminDashboardResponse(BaseModel):
+    metrics: AdminDashboardMetrics
+    recent_activity: list[AdminActivityItem]
+
+
+class AdminCatalogQualityResponse(BaseModel):
+    summary: dict
+    categories: list[dict]
+    products: list[dict]
+    products_incomplete: list[dict]
+    products_complete: list[dict]
+    definitions_used: list[dict]
+    definitions_always_empty: list[dict]
+    definitions_low_coverage: list[dict]
+    sources: list[dict]
+    source_names: list[dict]
+    extraction_methods: list[dict]
+    provenance_summary: dict
+    verification: list[dict]
+    conflicts_by_source: list[dict]
+    conflicts: list[dict]
+
+
 def _to_schema(result: DiscoveryResult) -> DiscoveryResultSchema:
     platform_schema = None
     if result.detected_platform:
@@ -108,12 +190,126 @@ def _to_schema(result: DiscoveryResult) -> DiscoveryResultSchema:
     )
 
 
+def _format_value(value: ProductSpecValue) -> str:
+    from app.catalog.spec_sheet import format_spec_value
+
+    return format_spec_value(value)
+
+
+def _spec_value_to_admin_schema(value: ProductSpecValue) -> AdminSpecValueSchema:
+    product = value.product
+    definition = value.definition
+    return AdminSpecValueSchema(
+        id=value.id,
+        product_id=value.product_id,
+        product_name=product.name if product else f"Producto #{value.product_id}",
+        category=product.category if product else None,
+        definition_key=definition.key if definition else "unknown",
+        label=definition.label if definition else "Especificación",
+        group=definition.group if definition else "General",
+        value=_format_value(value),
+        raw_value=value.raw_value,
+        source_type=value.source_type,
+        source_name=value.source_name,
+        source_url=value.source_url,
+        extraction_method=value.extraction_method,
+        verification_status=value.verification_status,
+        conflict_status=value.conflict_status,
+        history_count=len(value.history or []),
+    )
+
+
+def _activity_to_schema(event: ProductSpecValueHistory) -> AdminActivityItem:
+    product = event.product
+    definition = event.definition
+    return AdminActivityItem(
+        id=event.id,
+        action=event.action,
+        product_id=event.product_id,
+        product_name=product.name if product else f"Producto #{event.product_id}",
+        label=definition.label if definition else "Especificación",
+        group=definition.group if definition else "General",
+        previous_value=event.previous_value,
+        new_value=event.new_value,
+        incoming_value=event.incoming_value,
+        source_type=event.source_type,
+        changed_by=event.changed_by,
+        created_at=event.created_at.isoformat(),
+    )
+
+
 @router.post("/ingestion/discover", response_model=DiscoveryResultSchema)
 def discover_url(payload: DiscoverRequest, _user: CurrentUser):
     """Analyze a public product URL and extract structured data signals."""
     discovery = StoreDiscovery()
     result = discovery.discover(str(payload.url))
     return _to_schema(result)
+
+
+@router.get("/dashboard", response_model=AdminDashboardResponse)
+def get_admin_dashboard(_user: CurrentUser, db: DbSession):
+    total_products = db.scalar(select(func.count(Product.id))) or 0
+    total_offers = db.scalar(select(func.count(StoreOffer.id))) or 0
+    total_stores = db.scalar(select(func.count(Store.id))) or 0
+    specs_pending = db.scalar(select(func.count(ProductSpecValue.id)).where(ProductSpecValue.verification_status != "verified")) or 0
+    conflicts = db.scalar(select(func.count(ProductSpecValue.id)).where(ProductSpecValue.conflict_status == "pending")) or 0
+    products_with_specs = set(db.scalars(select(ProductSpecValue.product_id).distinct()))
+    all_products = set(db.scalars(select(Product.id)))
+    products_without_specs = len(all_products - products_with_specs)
+
+    unverified_product_ids = set(
+        db.scalars(
+            select(ProductSpecValue.product_id)
+            .where((ProductSpecValue.verification_status != "verified") | (ProductSpecValue.conflict_status == "pending"))
+            .distinct()
+        )
+    )
+    products_verified = len(products_with_specs - unverified_product_ids)
+
+    activity = list(
+        db.scalars(
+            select(ProductSpecValueHistory)
+            .options(selectinload(ProductSpecValueHistory.product), selectinload(ProductSpecValueHistory.definition))
+            .order_by(ProductSpecValueHistory.created_at.desc(), ProductSpecValueHistory.id.desc())
+            .limit(12)
+        )
+    )
+    return AdminDashboardResponse(
+        metrics=AdminDashboardMetrics(
+            products=total_products,
+            offers=total_offers,
+            stores=total_stores,
+            specs_pending=specs_pending,
+            conflicts=conflicts,
+            products_without_specs=products_without_specs,
+            products_unverified=len(unverified_product_ids),
+            products_verified=products_verified,
+        ),
+        recent_activity=[_activity_to_schema(event) for event in activity],
+    )
+
+
+@router.get("/catalog/quality", response_model=AdminCatalogQualityResponse)
+def get_catalog_quality(_user: CurrentUser, db: DbSession):
+    return CatalogQualityService(db).build_report()
+
+
+@router.get("/spec-values/review", response_model=AdminSpecReviewResponse)
+def list_spec_values_for_review(_user: CurrentUser, db: DbSession, limit: int = Query(default=100, ge=1, le=500)):
+    values = ProductSpecValueRepository(db).list_for_review(limit=limit)
+    return AdminSpecReviewResponse(items=[_spec_value_to_admin_schema(value) for value in values])
+
+
+@router.post("/spec-values/{value_id}/verify", response_model=AdminSpecValueSchema)
+def verify_spec_value(value_id: int, payload: VerifySpecValueRequest, user: CurrentUser, db: DbSession):
+    repository = ProductSpecValueRepository(db)
+    value = repository.get(value_id)
+    if value is None:
+        raise HTTPException(status_code=404, detail="Specification value not found")
+    verified_by = user.email or user.id
+    value = ProductSpecValueService(db).verify(value, verified_by=verified_by, note=payload.note)
+    value = repository.get(value.id) or value
+    return _spec_value_to_admin_schema(value)
 
 
 @router.post("/ingestion/run", response_model=IngestionRunSchema)

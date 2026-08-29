@@ -24,12 +24,18 @@ from app.db import SessionLocal
 from app.models.catalog import Product
 
 SYSTEM_INSTRUCTIONS = (
-    "Eres un redactor de fichas técnicas. Genera descripciones de producto cortas y objetivas "
+    "Eres un redactor de fichas técnicas para un comparador de tecnología. Genera descripciones objetivas, ordenadas y fáciles de leer "
     "en español. Usa ÚNICAMENTE los datos que se te entregan en la ficha. "
     "No inventes características, especificaciones, colores, garantías, existencias ni precios. "
     "No agregues opiniones, superlativos ni llamados a la acción. "
     "Formatea los precios en pesos chilenos (ej. $1.234.567). "
-    "Responde con máximo 2 frases claras y separadas (menos de 60 palabras)."
+    "Responde con este formato exacto, sin markdown extra: \n"
+    "Resumen\n"
+    "1 párrafo de 2 a 3 frases con el tipo de producto y sus datos principales.\n\n"
+    "Características destacadas\n"
+    "- 3 a 6 bullets con specs reales.\n\n"
+    "Datos comerciales\n"
+    "- 1 a 3 bullets con precio, tienda y cantidad de ofertas si están disponibles."
 )
 
 PROMPT_TEMPLATE = (
@@ -42,6 +48,7 @@ PROMPT_TEMPLATE = (
     "- Tienda con mejor precio: {lowest_price_store}\n"
     "- Cantidad de ofertas en el catálogo: {offer_count}\n"
     "- Tiendas y precios actuales del catálogo:\n{offers}\n"
+    "- Ficha técnica estructurada disponible:\n{specs}\n"
 )
 
 
@@ -56,6 +63,16 @@ def build_fact_sheet(product: Product) -> str:
     lines = []
     for offer in offers[:3]:
         lines.append(f"  - {offer.store.name}: {format_clp(int(offer.price))}")
+    specs = product.specs or {}
+    spec_lines = []
+    for highlight in specs.get("highlights", [])[:7]:
+        spec_lines.append(f"  - Destacado: {highlight}")
+    for section in specs.get("sections", [])[:10]:
+        title = section.get("title")
+        items = section.get("items") or []
+        values = "; ".join(f"{item.get('label')}: {item.get('value')}" for item in items[:8])
+        if title and values:
+            spec_lines.append(f"  - {title}: {values}")
     return PROMPT_TEMPLATE.format(
         name=product.name,
         brand=product.brand or "sin marca registrada",
@@ -64,6 +81,7 @@ def build_fact_sheet(product: Product) -> str:
         lowest_price_store=product.lowest_price_store or "desconocida",
         offer_count=product.offer_count,
         offers="\n".join(lines) if lines else "  - (sin ofertas)",
+        specs="\n".join(spec_lines) if spec_lines else "  - (sin ficha técnica estructurada)",
     )
 
 
@@ -77,7 +95,7 @@ def call_gemini(client: genai.Client, model: str, timeout_seconds: float, prompt
                 config=types.GenerateContentConfig(
                     systemInstruction=SYSTEM_INSTRUCTIONS,
                     temperature=0.3,
-                    maxOutputTokens=200,
+                    maxOutputTokens=700,
                 ),
             )
             return (getattr(response, "text", "") or "").strip()
@@ -92,6 +110,7 @@ def call_gemini(client: genai.Client, model: str, timeout_seconds: float, prompt
 def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("--product-id", type=int, help="Generar solo para este producto")
+    parser.add_argument("--force", action="store_true", help="Regenerar aunque ya exista descripción IA")
     parser.add_argument("--dry-run", action="store_true", help="Imprimir la ficha sin llamar al LLM")
     args = parser.parse_args()
 
@@ -105,7 +124,9 @@ def main() -> None:
     db = SessionLocal()
     generated = 0
     try:
-        query = db.query(Product).filter(Product.description_ai.is_(None))
+        query = db.query(Product)
+        if not args.force:
+            query = query.filter(Product.description_ai.is_(None))
         if args.product_id:
             query = query.filter(Product.id == args.product_id)
         products = query.order_by(Product.id).all()

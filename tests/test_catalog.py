@@ -6,7 +6,7 @@ from app.catalog.ingestion import NormalizedProduct
 from app.catalog.matching import ProductMatcher
 from app.catalog.taxonomy import INITIAL_TAXONOMY
 from app.db import Base
-from app.models.catalog import Category, Product, ProductSpecification, Store, StoreOffer
+from app.models.catalog import Category, CategorySpecificationDefinition, Product, ProductSpecification, Store, StoreOffer
 from app.repositories.product_repository import ProductRepository
 from app.repositories.store_offer_repository import StoreOfferRepository
 from app.schemas.product import ProductCreate
@@ -18,7 +18,7 @@ Base.metadata.create_all(engine)
 
 
 def reset_catalog(db):
-    for model in (ProductSpecification, StoreOffer, Product, Store, Category):
+    for model in (ProductSpecification, StoreOffer, Product, Store, CategorySpecificationDefinition, Category):
         db.query(model).delete()
     db.commit()
 
@@ -29,13 +29,13 @@ def test_initial_taxonomy_is_hierarchical_and_idempotent():
         CategoryService(db).seed_initial_taxonomy()
         CategoryService(db).seed_initial_taxonomy()
 
-        computing = db.query(Category).filter_by(slug="computacion").one()
+        computers = db.query(Category).filter_by(slug="computadores").one()
         notebooks = db.query(Category).filter_by(slug="notebooks").one()
         tech = db.query(Category).filter_by(slug="tecnologia").one()
-        assert computing.parent_id == tech.id
-        assert notebooks.parent_id == computing.id
-        # 7 groups (Tecnología + 6 branches) + 36 leaves = 43
-        assert db.query(Category).count() == 43
+        assert computers.parent_id == tech.id
+        assert notebooks.parent_id == computers.id
+        # 8 groups (Tecnología + 7 branches) + 36 leaves = 44
+        assert db.query(Category).count() == 44
 
 
 def test_product_price_is_derived_from_store_offers_and_history_is_separate():

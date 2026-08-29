@@ -1,7 +1,8 @@
 from sqlalchemy import select
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, selectinload
 
-from app.models.catalog import Category
+from app.catalog.taxonomy import SpecificationDefinition
+from app.models.catalog import Category, CategorySpecificationDefinition
 
 
 class CategoryRepository:
@@ -42,4 +43,28 @@ class CategoryRepository:
         return self.db.get(Category, category_id)
 
     def list_all(self) -> list[Category]:
-        return list(self.db.scalars(select(Category).order_by(Category.sort_order, Category.name)))
+        return list(self.db.scalars(select(Category).options(selectinload(Category.spec_definitions)).order_by(Category.sort_order, Category.name)))
+
+    def upsert_spec_definition(self, category: Category, definition: SpecificationDefinition) -> CategorySpecificationDefinition:
+        existing = self.db.scalar(
+            select(CategorySpecificationDefinition).where(
+                CategorySpecificationDefinition.category_id == category.id,
+                CategorySpecificationDefinition.key == definition.key,
+            )
+        )
+        options = list(definition.options) if definition.options else None
+        if existing is None:
+            existing = CategorySpecificationDefinition(category=category, key=definition.key)
+            self.db.add(existing)
+        existing.label = definition.label
+        existing.group = definition.group
+        existing.data_type = definition.data_type
+        existing.unit = definition.unit
+        existing.filter_type = definition.filter_type
+        existing.required = definition.required
+        existing.comparable = definition.comparable
+        existing.facetable = definition.facetable
+        existing.sort_order = definition.sort_order
+        existing.options = options
+        self.db.flush()
+        return existing
