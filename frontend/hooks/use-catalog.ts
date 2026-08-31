@@ -2,7 +2,7 @@
 
 import { useQuery } from "@tanstack/react-query";
 
-import { fetchCategories } from "@/lib/api/categories";
+import { fetchCategories, fetchCategoryBySlug, fetchFacets } from "@/lib/api/categories";
 import { fetchProduct, searchProducts } from "@/lib/api/products";
 import { fetchOffers, fetchPriceHistory } from "@/lib/api/offers";
 import type { ProductSearchParams } from "@/types/product";
@@ -12,6 +12,24 @@ export function useCategories() {
     queryKey: ["categories"],
     queryFn: fetchCategories,
     staleTime: 5 * 60 * 1000,
+  });
+}
+
+export function useCategoryBySlug(slug: string) {
+  return useQuery({
+    queryKey: ["category", slug],
+    queryFn: () => fetchCategoryBySlug(slug),
+    enabled: Boolean(slug),
+    staleTime: 5 * 60 * 1000,
+  });
+}
+
+export function useCategoryFacets(category: string | undefined, enabled = true) {
+  return useQuery({
+    queryKey: ["facets", category],
+    queryFn: () => fetchFacets({ category: category! }),
+    enabled: enabled && Boolean(category),
+    staleTime: 2 * 60 * 1000,
   });
 }
 

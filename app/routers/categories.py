@@ -16,6 +16,14 @@ def list_categories(db: DbSession):
     return CategoryService(db).list_tree()
 
 
+@router.get("/by-slug/{category_slug}", response_model=CategoryRead)
+def get_category_by_slug(category_slug: str, db: DbSession):
+    category = CategoryService(db).get_tree_by_slug(category_slug)
+    if category is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Categoría no encontrada")
+    return category
+
+
 @router.get("/{category_id}", response_model=CategoryRead)
 def get_category(category_id: int, db: DbSession):
     category = CategoryService(db).get_tree(category_id)

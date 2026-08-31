@@ -28,6 +28,7 @@ SOURCE_PRIORITY = {
     SpecValueSourceType.SCRAPER.value: 40,
     SpecValueSourceType.INGESTION.value: 40,
     SpecValueSourceType.AI.value: 20,
+    SpecValueSourceType.AI_RESEARCH.value: 20,
     SpecValueSourceType.UNKNOWN.value: 10,
 }
 
@@ -106,8 +107,10 @@ class ProductSpecValueService:
         self._commit_or_flush()
         return existing
 
-    def verify(self, value: ProductSpecValue, *, verified_by: str, note: str | None = None) -> ProductSpecValue:
+    def verify(self, value: ProductSpecValue, *, verified_by: str, note: str | None = None, correction: SpecValueInput | None = None) -> ProductSpecValue:
         previous = self._snapshot(value)
+        if correction is not None:
+            self._apply_payload(value, correction)
         value.verification_status = SpecVerificationStatus.VERIFIED.value
         value.conflict_status = SpecConflictStatus.RESOLVED.value
         value.verified_by = verified_by
@@ -117,7 +120,7 @@ class ProductSpecValueService:
             SpecValueHistoryAction.VERIFIED.value,
             previous_value=previous,
             new_value=self._snapshot(value),
-            payload=None,
+            payload=correction,
             changed_by=verified_by,
             note=note,
         )

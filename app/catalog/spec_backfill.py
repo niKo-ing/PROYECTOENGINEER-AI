@@ -42,8 +42,22 @@ def _parse_number_with_unit(value: str, expected_unit: str | None) -> tuple[Deci
         elif expected_unit == "Wh":
             match = re.search(r"(?<!\d)(\d+(?:[\.,]\d+)?)\s*wh\b", value, re.IGNORECASE)
     if not match:
+        if expected_unit == "GB":
+            match = re.search(r"(?<!\d)(\d+(?:[\.,]\d+)?)\s*(tb|terabyte|terabytes)\b", value, re.IGNORECASE)
+        elif expected_unit == "MP":
+            match = re.search(r"(?<!\d)(\d+(?:[\.,]\d+)?)\s*(mp|megapixel|megapixels)\b", value, re.IGNORECASE)
+        elif expected_unit == "g":
+            match = re.search(r"(?<!\d)(\d+(?:[\.,]\d+)?)\s*(g|gr|gramos)\b", value, re.IGNORECASE)
+    if not match:
         return None
-    return Decimal(match.group(1).replace(",", ".")), expected_unit
+    number = Decimal(match.group(1).replace(",", "."))
+    try:
+        parsed_unit = match.group(2).casefold()
+    except IndexError:
+        parsed_unit = ""
+    if expected_unit == "GB" and parsed_unit.startswith(("tb", "terabyte")):
+        number = number * 1024
+    return number, expected_unit
 
 
 def _parse_boolean(value: str) -> bool | None:
@@ -91,6 +105,14 @@ SECTION_LABEL_KEY_MAP = {
     ("procesador", "nucleos"): "processor_cores",
     ("procesador", "subprocesos"): "processor_threads",
     ("procesador", "hilos"): "processor_threads",
+    ("procesador", "frecuencia base"): "processor_base_frequency",
+    ("procesador", "velocidad maxima"): "processor_boost_frequency",
+    ("procesador", "velocidad turbo"): "processor_boost_frequency",
+    ("procesador", "frecuencia turbo"): "processor_boost_frequency",
+    ("procesador", "frecuencia maxima"): "processor_boost_frequency",
+    ("procesador", "cache"): "processor_cache",
+    ("procesador", "tdp"): "processor_tdp",
+    ("procesador", "graficos integrados"): "integrated_graphics",
     ("ram", "capacidad"): "ram_capacity",
     ("ram", "tipo"): "ram_type",
     ("ram", "velocidad"): "ram_speed",
@@ -100,14 +122,20 @@ SECTION_LABEL_KEY_MAP = {
     ("almacenamiento", "capacidad"): "storage_capacity",
     ("almacenamiento", "tipo"): "storage_type",
     ("almacenamiento", "interfaz"): "interface",
+    ("almacenamiento", "almacenamiento"): "storage_capacity",
+    ("almacenamiento", "almacenamiento interno"): "storage_capacity",
     ("pantalla", "tamano"): "screen_size",
     ("pantalla", "tamano y tipo"): "screen",
     ("pantalla", "resolucion"): "screen_resolution",
     ("pantalla", "frecuencia"): "screen_refresh_rate",
+    ("pantalla", "tasa de refresco"): "screen_refresh_rate",
     ("pantalla", "tipo"): "panel_type",
     ("pantalla", "brillo"): "brightness",
+    ("pantalla", "touch"): "touchscreen",
+    ("pantalla", "tactil"): "touchscreen",
     ("tarjeta de video", "modelo"): "gpu",
     ("tarjeta de video", "graficas"): "gpu",
+    ("tarjeta de video", "tipo"): "gpu_type",
     ("tarjeta de video", "vram"): "gpu_vram",
     ("puertos", "usb tipo c"): "ports",
     ("puertos", "usb tipo a"): "ports",
@@ -115,8 +143,22 @@ SECTION_LABEL_KEY_MAP = {
     ("conectividad", "wi fi"): "wireless",
     ("conectividad", "bluetooth"): "wireless",
     ("conectividad", "red"): "connectivity",
+    ("conectividad", "redes moviles"): "connectivity",
     ("bateria", "duracion"): "battery",
     ("bateria", "capacidad"): "battery_capacity",
+    ("bateria", "bateria"): "battery",
+    ("bateria", "carga"): "charging_wattage",
+    ("bateria", "carga rapida"): "charging_wattage",
+    ("camara", "camara web"): "webcam",
+    ("camara", "webcam"): "webcam",
+    ("camara", "camara trasera"): "rear_camera",
+    ("camara", "camaras traseras"): "rear_camera",
+    ("camara", "camara principal"): "rear_camera",
+    ("camara", "camara frontal"): "front_camera",
+    ("camara", "resolucion"): "rear_camera_megapixels",
+    ("camara", "resolucion trasera"): "rear_camera_megapixels",
+    ("camara", "megapixeles"): "rear_camera_megapixels",
+    ("sistema operativo", "sistema operativo"): "os",
 }
 
 

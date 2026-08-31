@@ -1,10 +1,11 @@
 from fastapi.testclient import TestClient
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine, delete
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.pool import StaticPool
 
 from app.db import Base, get_db
 from app.main import app
+from app.models.catalog import Category, CategorySpecificationDefinition, PriceHistory, Product, ProductSpecValue, ProductSpecValueHistory, Store, StoreOffer
 
 engine = create_engine(
     "sqlite://",
@@ -23,8 +24,19 @@ def override_get_db():
         db.close()
 
 
-app.dependency_overrides[get_db] = override_get_db
 client = TestClient(app)
+
+
+def setup_function():
+    app.dependency_overrides[get_db] = override_get_db
+    with TestingSession() as db:
+        for model in (PriceHistory, StoreOffer, ProductSpecValueHistory, ProductSpecValue, Product, Store, CategorySpecificationDefinition, Category):
+            db.execute(delete(model))
+        db.commit()
+
+
+def teardown_function():
+    app.dependency_overrides.pop(get_db, None)
 
 
 def test_create_and_filter_products():

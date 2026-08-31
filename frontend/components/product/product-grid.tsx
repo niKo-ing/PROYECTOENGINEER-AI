@@ -1,5 +1,5 @@
 import type { ProductRead } from "@/types/product";
-import { ProductCard } from "@/components/product/product-card";
+import { ProductCard, type CompareControl } from "@/components/product/product-card";
 import { Skeleton } from "@/components/ui/skeleton";
 
 export function ProductCardSkeleton() {
@@ -22,12 +22,26 @@ export function ProductCardSkeleton() {
   );
 }
 
-export function ProductGrid({ products }: { products: ProductRead[] }) {
+export interface ProductGridCompare {
+  selectedIds: ReadonlySet<number>;
+  onToggle: (id: number) => void;
+}
+
+export function ProductGrid({
+  products,
+  compare,
+}: {
+  products: ProductRead[];
+  compare?: ProductGridCompare;
+}) {
   return (
     <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-      {products.map((product) => (
-        <ProductCard key={product.id} product={product} />
-      ))}
+      {products.map((product) => {
+        const control: CompareControl | undefined = compare
+          ? { selected: compare.selectedIds.has(product.id), onToggle: () => compare.onToggle(product.id) }
+          : undefined;
+        return <ProductCard key={product.id} product={product} compare={control} />;
+      })}
     </div>
   );
 }

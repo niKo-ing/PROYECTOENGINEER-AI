@@ -53,23 +53,38 @@ class CategoryService:
         self.db.flush()
 
     def list_tree(self) -> list[CategoryRead]:
-        categories = self.repository.list_all()
-        children: dict[int | None, list] = {}
-        for category in categories:
-            children.setdefault(category.parent_id, []).append(category)
-        return [self._to_schema(category, children) for category in children.get(None, [])]
+        return self._build_roots(self.repository.list_all())
 
     def get_tree(self, category_id: int) -> CategoryRead | None:
         category = self.repository.get(category_id)
         if category is None:
             return None
+        return self._build_tree_from(category)
+
+    def get_tree_by_slug(self, slug: str) -> CategoryRead | None:
+        category = self.repository.get_by_slug(slug)
+        if category is None:
+            return None
+        return self._build_tree_from(category)
+
+    def _build_roots(self, categories: list) -> list[CategoryRead]:
+        children: dict[int | None, list] = {}
+        for category in categories:
+            children.setdefault(category.parent_id, []).append(category)
+        counts = self.repository.product_counts_by_category()
+        return [self._to_schema(category, children, counts) for category in children.get(None, [])]
+
+    def _build_tree_from(self, category) -> CategoryRead:
         categories = self.repository.list_all()
         children: dict[int | None, list] = {}
         for item in categories:
             children.setdefault(item.parent_id, []).append(item)
-        return self._to_schema(category, children)
+        counts = self.repository.product_counts_by_category()
+        return self._to_schema(category, children, counts)
 
-    def _to_schema(self, category, children: dict[int | None, list]) -> CategoryRead:
+    def _to_schema(self, category, children: dict[int | None, list], counts: dict[int, int]) -> CategoryRead:
+        child_schemas = [self._to_schema(child, children, counts) for child in children.get(category.id, [])]
+        direct = counts.get(category.id, 0)
         return CategoryRead(
             id=category.id,
             name=category.name,
@@ -77,6 +92,10 @@ class CategoryService:
             parent_id=category.parent_id,
             priority=category.priority,
             is_group=category.is_group,
+            sort_order=category.sort_order,
+            enabled=category.enabled,
+            product_count=direct,
+            total_products=direct + sum(child.total_products for child in child_schemas),
             spec_definitions=list(category.spec_definitions),
-            children=[self._to_schema(child, children) for child in children.get(category.id, [])],
+            children=child_schemas,
         )

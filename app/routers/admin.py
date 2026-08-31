@@ -103,6 +103,17 @@ class AdminSpecReviewResponse(BaseModel):
 
 class VerifySpecValueRequest(BaseModel):
     note: str | None = None
+    value_kind: str | None = None
+    raw_value: str | None = None
+    value_text: str | None = None
+    value_number: int | float | None = None
+    value_boolean: bool | None = None
+    value_json: dict | list | None = None
+    unit: str | None = None
+    source_type: str | None = None
+    source_name: str | None = None
+    source_url: str | None = None
+    extraction_method: str | None = None
 
 
 class AdminDashboardMetrics(BaseModel):
@@ -307,7 +318,28 @@ def verify_spec_value(value_id: int, payload: VerifySpecValueRequest, user: Curr
     if value is None:
         raise HTTPException(status_code=404, detail="Specification value not found")
     verified_by = user.email or user.id
-    value = ProductSpecValueService(db).verify(value, verified_by=verified_by, note=payload.note)
+    correction = None
+    if payload.value_kind is not None:
+        from app.models.catalog import SpecVerificationStatus
+        from app.services.product_spec_value_service import SpecValueInput
+
+        correction = SpecValueInput(
+            product_id=value.product_id,
+            definition_id=value.definition_id,
+            value_kind=payload.value_kind,
+            raw_value=payload.raw_value,
+            value_text=payload.value_text,
+            value_number=payload.value_number,
+            value_boolean=payload.value_boolean,
+            value_json=payload.value_json,
+            unit=payload.unit,
+            source_type=payload.source_type or value.source_type,
+            source_name=payload.source_name or value.source_name,
+            source_url=payload.source_url,
+            extraction_method=payload.extraction_method or value.extraction_method,
+            verification_status=SpecVerificationStatus.VERIFIED.value,
+        )
+    value = ProductSpecValueService(db).verify(value, verified_by=verified_by, note=payload.note, correction=correction)
     value = repository.get(value.id) or value
     return _spec_value_to_admin_schema(value)
 

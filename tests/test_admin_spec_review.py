@@ -77,6 +77,24 @@ def test_admin_verifies_spec_value():
         assert db.query(ProductSpecValueHistory).count() == 1
 
 
+def test_admin_verifies_spec_value_with_correction():
+    value_id = _add_pending_spec()
+
+    response = client.post(
+        f"/api/v1/admin/spec-values/{value_id}/verify",
+        json={"note": "5500 MB/s es etiqueta de la tienda; la velocidad documentada es LPDDR5-5500", "value_kind": "number", "raw_value": "5500 MB/s", "value_text": "5500", "value_number": 5500, "unit": "MT/s", "source_type": "admin", "source_name": "Revisión manual"},
+    )
+
+    assert response.status_code == 200
+    assert response.json()["verification_status"] == "verified"
+    with Session() as db:
+        value = db.get(ProductSpecValue, value_id)
+        assert value.value_number == 5500
+        assert value.unit == "MT/s"
+        assert value.conflict_status == "resolved"
+        assert value.verified_by == "admin@example.com"
+
+
 def test_admin_dashboard_returns_real_metrics_and_activity():
     value_id = _add_pending_spec()
     client.post(f"/api/v1/admin/spec-values/{value_id}/verify", json={"note": "ok"})

@@ -1,10 +1,12 @@
 import re
+from typing import Any
 
 from sqlalchemy import and_, func, or_, select
 from sqlalchemy.orm import Session, selectinload
 
 from app.catalog.synonyms import expand_query
-from app.models.catalog import Category, Product, ProductSpecValue, Store, StoreOffer
+from app.models.catalog import Category, CategorySpecificationDefinition, Product, ProductSpecValue, Store, StoreOffer
+from app.repositories.category_repository import CategoryRepository
 from app.schemas.product import ProductCreate
 
 
@@ -32,9 +34,28 @@ class ProductRepository:
         statement = select(Product).where(Product.id == product_id).options(selectinload(Product.category_entity), selectinload(Product.spec_values).selectinload(ProductSpecValue.definition), selectinload(Product.offers).selectinload(StoreOffer.store))
         return self.db.scalar(statement)
 
-    def search(self, *, query: str | None, category: str | None, min_price_clp: int | None, max_price_clp: int | None, limit: int, offset: int, brand: str | None = None) -> tuple[list[Product], int]:
+    def search(
+        self,
+        *,
+        query: str | None,
+        category: str | None,
+        min_price_clp: int | None,
+        max_price_clp: int | None,
+        limit: int,
+        offset: int,
+        brand: str | None = None,
+        sort: str = "price_asc",
+        spec_filters: dict[str, str] | None = None,
+        spec_ranges: dict[str, str] | None = None,
+        ids: str | None = None,
+    ) -> tuple[list[Product], int]:
         statement = select(Product).join(StoreOffer).outerjoin(Category)
         filters = []
+        category_ids = self._resolve_category_ids(category) if category else None
+        if category_ids is not None:
+            if not category_ids:
+                return [], 0
+            filters.append(Product.category_id.in_(category_ids))
         if query:
             token_sets = expand_query(query)
             if token_sets:
@@ -51,14 +72,32 @@ class ProductRepository:
                     for token_set in token_sets
                 ]
                 filters.append(and_(*token_conditions))
-        if category:
-            filters.append(Category.name.ilike(category.strip()))
         if brand:
-            filters.append(Product.brand.ilike(brand.strip()))
+            brand_values = [value.strip() for value in brand.split(",") if value.strip()]
+            if len(brand_values) == 1:
+                filters.append(Product.brand.ilike(brand_values[0]))
+            elif brand_values:
+                filters.append(or_(*(Product.brand.ilike(value) for value in brand_values)))
         if min_price_clp is not None:
             filters.append(StoreOffer.price >= min_price_clp)
         if max_price_clp is not None:
             filters.append(StoreOffer.price <= max_price_clp)
+        if spec_filters:
+            for key, values in spec_filters.items():
+                value_list = [value.strip() for value in values.split(",") if value.strip()]
+                if value_list:
+                    filters.append(self._spec_value_exists(key, value_list))
+        if spec_ranges:
+            for key, range_value in spec_ranges.items():
+                bounds = self._parse_range(range_value)
+                if bounds is None:
+                    continue
+                filters.append(self._spec_value_in_range(key, *bounds))
+        if ids:
+            parsed_ids = [int(item) for item in ids.split(",") if item.strip().isdigit()]
+            if not parsed_ids:
+                return [], 0
+            filters.append(Product.id.in_(parsed_ids))
         if filters:
             statement = statement.where(*filters)
 
@@ -66,16 +105,79 @@ class ProductRepository:
         if filters:
             count_statement = count_statement.where(*filters)
         total = self.db.scalar(count_statement) or 0
+
+        order_criteria: Any = func.min(StoreOffer.price).asc()
+        if ids:
+            order_criteria = Product.id.asc()
+        elif sort == "price_desc":
+            order_criteria = func.min(StoreOffer.price).desc()
+        elif sort == "newest":
+            order_criteria = Product.created_at.desc()
+        elif sort == "name":
+            order_criteria = Product.name.asc()
+
         items = list(
             self.db.scalars(
                 statement.group_by(Product.id)
-                .order_by(func.min(StoreOffer.price).asc())
+                .order_by(order_criteria, Product.id.asc())
                 .options(selectinload(Product.category_entity), selectinload(Product.spec_values).selectinload(ProductSpecValue.definition), selectinload(Product.offers).selectinload(StoreOffer.store))
                 .limit(limit)
                 .offset(offset)
             )
         )
         return items, total
+
+    def _resolve_category_ids(self, category: str) -> list[int]:
+        category_repository = CategoryRepository(self.db)
+        category = category.strip()
+        match = category_repository.get_by_slug(category)
+        if match is None:
+            match = self.db.scalar(select(Category).where(Category.name == category))
+        if match is None:
+            return []
+        return list(category_repository.subtree_ids(match.id))
+
+    def _spec_value_exists(self, key: str, values: list[str]):
+        return (
+            select(ProductSpecValue.id)
+            .join(CategorySpecificationDefinition, CategorySpecificationDefinition.id == ProductSpecValue.definition_id)
+            .where(
+                CategorySpecificationDefinition.key == key,
+                ProductSpecValue.product_id == Product.id,
+                ProductSpecValue.value_text.in_(values),
+            )
+            .exists()
+        )
+
+    def _spec_value_in_range(self, key: str, minimum: int | None, maximum: int | None):
+        conditions = [CategorySpecificationDefinition.key == key, ProductSpecValue.product_id == Product.id]
+        if minimum is not None:
+            conditions.append(ProductSpecValue.value_number >= minimum)
+        if maximum is not None:
+            conditions.append(ProductSpecValue.value_number <= maximum)
+        return (
+            select(ProductSpecValue.id)
+            .join(CategorySpecificationDefinition, CategorySpecificationDefinition.id == ProductSpecValue.definition_id)
+            .where(*conditions)
+            .exists()
+        )
+
+    @staticmethod
+    def _parse_range(value: str) -> tuple[int | None, int | None] | None:
+        parts = value.split("-", 1)
+        if len(parts) != 2:
+            return None
+        minimum_text, maximum_text = parts
+        try:
+            minimum = int(minimum_text) if minimum_text.strip() else None
+            maximum = int(maximum_text) if maximum_text.strip() else None
+        except ValueError:
+            return None
+        if minimum is None and maximum is None:
+            return None
+        if minimum is not None and maximum is not None and minimum > maximum:
+            return None
+        return minimum, maximum
 
     def _get_or_create_category(self, name: str) -> Category:
         category = self.db.scalar(select(Category).where(Category.name == name))

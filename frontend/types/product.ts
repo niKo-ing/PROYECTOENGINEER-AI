@@ -65,6 +65,10 @@ export interface ProductSearchParams {
   brand?: string;
   min_price_clp?: number;
   max_price_clp?: number;
+  sort?: string;
+  spec_filters?: string;
+  spec_ranges?: string;
+  ids?: string;
   limit?: number;
   offset?: number;
 }

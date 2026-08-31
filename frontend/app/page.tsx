@@ -3,22 +3,25 @@
 import Link from "next/link";
 import { ArrowRight, LayoutGrid, Sparkles } from "lucide-react";
 
-import { CategoryList } from "@/components/product/category-list";
 import { EmptyState } from "@/components/product/empty-state";
 import { HomeSearchBar } from "@/components/product/home-search-bar";
 import { ProductGrid, ProductGridSkeleton } from "@/components/product/product-grid";
+import { useCompare } from "@/components/product/compare-provider";
+import { CategoryExplorer, CategoryExplorerSkeleton } from "@/components/category/category-explorer";
 import { Button } from "@/components/ui/button";
-import { Skeleton } from "@/components/ui/skeleton";
 import { useCategories, useProducts } from "@/hooks/use-catalog";
+import { mainGroups } from "@/types/category";
 
 const FEATURED_LIMIT = 8;
 
 export default function HomePage() {
   const categoriesQuery = useCategories();
   const featuredQuery = useProducts({ limit: FEATURED_LIMIT });
+  const compare = useCompare();
 
   const featured = featuredQuery.data?.items ?? [];
   const featuredError = featuredQuery.isError;
+  const groups = mainGroups(categoriesQuery.data ?? []);
 
   return (
     <div>
@@ -47,15 +50,11 @@ export default function HomePage() {
             title="Explora por categoría"
           />
           {categoriesQuery.isLoading ? (
-            <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
-              {Array.from({ length: 8 }).map((_, index) => (
-                <Skeleton key={index} className="h-12 rounded-xl" />
-              ))}
-            </div>
+            <CategoryExplorerSkeleton count={6} />
           ) : categoriesQuery.isError ? (
             <EmptyState title="No pudimos cargar las categorías" description="Inténtalo nuevamente en unos momentos." />
-          ) : categoriesQuery.data && categoriesQuery.data.length > 0 ? (
-            <CategoryList categories={categoriesQuery.data} />
+          ) : groups.length > 0 ? (
+            <CategoryExplorer groups={groups} />
           ) : (
             <EmptyState title="Aún no hay categorías" description="Cuando haya datos disponibles aparecerán aquí." />
           )}
@@ -79,7 +78,10 @@ export default function HomePage() {
           ) : featuredError ? (
             <EmptyState title="No pudimos cargar los productos" description="Revisa que el backend esté disponible e inténtalo de nuevo." />
           ) : featured.length > 0 ? (
-            <ProductGrid products={featured} />
+            <ProductGrid
+              products={featured}
+              compare={{ selectedIds: compare.selected, onToggle: compare.toggle }}
+            />
           ) : (
             <EmptyState title="Aún no hay productos disponibles" description="Cuando haya productos publicados aparecerán aquí." />
           )}

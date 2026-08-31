@@ -23,7 +23,11 @@ class CategoryRead(BaseModel):
     name: str
     slug: str
     parent_id: int | None
-    priority: str
-    is_group: bool
+    priority: str = "P2"
+    is_group: bool = False
+    sort_order: int = 0
+    enabled: bool = True
+    product_count: int = 0
+    total_products: int = 0
     spec_definitions: list[CategorySpecificationDefinitionRead] = Field(default_factory=list)
     children: list["CategoryRead"] = Field(default_factory=list)

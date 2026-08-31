@@ -105,3 +105,33 @@ class PriceHistoryRead(BaseModel):
 class ProductSearch(BaseModel):
     items: list[ProductRead]
     total: int
+
+
+class FacetOption(BaseModel):
+    value: str
+    count: int
+
+
+class FacetRange(BaseModel):
+    minimum: float | None = None
+    maximum: float | None = None
+
+
+class CategoryFacetSpec(BaseModel):
+    key: str
+    label: str
+    group: str
+    data_type: str
+    unit: str | None = None
+    filter_type: str
+    kind: str  # "options" | "range"
+    options: list[FacetOption] = Field(default_factory=list)
+    range: FacetRange | None = None
+
+
+class CategoryFacets(BaseModel):
+    category: str
+    total: int = 0
+    brands: list[FacetOption] = Field(default_factory=list)
+    price_range: FacetRange | None = None
+    specs: list[CategoryFacetSpec] = Field(default_factory=list)

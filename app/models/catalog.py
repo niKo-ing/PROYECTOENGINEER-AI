@@ -47,6 +47,7 @@ class SpecValueSourceType(StrEnum):
     SCRAPER = "scraper"
     INGESTION = "ingestion"
     AI = "ai"
+    AI_RESEARCH = "ai_research"
     ADMIN = "admin"
     UNKNOWN = "unknown"
 

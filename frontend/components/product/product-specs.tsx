@@ -176,13 +176,14 @@ function sourceLabel(type?: string | null, name?: string | null) {
   if (!type) return null;
   const label = name || sourceTypeLabel(type);
   const title = name ? `${sourceTypeLabel(type)}: ${name}` : sourceTypeLabel(type);
-  const Icon = type === "manufacturer" ? Factory : type === "store" ? Store : type === "admin" ? PenTool : type === "ai" ? Bot : Database;
+  const Icon = type === "manufacturer" ? Factory : type === "store" ? Store : type === "admin" ? PenTool : type === "ai" || type === "ai_research" ? Bot : Database;
   return { label, title, Icon };
 }
 
 function sourceTypeLabel(type: string) {
   const labels: Record<string, string> = {
     ai: "IA",
+    ai_research: "Investigación IA",
     admin: "Admin",
     manufacturer: "Fabricante",
     store: "Tienda",

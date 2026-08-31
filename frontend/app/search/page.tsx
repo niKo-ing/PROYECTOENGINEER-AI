@@ -1,11 +1,12 @@
 "use client";
 
 import { useRouter, useSearchParams } from "next/navigation";
-import { Suspense, useDeferredValue, useEffect, useMemo, useState } from "react";
+import { Suspense, useDeferredValue, useEffect, useState } from "react";
 import { Search, SlidersHorizontal } from "lucide-react";
 
 import { ProductGrid, ProductGridSkeleton } from "@/components/product/product-grid";
 import { EmptyState } from "@/components/product/empty-state";
+import { useCompare } from "@/components/product/compare-provider";
 import { SearchFilters } from "@/components/search/search-filters";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -17,6 +18,7 @@ import {
   DialogDescription,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
+import { Pagination } from "@/components/ui/pagination";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useCategories, useProducts } from "@/hooks/use-catalog";
 import { FILTER_LIMIT, buildFilterQuery } from "@/components/search/search-filters";
@@ -43,6 +45,7 @@ function SearchContent() {
 
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
 
+  const compare = useCompare();
   const categoriesQuery = useCategories();
   const productsQuery = useProducts({
     query: q || undefined,
@@ -128,7 +131,10 @@ function SearchContent() {
             />
           ) : productsQuery.data && productsQuery.data.items.length > 0 ? (
             <>
-              <ProductGrid products={productsQuery.data.items} />
+              <ProductGrid
+                products={productsQuery.data.items}
+                compare={{ selectedIds: compare.selected, onToggle: compare.toggle }}
+              />
               {totalPages > 1 ? (
                 <Pagination current={page} totalPages={totalPages} onPageChange={goToPage} />
               ) : null}
@@ -192,61 +198,6 @@ function DebouncedSearchBar({ initialValue }: { initialValue: string }) {
         aria-label="Buscar productos"
       />
     </div>
-  );
-}
-
-function Pagination({
-  current,
-  totalPages,
-  onPageChange,
-}: {
-  current: number;
-  totalPages: number;
-  onPageChange: (page: number) => void;
-}) {
-  const pages = useMemo(() => {
-    const set = new Set<number>([1, totalPages, current, current - 1, current + 1]);
-    return Array.from(set)
-      .filter((page) => page >= 1 && page <= totalPages)
-      .sort((a, b) => a - b);
-  }, [current, totalPages]);
-
-  return (
-    <nav className="mt-8 flex flex-wrap items-center justify-center gap-1" aria-label="Paginación">
-      <Button
-        variant="outline"
-        size="sm"
-        disabled={current <= 1}
-        onClick={() => onPageChange(current - 1)}
-      >
-        Anterior
-      </Button>
-      {pages.map((page, index) => {
-        const prev = pages[index - 1];
-        const isGap = prev !== undefined && page - prev > 1;
-        return (
-          <span key={page} className="flex items-center gap-1">
-            {isGap ? <span className="px-1 text-muted-foreground">…</span> : null}
-            <Button
-              variant={page === current ? "default" : "outline"}
-              size="sm"
-              onClick={() => onPageChange(page)}
-              className="min-w-9"
-            >
-              {page}
-            </Button>
-          </span>
-        );
-      })}
-      <Button
-        variant="outline"
-        size="sm"
-        disabled={current >= totalPages}
-        onClick={() => onPageChange(current + 1)}
-      >
-        Siguiente
-      </Button>
-    </nav>
   );
 }
 
