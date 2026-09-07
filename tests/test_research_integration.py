@@ -21,6 +21,7 @@ from app.ai.schemas.chat import ChatTurn
 from app.core.security import AuthenticatedUser
 from app.db import Base
 from app.models.catalog import Category, CategorySpecificationDefinition, Product, ProductSpecValue, Store, StoreOffer
+from app.models.knowledge import KnowledgeChunk, KnowledgeDocument, KnowledgeSource
 
 engine = create_engine("sqlite://", connect_args={"check_same_thread": False}, poolclass=StaticPool)
 TestingSession = sessionmaker(bind=engine)
@@ -101,6 +102,9 @@ def build_orchestrator(provider: FakeProvider, research_service: FakeResearchSer
 
 def reset_database():
     with TestingSession() as db:
+        db.execute(delete(KnowledgeChunk))
+        db.execute(delete(KnowledgeDocument))
+        db.execute(delete(KnowledgeSource))
         db.execute(delete(StoreOffer))
         db.execute(delete(ProductSpecValue))
         db.execute(delete(Product))

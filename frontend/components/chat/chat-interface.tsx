@@ -8,13 +8,14 @@ import { ProductRecommendations } from "@/components/chat/product-recommendation
 import { SuggestionChips } from "@/components/chat/suggestion-chips";
 import { ChatComposer } from "@/components/chat/chat-composer";
 import { TypingIndicator } from "@/components/chat/typing-indicator";
+import { EvidencePanel } from "@/components/chat/evidence-panel";
 import {
   buildProductContext,
   isProbablyCatalogQuery,
   sendCatalogAwareMessage,
   type CatalogReference,
 } from "@/lib/api/ai";
-import type { ResearchSource } from "@/lib/api/chat";
+import type { EvidenceEntry, RecommendationDetail, ResearchSource } from "@/lib/api/chat";
 import type { ProductRead } from "@/types/product";
 
 type ChatMessage = {
@@ -25,6 +26,8 @@ type ChatMessage = {
   references?: CatalogReference[];
   products?: ProductRead[];
   sources?: ResearchSource[];
+  evidence?: EvidenceEntry[];
+  recommendation?: RecommendationDetail | null;
 };
 
 type ChatInterfaceProps = {
@@ -105,6 +108,8 @@ export function ChatInterface({ accessToken, productId, productName }: ChatInter
           references: result.catalog.references.length > 0 ? result.catalog.references : undefined,
           products: result.catalog.products.length > 0 ? result.catalog.products : undefined,
           sources: result.sources && result.sources.length > 0 ? result.sources : undefined,
+          evidence: result.evidence && result.evidence.length > 0 ? result.evidence : undefined,
+          recommendation: result.recommendation ?? undefined,
         },
       ]);
     } catch (requestError) {
@@ -236,6 +241,10 @@ export function ChatInterface({ accessToken, productId, productName }: ChatInter
                       </ul>
                     </div>
                   ) : null}
+                  <EvidencePanel
+                    evidence={message.evidence}
+                    recommendation={message.recommendation}
+                  />
                 </div>
               </article>
             )

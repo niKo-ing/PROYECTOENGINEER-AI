@@ -48,3 +48,19 @@ class ChatResponse(BaseModel):
         default=False,
         description="True cuando se usó investigación web externa para complementar el catálogo.",
     )
+    recommendation: dict[str, Any] | None = Field(
+        default=None,
+        description="Recomendación estructurada con winner_id, confidence, evidence y unknowns.",
+    )
+    evidence: list[dict[str, Any]] = Field(
+        default_factory=list,
+        description="Evidencia científica/estructural que sustenta la respuesta (catálogo, web o knowledge base).",
+    )
+    trace: list[dict[str, Any]] | None = Field(
+        default=None,
+        description="Traza interna del orquestador (rag/web_research/plan) para observabilidad.",
+    )
+    trace_id: str | None = Field(
+        default=None,
+        description="Identificador de la traza de esta respuesta para facilitar el debug.",
+    )

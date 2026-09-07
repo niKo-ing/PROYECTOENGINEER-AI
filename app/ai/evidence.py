@@ -33,6 +33,30 @@ class EvidenceKind(StrEnum):
     INFERRED = "inferred"
 
 
+class ClaimType(StrEnum):
+    """What kind of statement an evidence item supports (AI V4)."""
+
+    FACT = "fact"
+    PERFORMANCE = "performance"
+    COMPATIBILITY = "compatibility"
+    PRICE = "price"
+    RECOMMENDATION = "recommendation"
+    INFERENCE = "inference"
+    UNKNOWN = "unknown"
+    CONFLICT = "conflict"
+
+
+@dataclass(frozen=True)
+class Claim:
+    """A normalized, evidence-attributable statement in the answer."""
+
+    text: str
+    claim_type: ClaimType = ClaimType.FACT
+    product_id: int | None = None
+    brand: str | None = None
+    model: str | None = None
+
+
 @dataclass(frozen=True)
 class Evidence:
     """A single traceable support item behind an assistant answer."""
@@ -45,6 +69,8 @@ class Evidence:
     confidence: float = 1.0
     kind: EvidenceKind = EvidenceKind.STRUCTURED
     retrieved_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+    published_at: datetime | None = None
+    claim_type: ClaimType | None = None
 
     def as_dict(self) -> dict:
         return {
@@ -56,6 +82,8 @@ class Evidence:
             "confidence": self.confidence,
             "kind": self.kind.value,
             "retrieved_at": self.retrieved_at.isoformat(),
+            "published_at": self.published_at.isoformat() if self.published_at else None,
+            "claim_type": self.claim_type.value if self.claim_type else None,
         }
 
 

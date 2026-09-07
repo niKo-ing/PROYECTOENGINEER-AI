@@ -40,12 +40,18 @@ class ResearchTarget:
 
 @dataclass(frozen=True)
 class ResearchQuery:
-    """A single search intent with its expected source type."""
+    """A single search intent with its expected source type.
+
+    ``topic`` and ``priority`` are used by deep (topic-aware) planning to keep
+    provenance on which facet of the question the query answers.
+    """
 
     query: str
     expected_type: str
     target_id: int | None = None
     claim: str | None = None
+    topic: str | None = None
+    priority: int = 0
 
 
 @dataclass
@@ -58,6 +64,8 @@ class ResearchReport:
     queries_run: int = 0
     context: str | None = None
     note: str | None = None
+    depth: str | None = None
+    topics: list = field(default_factory=list)
 
     @property
     def sources(self) -> list[dict]:

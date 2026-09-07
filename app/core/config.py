@@ -27,12 +27,34 @@ class Settings:
     llm_timeout_seconds: float = float(os.getenv("LLM_TIMEOUT_SECONDS", "20"))
     ai_max_tool_calls: int = int(os.getenv("AI_MAX_TOOL_CALLS", "3"))
     research_enabled: bool = os.getenv("RESEARCH_ENABLED", "true").strip().lower() in {"1", "true", "yes", "on"}
-    max_research_queries: int = int(os.getenv("MAX_RESEARCH_QUERIES", "3"))
-    max_research_sources: int = int(os.getenv("MAX_RESEARCH_SOURCES", "4"))
-    max_research_documents: int = int(os.getenv("MAX_RESEARCH_DOCUMENTS", "3"))
+    # Hard ceilings for any research pass (depth budgets stay below these).
+    max_research_queries: int = int(os.getenv("MAX_RESEARCH_QUERIES", "5"))
+    max_research_sources: int = int(os.getenv("MAX_RESEARCH_SOURCES", "6"))
+    max_research_documents: int = int(os.getenv("MAX_RESEARCH_DOCUMENTS", "4"))
     max_research_chunks: int = int(os.getenv("MAX_RESEARCH_CHUNKS", "24"))
     max_research_chars: int = int(os.getenv("MAX_RESEARCH_CHARS", "6000"))
     research_timeout_seconds: float = float(os.getenv("RESEARCH_TIMEOUT_SECONDS", "10"))
+    research_cache_ttl_seconds: int = int(os.getenv("RESEARCH_CACHE_TTL_SECONDS", "1800"))
+    # Per-depth budgets (configurable; research is never unlimited).
+    research_light_max_queries: int = int(os.getenv("RESEARCH_LIGHT_MAX_QUERIES", "2"))
+    research_light_max_sources: int = int(os.getenv("RESEARCH_LIGHT_MAX_SOURCES", "3"))
+    research_light_max_documents: int = int(os.getenv("RESEARCH_LIGHT_MAX_DOCUMENTS", "2"))
+    research_deep_max_queries: int = int(os.getenv("RESEARCH_DEEP_MAX_QUERIES", "4"))
+    research_deep_max_sources: int = int(os.getenv("RESEARCH_DEEP_MAX_SOURCES", "6"))
+    research_deep_max_documents: int = int(os.getenv("RESEARCH_DEEP_MAX_DOCUMENTS", "3"))
+    # Freshness-aware cache: short TTL for volatile data, long for stable specs.
+    research_cache_price_ttl_seconds: int = int(os.getenv("RESEARCH_CACHE_PRICE_TTL_SECONDS", "300"))
+    research_cache_spec_ttl_seconds: int = int(os.getenv("RESEARCH_CACHE_SPEC_TTL_SECONDS", "86400"))
+    research_cache_benchmark_ttl_seconds: int = int(os.getenv("RESEARCH_CACHE_BENCHMARK_TTL_SECONDS", "3600"))
+    research_cache_review_ttl_seconds: int = int(os.getenv("RESEARCH_CACHE_REVIEW_TTL_SECONDS", "7200"))
+    embedding_provider: str = os.getenv("EMBEDDING_PROVIDER", "local").lower()
+    embedding_model: str = os.getenv("EMBEDDING_MODEL", "")
+    embedding_dimensions: int = int(os.getenv("EMBEDDING_DIMENSIONS", "256"))
+    embedding_use_pgvector: bool = os.getenv("EMBEDDING_USE_PGVECTOR", "false").strip().lower() in {"1", "true", "yes", "on"}
+    rag_enabled: bool = os.getenv("RAG_ENABLED", "true").strip().lower() in {"1", "true", "yes", "on"}
+    rag_hybrid_top_k: int = int(os.getenv("RAG_HYBRID_TOP_K", "6"))
+    rag_rerank_weights: str = os.getenv("RAG_RERANK_WEIGHTS", "")
+    rag_token_budget: int = int(os.getenv("RAG_TOKEN_BUDGET", "1600"))
 
     @property
     def sqlalchemy_database_url(self) -> str:

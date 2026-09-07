@@ -9,6 +9,40 @@ export type ResearchSource = {
   retrieved_at: string;
 };
 
+export type EvidenceEntry = {
+  source_type: string;
+  source_name: string;
+  source_url: string | null;
+  title: string | null;
+  content: string | null;
+  confidence: number;
+  kind: string;
+  retrieved_at: string;
+  published_at?: string | null;
+  claim_type?: string | null;
+};
+
+export type RecommendationDetail = {
+  products?: Array<{
+    id: number | null;
+    name: string | null;
+    brand: string | null;
+    lowest_price: number | null;
+    rating: number | null;
+  }>;
+  criteria?: Record<string, string>;
+  winner_id?: number | null;
+  winner_reason?: string | null;
+  tradeoffs?: Record<string, string[]>;
+  confidence?: number;
+  user_need?: string | null;
+  hard_constraints?: string[];
+  soft_preferences?: string[];
+  criteria_scores?: Record<string, number>;
+  final_reason?: string | null;
+  basis?: string | null;
+};
+
 export type ChatResult = {
   answer: string;
   tools_used: string[];
@@ -19,7 +53,10 @@ export type ChatResult = {
     latency_ms: number | null;
   } | null;
   sources?: ResearchSource[];
+  evidence?: EvidenceEntry[];
+  recommendation?: RecommendationDetail | null;
   research?: boolean;
+  trace_id?: string | null;
 };
 
 export async function sendChatMessage(message: string, accessToken: string, productId?: number | null): Promise<ChatResult> {

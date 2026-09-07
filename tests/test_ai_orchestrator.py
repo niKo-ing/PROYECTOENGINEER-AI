@@ -23,6 +23,7 @@ from app.core.security import AuthenticatedUser, get_current_user
 from app.db import Base, get_db
 from app.main import app
 from app.models.catalog import Category, CategorySpecificationDefinition, Product, ProductSpecValue, Store, StoreOffer
+from app.models.knowledge import KnowledgeChunk, KnowledgeDocument, KnowledgeSource
 from app.models.user_profile import UserProfile
 
 engine = create_engine("sqlite://", connect_args={"check_same_thread": False}, poolclass=StaticPool)
@@ -67,6 +68,9 @@ def set_context(provider: LLMProvider):
 def reset_database():
     app.dependency_overrides[get_db] = override_get_db
     with TestingSession() as db:
+        db.execute(delete(KnowledgeChunk))
+        db.execute(delete(KnowledgeDocument))
+        db.execute(delete(KnowledgeSource))
         db.execute(delete(UserProfile))
         db.execute(delete(StoreOffer))
         db.execute(delete(ProductSpecValue))

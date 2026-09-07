@@ -17,13 +17,21 @@ import httpx
 from bs4 import BeautifulSoup
 
 from app.ai.evidence import Evidence, EvidenceKind, KnowledgeSourceType
+from app.ai.rag import TTLCache
 from app.ai.research.benchmark import extract_geekbench
 from app.ai.research.chunking import ResearchDocument, document_to_chunks
+from app.ai.research.query_planning import detect_topics, plan_queries
 from app.ai.research.reranker import rerank, source_for_result
 from app.ai.research.schemas import ResearchQuery, ResearchReport, ResearchTarget, SearchResult
-from app.ai.research.source_discovery import build_queries, target_identity
+from app.ai.research.source_discovery import target_identity
 from app.ai.research.sources import confidence_for_source
 from app.ai.research.validation import ClaimVerdict, classify_evidence
+
+try:  # guard: SSRF validation is best-effort, never blocks research when unavailable
+    from app.ingestion.discovery.security import URLValidationError, validate_url
+except ImportError:  # pragma: no cover
+    URLValidationError = None  # type: ignore[assignment]
+    validate_url = None  # type: ignore[assignment]
 
 _DDG_URL = "https://html.duckduckgo.com/html/"
 _DDG_PARAMS = ("kl=us-en", "ia=web")
@@ -103,6 +111,11 @@ class HTTPDocumentRetriever:
         self._client = client
 
     def retrieve(self, url: str, *, needles: tuple[str, ...] = (), timeout_seconds: float = 10.0) -> ResearchDocument | None:
+        if validate_url is not None:
+            try:
+                validate_url(url)
+            except URLValidationError:
+                return None
         try:
             make_request = (self._client or httpx).get
             response = make_request(url, headers=_DEFAULT_HEADERS, timeout=timeout_seconds, follow_redirects=True)
@@ -155,6 +168,9 @@ class WebResearchService:
         max_chunks: int = 24,
         max_chars: int = 6000,
         timeout_seconds: float = 10.0,
+        cache: TTLCache | None = None,
+        store=None,
+        research_depth: str = "light",
     ):
         self.search = search
         self.retriever = retriever
@@ -164,12 +180,26 @@ class WebResearchService:
         self.max_chunks = max_chunks
         self.max_chars = max_chars
         self.timeout_seconds = timeout_seconds
+        self._cache = cache
+        self._store = store
+        self.research_depth = research_depth
 
     @classmethod
-    def from_settings(cls, __settings=None) -> "WebResearchService":
+    def from_settings(cls, __settings=None, *, db=None) -> "WebResearchService":
         from app.core.config import settings as default_settings
 
         settings = __settings or default_settings
+        store = None
+        cache = None
+        if db is not None and settings.rag_enabled:
+            from app.ai.rag.knowledge_store import KnowledgeStore
+
+            try:
+                store = KnowledgeStore.from_settings(db, settings=settings)
+                cache = TTLCache(ttl_seconds=settings.research_cache_ttl_seconds)
+            except Exception:  # noqa: BLE001 — RAG is an enhancement, never fatal for research
+                store = None
+                cache = None
         return cls(
             DuckDuckGoSearchProvider(),
             HTTPDocumentRetriever(),
@@ -179,13 +209,16 @@ class WebResearchService:
             max_chunks=settings.max_research_chunks,
             max_chars=settings.max_research_chars,
             timeout_seconds=settings.research_timeout_seconds,
+            cache=cache,
+            store=store,
         )
 
     def research(self, targets: list[ResearchTarget], message: str = "") -> ResearchReport:
         if self.max_queries <= 0 or not targets:
             return ResearchReport(used=False, evidence=[], queries_run=0, note="Research deshabilitado.")
 
-        queries = build_queries(targets, message, max_queries=self.max_queries)
+        queries = plan_queries(targets, message, max_queries=self.max_queries, depth=self.research_depth)
+        topics = detect_topics(message)
         if not queries:
             return ResearchReport(used=False, evidence=[], queries_run=0, note="Sin identidad de producto para investigar.")
 
@@ -205,22 +238,34 @@ class WebResearchService:
         verdicts = self._verdicts(evidence, targets)
         context = self._build_context(evidence, verdicts)
         note = self._note(queries_run, evidence)
-        return ResearchReport(
+        report = ResearchReport(
             used=bool(evidence),
             evidence=evidence,
             verdicts=verdicts,
             queries_run=queries_run,
             context=context,
             note=note,
+            depth=str(getattr(self.research_depth, "value", self.research_depth)),
+            topics=topics,
         )
+        self._persist(report, targets)
+        return report
 
     # ── Steps ──────────────────────────────────────────────────────────
 
     def _search(self, query: ResearchQuery) -> list[SearchResult]:
+        key = TTLCache.key("websearch", query.query)
+        if self._cache is not None:
+            cached = self._cache.get(key)
+            if cached is not None:
+                return list(cached)
         try:
-            return self.search.search(query.query, max_results=5, timeout_seconds=self.timeout_seconds)
+            results = self.search.search(query.query, max_results=5, timeout_seconds=self.timeout_seconds)
         except Exception:
             return []
+        if self._cache is not None and results:
+            self._cache.set(key, results, ttl_seconds=_cache_ttl_for(query.expected_type))
+        return results
 
     def _select(self, results_by_target: dict[int, list[SearchResult]], targets: list[ResearchTarget]) -> list[tuple[SearchResult, ResearchTarget]]:
         selected: list[tuple[SearchResult, ResearchTarget]] = []
@@ -234,10 +279,25 @@ class WebResearchService:
     def _collect_evidence(self, selected: list[tuple[SearchResult, ResearchTarget]]) -> list[Evidence]:
         evidence: list[Evidence] = []
         for result, target in selected[: self.max_documents]:
+            if not self._url_allowed(result.url):
+                continue
             self._append_document_evidence(evidence, result, target)
         for result, target in selected[self.max_documents : self.max_sources]:
+            if not self._url_allowed(result.url):
+                continue
             self._append_snippet_evidence(evidence, result, target)
         return evidence
+
+    @staticmethod
+    def _url_allowed(url: str) -> bool:
+        """Drop URLs that violate the SSRF policy (private/loopback hosts, bad schemes)."""
+        if validate_url is None:
+            return True
+        try:
+            validate_url(url)
+            return True
+        except URLValidationError:
+            return False
 
     def _append_document_evidence(self, evidence: list[Evidence], result: SearchResult, target: ResearchTarget) -> None:
         _brand, model = target_identity(target)
@@ -312,10 +372,42 @@ class WebResearchService:
         context = "\n".join(lines)
         return context[: self.max_chars]
 
+    def _persist(self, report: ResearchReport, targets: list[ResearchTarget]) -> None:
+        """Seed the knowledge base with freshly collected evidence (dedupe by URL)."""
+        if self._store is None or not report.evidence:
+            return
+        target = targets[0] if targets else None
+        if target is None:
+            return
+        try:
+            self._store.ingest_research_report(
+                report,
+                product_id=target.id or None,
+                brand=target.brand,
+                model=target.model,
+            )
+        except Exception:  # noqa: BLE001 — persisting into the KB must never break the chat
+            return
+
     def _note(self, queries_run: int, evidence: list[Evidence]) -> str:
         if evidence:
             return f"Investigación externa completada: {len(evidence)} fuente(s) en {queries_run} consulta(s)."
         return "No se encontró información externa adicional que respalde la consulta."
+
+
+def _cache_ttl_for(source_type: str | None) -> float:
+    """Freshness-aware cache TTL: volatile data expires fast, specs live long."""
+    from app.core.config import settings
+
+    table = {
+        KnowledgeSourceType.CATALOG.value: settings.research_cache_price_ttl_seconds,
+        KnowledgeSourceType.WEB.value: settings.research_cache_price_ttl_seconds,
+        KnowledgeSourceType.MANUFACTURER.value: settings.research_cache_spec_ttl_seconds,
+        KnowledgeSourceType.DOCUMENT.value: settings.research_cache_spec_ttl_seconds,
+        KnowledgeSourceType.BENCHMARK.value: settings.research_cache_benchmark_ttl_seconds,
+        KnowledgeSourceType.REVIEW.value: settings.research_cache_review_ttl_seconds,
+    }
+    return float(table.get(source_type, settings.research_cache_ttl_seconds))
 
 
 def _tokens(model: str | None) -> list[str]:

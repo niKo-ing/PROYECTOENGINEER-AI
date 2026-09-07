@@ -32,6 +32,16 @@ class Recommendation:
     missing_specs: list[str] = field(default_factory=list)
     applied_constraints: dict[str, Any] = field(default_factory=dict)
     rationale: str | None = None
+    confidence: float = 0.0
+    evidence: list[dict[str, Any]] = field(default_factory=list)
+    unknowns: list[str] = field(default_factory=list)
+    # ── AI V4 ─────────────────────────────────────────────────────────
+    user_need: str | None = None
+    hard_constraints: list[str] = field(default_factory=list)
+    soft_preferences: list[str] = field(default_factory=list)
+    criteria_scores: dict[str, float] = field(default_factory=dict)
+    final_reason: str | None = None
+    basis: str = "catalog"
 
     def as_dict(self) -> dict:
         return {
@@ -48,6 +58,15 @@ class Recommendation:
             "missing_specs": self.missing_specs,
             "applied_constraints": self.applied_constraints,
             "rationale": self.rationale,
+            "confidence": self.confidence,
+            "evidence": self.evidence,
+            "unknowns": self.unknowns,
+            "user_need": self.user_need,
+            "hard_constraints": self.hard_constraints,
+            "soft_preferences": self.soft_preferences,
+            "criteria_scores": self.criteria_scores,
+            "final_reason": self.final_reason,
+            "basis": self.basis,
         }
 
 
@@ -193,11 +212,13 @@ class RecommendationEngine:
 
         winner_id = self._pick_winner(eligible, per_criterion, weights)
         winner_reason = self._build_reason(winner_id, per_criterion, products)
+        confidence, unknowns = self._confidence_and_unknowns(products, per_criterion, weights)
+        criteria_scores, final_reason = self._v4_explanation(winner_id, per_criterion, products, weights, tradeoffs)
 
         rationale = (
             "Comparación basada en las especificaciones y precios del catálogo. "
             + ("Criterio objetivo (mejor rendimiento/capacidad)." if objective else "Prioridades según tu uso y presupuesto.")
-            + self._constraint_summary(max_price, use_cases)
+            + _constraint_summary(max_price, use_cases)
         )
 
         return Recommendation(
@@ -211,6 +232,13 @@ class RecommendationEngine:
             missing_specs=missing_specs,
             applied_constraints={"max_price": max_price, "use_case": use_cases},
             rationale=rationale,
+            confidence=confidence,
+            unknowns=unknowns,
+            user_need=_user_need(use_cases, objective),
+            hard_constraints=["max_price"] if max_price is not None else [],
+            soft_preferences=[f"use_case:{key}" for key in use_cases] + (["objective"] if objective else []),
+            criteria_scores=criteria_scores,
+            final_reason=final_reason,
         )
 
     @staticmethod
@@ -240,12 +268,41 @@ class RecommendationEngine:
             weight = _weight_value(weights.get(label, "medium"))
             grades = score.get("grades") or {}
             best = max(grades.values(), default=None)
-            if best is None:
+            if best is None or best <= 0:
                 continue
             for pid, grade in grades.items():
                 if pid in scores:
                     scores[pid] += (grade / best) * weight
         return max(scores, key=scores.get) if scores else products[0].get("id")
+
+    @staticmethod
+    def _confidence_and_unknowns(products: list[dict[str, Any]], per_criterion: dict[str, dict[str, Any]], weights: dict[str, str]) -> tuple[float, list[str]]:
+        """Estimate decision confidence from spec coverage across weighted criteria."""
+        if not products:
+            return 0.0, []
+        weighted = [label for label, weight in weights.items() if _weight_value(weight) > 0]
+        if not weighted:
+            return 0.0, []
+        scored = 0
+        expected = 0
+        unknowns: list[str] = []
+        for label in weighted:
+            score = per_criterion.get(label)
+            if not score:
+                continue
+            grades = score.get("grades") or {}
+            missing = score.get("missing") or []
+            for product in products:
+                pid = product.get("id")
+                expected += 1
+                if grades.get(pid) is not None:
+                    scored += 1
+                elif pid in missing:
+                    if label not in unknowns:
+                        unknowns.append(label)
+        coverage = scored / expected if expected else 0.0
+        confidence = round(min(0.95, 0.40 + 0.55 * coverage), 3)
+        return confidence, unknowns[:10]
 
     def _build_reason(self, winner_id: int | None, per_criterion: dict[str, dict[str, Any]], products: list[dict[str, Any]]) -> str | None:
         if winner_id is None:
@@ -256,14 +313,56 @@ class RecommendationEngine:
             return f"{winner} es la opción más equilibrada según los datos del catálogo." if winner else None
         return f"{winner} se destaca en: {', '.join(strengths)}."
 
-    @staticmethod
-    def _constraint_summary(max_price: int | None, use_cases: dict[str, str]) -> str:
-        parts: list[str] = []
-        if max_price:
-            parts.append(f"Presupuesto máximo de ${max_price:,} CLP".replace(",", "."))
-        if use_cases:
-            parts.append("Uso priorizado: " + ", ".join(use_cases.keys()))
-        return " " + " · ".join(parts) if parts else ""
+    def _v4_explanation(
+        self,
+        winner_id: int | None,
+        per_criterion: dict[str, dict[str, Any]],
+        products: list[dict[str, Any]],
+        weights: dict[str, str],
+        tradeoffs: dict[int, list[str]],
+    ) -> tuple[dict[str, float], str | None]:
+        """Normalized per-criterion strength of the winner + long "por qué" text."""
+        if winner_id is None or not per_criterion:
+            return {}, None
+        scores: dict[str, float] = {}
+        for label, score in per_criterion.items():
+            grades = score.get("grades") or {}
+            best = max(grades.values(), default=None)
+            if best is None or best <= 0:
+                continue
+            winner_grade = grades.get(winner_id)
+            if winner_grade is None:
+                continue
+            scores[label] = round(min(1.0, max(0.0, winner_grade / best)), 3)
+        winner = next((p.get("name") for p in products if p.get("id") == winner_id), None)
+        if not winner:
+            return scores, None
+        strong = sorted((label for label, value in scores.items() if value >= 0.8))
+        weak = sorted(tradeoffs.get(winner_id, [])[:4])
+        parts = []
+        if strong:
+            parts.append(f"gana en {', '.join(strong)}")
+        if weak:
+            parts.append(f"cede en {', '.join(weak)}")
+        final_reason = f"{winner}: {', '.join(parts) if parts else 'opción equilibrada según el catálogo'}."
+        return scores, final_reason
+
+
+def _constraint_summary(max_price: int | None, use_cases: dict[str, str]) -> str:
+    parts: list[str] = []
+    if max_price:
+        parts.append(f"Presupuesto máximo de ${max_price:,} CLP".replace(",", "."))
+    if use_cases:
+        parts.append("Uso priorizado: " + ", ".join(use_cases.keys()))
+    return " " + " · ".join(parts) if parts else ""
+
+
+def _user_need(use_cases: dict[str, str], objective: bool) -> str:
+    if objective:
+        return "mejor rendimiento/capacidad objetiva"
+    if use_cases:
+        return "priorizar: " + ", ".join(use_cases.keys())
+    return "recomendación general equilibrada"
 
 
 def _weight_value(weight: str) -> float:

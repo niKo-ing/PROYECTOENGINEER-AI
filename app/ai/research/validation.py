@@ -9,6 +9,7 @@ from __future__ import annotations
 import re
 import unicodedata
 from dataclasses import dataclass, field
+from datetime import datetime, timezone
 from enum import StrEnum
 
 from app.ai.evidence import Evidence
@@ -30,6 +31,16 @@ class ClaimVerdict:
     conflicts_with: list[Evidence] = field(default_factory=list)
     confidence: float = 0.0
     note: str | None = None
+
+    def as_dict(self) -> dict:
+        return {
+            "claim": self.claim,
+            "verdict": self.verdict.value,
+            "supported_by": [item.as_dict() for item in self.supported_by],
+            "conflicts_with": [item.as_dict() for item in self.conflicts_with],
+            "confidence": self.confidence,
+            "note": self.note,
+        }
 
 
 _NUMBER_UNIT = re.compile(r"(\d+(?:[.,]\d+)?)\s*([a-z%\"']+|\\\")", re.IGNORECASE)
@@ -210,3 +221,58 @@ def _word_at(haystack: str, token: str) -> bool:
 def _evidence_text(item: Evidence) -> str:
     parts = [item.title, item.content]
     return " ".join(part for part in parts if part) or ""
+
+
+def resolve_claim(items: list[Evidence], *, claim: str, target_model: str | None = None, prefer_fresh: bool = True) -> ClaimVerdict:
+    """Classify a claim and, when sources conflict, try to resolve by weight.
+
+    Resolution policy (deterministic): source priority (manufacturer > benchmark
+    > review > web) dominates, then confidence/authority, then freshness. If the
+    strongest source is clearly ahead of the next best, the conflict is decided;
+    otherwise the ``CONFLICT`` verdict is kept with an explanatory note so the
+    assistant can say "no sé" instead of picking arbitrarily.
+    """
+    verdict = classify_evidence(items, claim=claim, target_model=target_model)
+    if verdict.verdict != EvidenceVerdict.CONFLICT:
+        return verdict
+
+    candidates = _source_weighted(verdict, prefer_fresh=prefer_fresh)
+    if not candidates:
+        return verdict
+    winner_strength, winner = candidates[0]
+    next_strength = candidates[1][0] if len(candidates) > 1 else -1.0
+    if winner_strength - next_strength >= 0.05 and winner_strength > 0:
+        losers = [item for item in candidates[1:] if item[0] < winner_strength]
+        return ClaimVerdict(
+            claim=claim,
+            verdict=EvidenceVerdict.AGREEMENT,
+            supported_by=[winner],
+            conflicts_with=[item for _strength, item in losers],
+            confidence=round(min(0.95, winner.confidence + 0.1), 2),
+            note="Conflicto resuelto por prioridad/frescura de la fuente dominante.",
+        )
+
+    verdict.note = "Conflicto no resuelto: las fuentes en desacuerdo tienen peso similar."
+    return verdict
+
+
+def _source_weighted(verdict: ClaimVerdict, *, prefer_fresh: bool) -> list[tuple[float, Evidence]]:
+    """Rank every involved evidence item by (priority, authority, freshness)."""
+    from app.ai.research.sources import source_priority
+
+    items = list(verdict.supported_by) + list(verdict.conflicts_with)
+    ranked: list[tuple[float, Evidence]] = []
+    for item in items:
+        priority = source_priority(item.source_type)
+        authority = item.confidence
+        freshness = 0.0
+        if prefer_fresh:
+            try:
+                delta = (datetime.now(timezone.utc) - item.retrieved_at).total_seconds() / 86400.0
+                freshness = max(0.0, 1.0 - delta / 90.0)
+            except (TypeError, ValueError):
+                freshness = 0.0
+        strength = 0.5 * (priority / 60.0) + 0.3 * authority + 0.2 * freshness
+        ranked.append((round(strength, 4), item))
+    ranked.sort(key=lambda pair: pair[0], reverse=True)
+    return ranked
