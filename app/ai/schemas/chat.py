@@ -1,9 +1,25 @@
+from typing import Any, Literal
+
 from pydantic import BaseModel, Field
+
+
+class ChatTurn(BaseModel):
+    """A single prior turn in the conversation, sent by the client.
+
+    ``products`` carries the structured product data the assistant returned in
+    a previous turn so the backend can resolve anaphora such as "compararlas",
+    "el primero" or "ese producto" across turns.
+    """
+
+    role: Literal["user", "assistant"] = "user"
+    content: str = ""
+    products: list[dict[str, Any]] | None = None
 
 
 class ChatRequest(BaseModel):
     message: str = Field(min_length=1, max_length=2_000)
     product_id: int | None = Field(default=None, ge=1)
+    history: list[ChatTurn] = Field(default_factory=list)
 
 
 class ChatUsage(BaseModel):
@@ -17,3 +33,18 @@ class ChatResponse(BaseModel):
     answer: str
     tools_used: list[str] = Field(default_factory=list)
     usage: ChatUsage | None = None
+    products: list[dict[str, Any]] = Field(
+        default_factory=list,
+        description="Productos estructurados para que el frontend los renderice como cards.",
+    )
+    comparison: dict[str, Any] | None = None
+    intent: str | None = None
+    need_clarification: bool = False
+    sources: list[dict[str, Any]] = Field(
+        default_factory=list,
+        description="Fuentes externas de investigación (Evidence estructurado) que respaldan la respuesta.",
+    )
+    research: bool = Field(
+        default=False,
+        description="True cuando se usó investigación web externa para complementar el catálogo.",
+    )

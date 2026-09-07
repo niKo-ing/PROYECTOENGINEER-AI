@@ -13,8 +13,10 @@ class CategorySpecificationDefinitionRead(BaseModel):
     required: bool
     comparable: bool
     facetable: bool
+    applicability: str = "optional"
     sort_order: int
     options: list[str] | None = None
+    item_schema: dict | None = None
 
 
 class CategoryRead(BaseModel):

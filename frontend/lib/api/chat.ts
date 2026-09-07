@@ -1,3 +1,14 @@
+export type ResearchSource = {
+  source_type: string;
+  source_name: string;
+  source_url: string | null;
+  title: string | null;
+  content: string | null;
+  confidence: number;
+  kind: string;
+  retrieved_at: string;
+};
+
 export type ChatResult = {
   answer: string;
   tools_used: string[];
@@ -7,6 +18,8 @@ export type ChatResult = {
     output_tokens: number | null;
     latency_ms: number | null;
   } | null;
+  sources?: ResearchSource[];
+  research?: boolean;
 };
 
 export async function sendChatMessage(message: string, accessToken: string, productId?: number | null): Promise<ChatResult> {

@@ -14,6 +14,7 @@ import {
   sendCatalogAwareMessage,
   type CatalogReference,
 } from "@/lib/api/ai";
+import type { ResearchSource } from "@/lib/api/chat";
 import type { ProductRead } from "@/types/product";
 
 type ChatMessage = {
@@ -23,6 +24,7 @@ type ChatMessage = {
   toolsUsed?: string[];
   references?: CatalogReference[];
   products?: ProductRead[];
+  sources?: ResearchSource[];
 };
 
 type ChatInterfaceProps = {
@@ -102,6 +104,7 @@ export function ChatInterface({ accessToken, productId, productName }: ChatInter
           toolsUsed: result.tools_used.length > 0 ? result.tools_used : undefined,
           references: result.catalog.references.length > 0 ? result.catalog.references : undefined,
           products: result.catalog.products.length > 0 ? result.catalog.products : undefined,
+          sources: result.sources && result.sources.length > 0 ? result.sources : undefined,
         },
       ]);
     } catch (requestError) {
@@ -200,6 +203,37 @@ export function ChatInterface({ accessToken, productId, productName }: ChatInter
                           {tool}
                         </span>
                       ))}
+                    </div>
+                  ) : null}
+                  {message.sources && message.sources.length > 0 ? (
+                    <div className="mt-2.5 border-t border-border/70 pt-2.5">
+                      <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
+                        Fuentes consultadas
+                      </p>
+                      <ul className="mt-1.5 space-y-1.5">
+                        {message.sources.map((source) => (
+                          <li key={`${source.source_name}-${source.source_url ?? source.title}`}>
+                            {source.source_url ? (
+                              <a
+                                href={source.source_url}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="text-xs leading-5 text-primary hover:underline"
+                              >
+                                {source.source_name}
+                                {source.title ? (
+                                  <span className="text-muted-foreground"> — {source.title}</span>
+                                ) : null}
+                              </a>
+                            ) : (
+                              <span className="text-xs leading-5 text-muted-foreground">
+                                {source.source_name}
+                                {source.title ? ` — ${source.title}` : ""}
+                              </span>
+                            )}
+                          </li>
+                        ))}
+                      </ul>
                     </div>
                   ) : null}
                 </div>

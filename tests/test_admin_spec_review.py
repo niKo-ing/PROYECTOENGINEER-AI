@@ -95,6 +95,22 @@ def test_admin_verifies_spec_value_with_correction():
         assert value.verified_by == "admin@example.com"
 
 
+def test_admin_verify_keeps_existing_source_url_when_not_supplied():
+    value_id = _add_pending_spec()
+    with Session() as db:
+        value = db.get(ProductSpecValue, value_id)
+        value.source_url = "https://admin.test/source-page"
+        db.commit()
+
+    response = client.post(f"/api/v1/admin/spec-values/{value_id}/verify", json={"note": "revisado"})
+
+    assert response.status_code == 200
+    with Session() as db:
+        value = db.get(ProductSpecValue, value_id)
+        assert value.verification_status == "verified"
+        assert value.source_url == "https://admin.test/source-page"
+
+
 def test_admin_dashboard_returns_real_metrics_and_activity():
     value_id = _add_pending_spec()
     client.post(f"/api/v1/admin/spec-values/{value_id}/verify", json={"note": "ok"})

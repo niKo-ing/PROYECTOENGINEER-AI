@@ -79,7 +79,9 @@ class CategoryRepository:
         existing.required = definition.required
         existing.comparable = definition.comparable
         existing.facetable = definition.facetable
+        existing.applicability = definition.applicability
         existing.sort_order = definition.sort_order
         existing.options = options
+        existing.item_schema = definition.item_schema
         self.db.flush()
         return existing

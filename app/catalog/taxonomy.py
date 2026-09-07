@@ -22,6 +22,8 @@ class SpecificationDefinition:
     facetable: bool = True
     sort_order: int = 0
     options: tuple[str, ...] = ()
+    item_schema: dict | None = None
+    applicability: str = "optional"  # "required" | "optional" | "conditional"
 
 
 @dataclass(frozen=True)
@@ -44,8 +46,14 @@ def _spec(
     required: bool = False,
     sort_order: int = 0,
     options: tuple[str, ...] = (),
+    item_schema: dict | None = None,
+    comparable: bool = True,
+    facetable: bool = True,
+    applicability: str | None = None,
 ) -> SpecificationDefinition:
-    return SpecificationDefinition(key=key, label=label, group=group, data_type=data_type, unit=unit, filter_type=filter_type, required=required, sort_order=sort_order, options=options)
+    if applicability is None:
+        applicability = "required" if required else "optional"
+    return SpecificationDefinition(key=key, label=label, group=group, data_type=data_type, unit=unit, filter_type=filter_type, required=required, sort_order=sort_order, options=options, item_schema=item_schema, comparable=comparable, facetable=facetable, applicability=applicability)
 
 
 def _leaf(name: str, slug: str, priority: str, specs: tuple[SpecificationDefinition, ...] = ()) -> TaxonomyNode:
@@ -85,17 +93,124 @@ GPU_SPECS = (
     _spec("power_connector", "Conector de poder", "Energía", filter_type="exact", sort_order=100),
     _spec("length", "Largo", "Dimensiones", "integer", "mm", "range", sort_order=110),
     _spec("display_ports", "Salidas de video", "Conectividad", filter_type="multi", sort_order=120),
+    _spec("pcie_interface", "Interfaz PCIe", "Conectividad", filter_type="exact", sort_order=125, options=("PCIe 3.0 x16", "PCIe 4.0 x16", "PCIe 5.0 x16")),
     _spec("cooling", "Refrigeración", "Refrigeración", filter_type="exact", sort_order=130),
 )
 
 MOTHERBOARD_SPECS = (
-    _spec("socket", "Socket", "Compatibilidad", filter_type="exact", required=True, sort_order=10),
-    _spec("chipset", "Chipset", "Compatibilidad", filter_type="exact", sort_order=20),
-    _spec("form_factor", "Formato", "Formato", filter_type="exact", sort_order=30),
-    _spec("memory_type", "Tipo de RAM", "Memoria", filter_type="exact", sort_order=40),
-    _spec("ram_slots", "Slots RAM", "Memoria", "integer", filter_type="range", sort_order=50),
-    _spec("m2_slots", "Slots M.2", "Almacenamiento", "integer", filter_type="range", sort_order=60),
-    _spec("pcie_slots", "Slots PCIe", "Expansión", "integer", filter_type="range", sort_order=70),
+    # --- Identidad ---
+    _spec("revision", "Revisión", "Identidad", sort_order=7, facetable=False),
+    _spec("chipset", "Chipset", "Identidad", filter_type="exact", required=True, sort_order=10),
+    _spec("platform", "Plataforma", "Identidad", filter_type="exact", sort_order=12),
+    # --- Compatibilidad / CPU ---
+    _spec("socket", "Socket", "Compatibilidad", filter_type="exact", required=True, sort_order=20),
+    _spec("supported_cpu_generations", "Generaciones CPU soportadas", "Compatibilidad", "json", filter_type="multi", sort_order=22, item_schema={"generation": "string"}, facetable=False),
+    _spec("cpu_compatibility", "Compatibilidad CPU", "Compatibilidad", filter_type="exact", sort_order=24, facetable=False),
+    _spec("bios_requirement", "Requisito BIOS", "Compatibilidad", sort_order=26, facetable=False),
+    _spec("form_factor", "Formato", "Formato", filter_type="exact", required=True, sort_order=30, options=("Mini-ITX", "Micro-ATX", "ATX", "E-ATX", "XL-ATX")),
+    # --- Memoria ---
+    _spec("memory_type", "Tipo de RAM", "Memoria", filter_type="exact", required=True, sort_order=40, options=("DDR3", "DDR4", "DDR5")),
+    _spec("ram_slots", "Slots RAM", "Memoria", "integer", filter_type="range", required=True, sort_order=42),
+    _spec("memory_channels", "Canales de memoria", "Memoria", "integer", filter_type="range", sort_order=44),
+    _spec("max_memory", "Memoria máxima", "Memoria", "integer", "GB", "range", required=True, sort_order=46),
+    _spec("max_memory_per_slot", "Máx. por slot", "Memoria", "integer", "GB", "range", sort_order=48),
+    _spec("supported_memory_speeds", "Velocidades soportadas", "Memoria", "json", sort_order=50, item_schema={"speed": "number", "unit": "MHz"}, facetable=False),
+    _spec("overclock_memory_speeds", "Velocidades OC", "Memoria", "json", sort_order=52, item_schema={"speed": "number", "unit": "MHz"}, facetable=False),
+    _spec("ecc_support", "Soporte ECC", "Memoria", "boolean", filter_type="boolean", sort_order=54),
+    _spec("registered_memory_support", "Memoria registrada", "Memoria", "boolean", filter_type="boolean", sort_order=56),
+    _spec("unbuffered_memory_support", "Memoria unbuffered", "Memoria", "boolean", filter_type="boolean", sort_order=58),
+    _spec("xmp_support", "XMP", "Memoria", "boolean", filter_type="boolean", sort_order=60, applicability="conditional"),
+    _spec("expo_support", "EXPO", "Memoria", "boolean", filter_type="boolean", sort_order=62, applicability="conditional"),
+    # --- Expansión PCIe ---
+    _spec("pcie_slots", "Slots PCIe", "Expansión", "integer", filter_type="range", required=True, sort_order=70),
+    _spec("pcie_slot_list", "Detalle slots PCIe", "Expansión", "json", sort_order=72, item_schema={"type": "string", "generation": "string", "lanes": "number", "count": "number"}, facetable=False),
+    _spec("pcie_generation", "Generación PCIe", "Expansión", filter_type="exact", sort_order=74),
+    _spec("pcie_lane_configuration", "Configuración de líneas PCIe", "Expansión", sort_order=76, facetable=False),
+    _spec("multi_gpu_support", "Multi-GPU", "Expansión", "boolean", filter_type="boolean", sort_order=78),
+    _spec("sli_support", "Soporte SLI", "Expansión", "boolean", filter_type="boolean", sort_order=80, applicability="conditional"),
+    _spec("crossfire_support", "Soporte CrossFire", "Expansión", "boolean", filter_type="boolean", sort_order=82, applicability="conditional"),
+    # --- Almacenamiento ---
+    _spec("m2_slots", "Slots M.2", "Almacenamiento", "integer", filter_type="range", required=True, sort_order=90),
+    _spec("m2_slot_list", "Detalle slots M.2", "Almacenamiento", "json", sort_order=92, item_schema={"interface": "string", "generation": "string", "lanes": "number", "form_factors": ["string"]}, facetable=False),
+    _spec("nvme_support", "Soporte NVMe", "Almacenamiento", "boolean", filter_type="boolean", sort_order=94),
+    _spec("sata_ports", "Puertos SATA", "Almacenamiento", "integer", filter_type="range", required=True, sort_order=96),
+    _spec("sata_speed", "Velocidad SATA", "Almacenamiento", filter_type="exact", sort_order=98, options=("SATA 3.0 6 Gb/s", "SATA 2.0 3 Gb/s")),
+    _spec("raid_support", "Soporte RAID", "Almacenamiento", "boolean", filter_type="boolean", sort_order=100),
+    # --- USB ---
+    _spec("usb_2_count", "USB 2.0", "USB", "integer", filter_type="range", sort_order=110),
+    _spec("usb_3_2_gen1_count", "USB 3.2 Gen 1", "USB", "integer", filter_type="range", sort_order=112),
+    _spec("usb_3_2_gen2_count", "USB 3.2 Gen 2", "USB", "integer", filter_type="range", sort_order=114),
+    _spec("usb_3_2_gen2x2_count", "USB 3.2 Gen 2x2", "USB", "integer", filter_type="range", sort_order=116),
+    _spec("usb4_count", "USB4", "USB", "integer", filter_type="range", sort_order=118, applicability="conditional"),
+    _spec("usb_c_count", "USB-C total", "USB", "integer", filter_type="range", sort_order=120),
+    _spec("rear_usb_ports", "USB traseros", "USB", "integer", filter_type="range", sort_order=122),
+    _spec("front_usb_headers", "Headers USB frontales", "USB", "integer", filter_type="range", sort_order=124),
+    _spec("usb_c_headers", "Headers USB-C", "USB", "integer", filter_type="range", sort_order=126),
+    # --- Video ---
+    _spec("hdmi", "HDMI", "Video", "json", sort_order=130, item_schema={"version": "string", "count": "number"}, facetable=False),
+    _spec("displayport", "DisplayPort", "Video", "json", sort_order=132, item_schema={"version": "string", "count": "number"}, facetable=False),
+    _spec("dvi", "DVI", "Video", "boolean", filter_type="boolean", sort_order=134),
+    _spec("vga", "VGA", "Video", "boolean", filter_type="boolean", sort_order=136),
+    _spec("usb_c_display", "USB-C con video", "Video", "boolean", filter_type="boolean", sort_order=138),
+    _spec("max_displays", "Máx. pantallas", "Video", "integer", filter_type="range", sort_order=140),
+    _spec("max_resolution", "Resolución máxima", "Video", filter_type="exact", sort_order=142, facetable=False),
+    # --- Red ---
+    _spec("ethernet", "Ethernet", "Red", filter_type="exact", required=True, sort_order=150, options=("1 GbE", "2.5 GbE", "5 GbE", "10 GbE")),
+    _spec("ethernet_controller", "Controlador Ethernet", "Red", sort_order=152, facetable=False),
+    _spec("wifi", "Wi-Fi", "Red", "boolean", filter_type="boolean", sort_order=154),
+    _spec("wifi_standard", "Estándar Wi-Fi", "Red", filter_type="exact", sort_order=156, options=("Wi-Fi 5", "Wi-Fi 6", "Wi-Fi 6E", "Wi-Fi 7"), applicability="conditional"),
+    _spec("wifi_controller", "Controlador Wi-Fi", "Red", sort_order=158, facetable=False),
+    _spec("bluetooth", "Bluetooth", "Red", "boolean", filter_type="boolean", sort_order=160),
+    _spec("bluetooth_version", "Versión Bluetooth", "Red", filter_type="exact", sort_order=162, applicability="conditional"),
+    _spec("antenna_connectors", "Conectores antena", "Red", "integer", filter_type="range", sort_order=164),
+    # --- Audio ---
+    _spec("audio_codec", "Códec de audio", "Audio", sort_order=170, facetable=False),
+    _spec("audio_channels", "Canales de audio", "Audio", filter_type="exact", sort_order=172, options=("2.0", "5.1", "7.1")),
+    _spec("analog_audio_outputs", "Salidas analógicas", "Audio", "integer", filter_type="range", sort_order=174),
+    _spec("optical_spdif", "S/PDIF óptico", "Audio", "boolean", filter_type="boolean", sort_order=176),
+    _spec("audio_features", "Características de audio", "Audio", "json", filter_type="multi", sort_order=178, item_schema={"feat": "string"}, facetable=False),
+    # --- Alimentación ---
+    _spec("motherboard_power_connector", "Conector principal", "Alimentación", "json", sort_order=180, item_schema={"type": "string", "pins": "number", "count": "number"}, facetable=False),
+    _spec("cpu_power_connector_types", "Tipos conector CPU", "Alimentación", "json", filter_type="multi", sort_order=182, item_schema={"type": "string", "pins": "number", "count": "number"}, facetable=False),
+    _spec("auxiliary_power_connectors", "Conectores auxiliares", "Alimentación", "json", sort_order=184, item_schema={"type": "string", "pins": "number", "count": "number"}, facetable=False),
+    _spec("pcie_power_connectors", "Conectores PCIe alimentación", "Alimentación", "json", sort_order=186, item_schema={"type": "string", "pins": "number", "count": "number"}, facetable=False),
+    _spec("sata_power_headers", "Headers SATA de poder", "Alimentación", "integer", filter_type="range", sort_order=188),
+    # --- Refrigeración ---
+    _spec("fan_headers_total", "Headers ventilador totales", "Refrigeración", "integer", filter_type="range", sort_order=190),
+    _spec("cpu_fan_headers", "Headers CPU fan", "Refrigeración", "integer", filter_type="range", sort_order=192),
+    _spec("cpu_opt_headers", "Headers CPU_OPT", "Refrigeración", "integer", filter_type="range", sort_order=194),
+    _spec("pump_headers", "Headers pump", "Refrigeración", "integer", filter_type="range", sort_order=196),
+    _spec("system_fan_headers", "Headers fan sistema", "Refrigeración", "integer", filter_type="range", sort_order=198),
+    _spec("fan_header_list", "Detalle headers ventilador", "Refrigeración", "json", sort_order=199, item_schema={"name": "string", "count": "number"}, facetable=False),
+    _spec("temperature_sensors", "Sensores de temperatura", "Refrigeración", "integer", filter_type="range", sort_order=200),
+    _spec("fan_control", "Control de ventiladores", "Refrigeración", "boolean", filter_type="boolean", sort_order=202),
+    # --- RGB ---
+    _spec("rgb_headers", "Headers RGB", "RGB", "integer", filter_type="range", sort_order=210),
+    _spec("argb_headers", "Headers ARGB", "RGB", "integer", filter_type="range", sort_order=212),
+    _spec("onboard_rgb", "RGB integrado", "RGB", "boolean", filter_type="boolean", sort_order=214),
+    _spec("rgb_software", "Software RGB", "RGB", sort_order=216, facetable=False),
+    _spec("rgb_features", "Características RGB", "RGB", "json", filter_type="multi", sort_order=218, item_schema={"feat": "string"}, facetable=False),
+    # --- BIOS / diagnóstico ---
+    _spec("bios_flashback", "BIOS FlashBack", "BIOS", "boolean", filter_type="boolean", sort_order=220),
+    _spec("dual_bios", "Dual BIOS", "BIOS", "boolean", filter_type="boolean", sort_order=222),
+    _spec("clear_cmos", "Clear CMOS", "BIOS", "boolean", filter_type="boolean", sort_order=224),
+    _spec("debug_led", "LED de debug", "BIOS", "boolean", filter_type="boolean", sort_order=226),
+    _spec("post_code", "Código POST", "BIOS", "boolean", filter_type="boolean", sort_order=228, applicability="conditional"),
+    _spec("onboard_buttons", "Botones integrados", "BIOS", "json", filter_type="multi", sort_order=230, item_schema={"btn": "string"}, facetable=False),
+    _spec("tpm_header", "Header TPM", "BIOS", "boolean", filter_type="boolean", sort_order=232),
+    # --- Conectores internos ---
+    _spec("sata_headers", "Headers SATA", "Conectores", "json", sort_order=240, item_schema={"count": "number", "type": "string"}, facetable=False),
+    _spec("usb_headers", "Headers USB", "Conectores", "json", sort_order=242, item_schema={"generation": "string", "count": "number"}, facetable=False),
+    _spec("audio_headers", "Headers audio", "Conectores", "json", sort_order=244, item_schema={"type": "string", "count": "number"}, facetable=False),
+    _spec("front_panel_headers", "Headers panel frontal", "Conectores", "json", filter_type="multi", sort_order=246, item_schema={"header": "string"}, facetable=False),
+    _spec("thunderbolt_header", "Header Thunderbolt", "Conectores", "boolean", filter_type="boolean", sort_order=248, applicability="conditional"),
+    _spec("com_header", "Header COM", "Conectores", "boolean", filter_type="boolean", sort_order=250),
+    # --- Panel trasero ---
+    _spec("rear_ports", "Puertos traseros", "Panel trasero", "json", sort_order=260, item_schema={"kind": "string", "count": "number", "version": "string"}, facetable=False),
+    _spec("wifi_antennas", "Antenas Wi-Fi", "Panel trasero", "integer", filter_type="range", sort_order=262),
+    # --- Dimensiones ---
+    _spec("dimensions", "Dimensiones", "Dimensiones", "json", sort_order=270, item_schema={"w": "number", "h": "number", "unit": "mm"}, facetable=False),
+    _spec("weight", "Peso", "Dimensiones", "integer", "g", "range", sort_order=272),
 )
 
 RAM_SPECS = (

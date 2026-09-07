@@ -8,7 +8,7 @@ from sqlalchemy.pool import StaticPool
 from app.core.security import AuthenticatedUser, get_current_user
 from app.db import Base, get_db
 from app.main import app
-from app.models.catalog import Category, PriceHistory, Product, Store, StoreOffer
+from app.models.catalog import Category, CategorySpecificationDefinition, PriceHistory, Product, ProductSpecValue, Store, StoreOffer
 from app.models.user_profile import UserProfile
 
 engine = create_engine("sqlite://", connect_args={"check_same_thread": False}, poolclass=StaticPool)
@@ -39,7 +39,9 @@ def reset_database():
         db.execute(delete(UserProfile))
         db.execute(delete(PriceHistory))
         db.execute(delete(StoreOffer))
+        db.execute(delete(ProductSpecValue))
         db.execute(delete(Product))
+        db.execute(delete(CategorySpecificationDefinition))
         db.execute(delete(Category))
         db.execute(delete(Store))
         db.commit()
@@ -159,3 +161,64 @@ def test_ai_tools_require_authentication():
     app.dependency_overrides.pop(get_current_user, None)
     response = client.post("/api/v1/ai/tools", json={"tool": "search_products", "parameters": {}})
     assert response.status_code == 401
+
+
+def add_product_with_spec(name: str, price: int, ram: int) -> int:
+    with TestingSession() as db:
+        category = db.scalar(select(Category).where(Category.slug == "notebook")) or Category(name="notebook", slug="notebook")
+        db.add(category)
+        db.flush()
+        store = Store(name=f"Tienda {name}", domain=f"{name.lower().replace(' ', '-')}.test")
+        ram_def = db.scalar(select(CategorySpecificationDefinition).where(CategorySpecificationDefinition.key == "ram")) or CategorySpecificationDefinition(
+            key="ram", label="RAM", group="Memoria", category_id=category.id
+        )
+        product = Product(name=name, category_entity=category, rating=4.5)
+        db.add(product)
+        db.flush()
+        db.add(ProductSpecValue(product=product, definition=ram_def, value_kind="number", value_number=ram, unit="GB", raw_value=f"{ram} GB", value_text=f"{ram} GB", source_type="ai", verification_status="review"))
+        db.add(StoreOffer(product=product, store=store, url=f"https://{store.domain}/producto", price=price))
+        db.commit()
+        db.refresh(product)
+        return product.id
+
+
+def test_get_product_tool_returns_full_specs():
+    reset_database()
+    set_user("user-one")
+    product_id = add_product_with_spec("Notebook Gamer", 899990, 16)
+
+    response = client.post("/api/v1/ai/tools", json={"tool": "get_product", "parameters": {"product_id": product_id}})
+    assert response.status_code == 200
+    data = response.json()["data"]
+    assert data["name"] == "Notebook Gamer"
+    assert data["brand"] is None
+    assert "RAM" in data["specs"]
+    assert data["specs"]["RAM"] == "16 GB"
+
+
+def test_compare_products_tool_returns_side_by_side_with_specs():
+    reset_database()
+    set_user("user-one")
+    first = add_product_with_spec("Notebook Gamer", 899990, 16)
+    second = add_product_with_spec("Notebook Económico", 499990, 8)
+
+    response = client.post("/api/v1/ai/tools", json={"tool": "compare_products", "parameters": {"product_ids": [first, second]}})
+    assert response.status_code == 200
+    data = response.json()["data"]
+    assert data["count"] == 2
+    assert [item["id"] for item in data["products"]] == [first, second]
+    assert data["products"][0]["specs"]["RAM"] == "16 GB"
+    assert data["products"][1]["specs"]["RAM"] == "8 GB"
+
+
+def test_compare_products_tool_limits_and_reports_missing():
+    reset_database()
+    set_user("user-one")
+    existing = add_product_with_spec("Notebook Gamer", 899990, 16)
+
+    response = client.post("/api/v1/ai/tools", json={"tool": "compare_products", "parameters": {"product_ids": [existing, 999999]}})
+    assert response.status_code == 200
+    data = response.json()["data"]
+    assert data["count"] == 2
+    assert data["products"][0]["id"] == existing
+    assert "error" in data["products"][1]

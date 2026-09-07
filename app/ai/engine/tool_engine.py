@@ -5,8 +5,8 @@ from fastapi import HTTPException, status
 from pydantic import BaseModel, ValidationError
 from sqlalchemy.orm import Session
 
-from app.ai.schemas.tools import GetPriceHistoryInput, GetProductInput, GetProductOffersInput, GetUserProfileInput, SearchProductsInput, ToolExecutionRequest, ToolExecutionResult
-from app.ai.tools.catalog import GetPriceHistoryTool, GetProductOffersTool, GetProductTool, SearchProductsTool
+from app.ai.schemas.tools import CompareProductsInput, GetPriceHistoryInput, GetProductInput, GetProductOffersInput, GetUserProfileInput, SearchProductsInput, ToolExecutionRequest, ToolExecutionResult
+from app.ai.tools.catalog import CompareProductsTool, GetPriceHistoryTool, GetProductOffersTool, GetProductTool, SearchProductsTool
 from app.ai.tools.user_profile import GetUserProfileTool
 from app.core.security import AuthenticatedUser
 
@@ -20,6 +20,7 @@ class AIEngine:
         self.registry: dict[str, tuple[type[BaseModel], ToolHandler]] = {
             "search_products": (SearchProductsInput, SearchProductsTool(db).execute),
             "get_product": (GetProductInput, GetProductTool(db).execute),
+            "compare_products": (CompareProductsInput, CompareProductsTool(db).execute),
             "get_product_offers": (GetProductOffersInput, GetProductOffersTool(db).execute),
             "get_price_history": (GetPriceHistoryInput, GetPriceHistoryTool(db).execute),
             "get_user_profile": (GetUserProfileInput, GetUserProfileTool(db, user.id).execute),
@@ -40,7 +41,8 @@ class AIEngine:
     def tool_definitions(self) -> list[dict[str, Any]]:
         descriptions = {
             "search_products": "Busca productos aplicando texto, categoría y rango de precio.",
-            "get_product": "Obtiene un resumen de un producto específico usando su identificador.",
+            "get_product": "Obtiene el resumen y las especificaciones completas de un producto usando su identificador.",
+            "compare_products": "Compara varios productos a la vez (entre 2 y 5, por identificador) devolviendo sus especificaciones lado a lado.",
             "get_product_offers": "Obtiene ofertas compactas de un producto, ordenadas por precio.",
             "get_price_history": "Obtiene el historial disponible de precios de un producto.",
             "get_user_profile": "Obtiene las preferencias básicas del usuario autenticado actual.",

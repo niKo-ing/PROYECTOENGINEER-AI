@@ -10,8 +10,11 @@ type DisplaySpecItem = {
   key?: string;
   label: string;
   value: string;
+  value_kind?: string | null;
+  value_json?: unknown;
   source_type?: string | null;
   source_name?: string | null;
+  source_url?: string | null;
   verification_status?: string | null;
   conflict_status?: string | null;
 };
@@ -20,6 +23,56 @@ type DisplaySpecSection = {
   title: string;
   items: DisplaySpecItem[];
 };
+
+const HUMAN_LABELS: Record<string, string> = {
+  pcie_slot_list: "Ranuras PCI Express",
+  m2_slot_list: "Slots M.2",
+  rear_ports: "Puertos traseros",
+  fan_header_list: "Headers de ventilación",
+  cpu_power_connector_types: "Alimentación CPU",
+  motherboard_power_connector: "Conector principal",
+  auxiliary_power_connectors: "Conectores auxiliares",
+  supported_cpu_generations: "Generaciones CPU",
+  supported_memory_speeds: "Velocidades de memoria",
+  overclock_memory_speeds: "Velocidades OC",
+  front_panel_headers: "Headers del panel frontal",
+  audio_features: "Características de audio",
+  rgb_features: "Características RGB",
+  onboard_buttons: "Botones integrados",
+  dimensions: "Dimensiones",
+};
+
+const HIDDEN_WHEN_STRUCTURED: Record<string, string[]> = {
+  pcie_slot_list: ["pcie_slots"],
+  m2_slot_list: ["m2_slots"],
+  fan_header_list: ["fan_headers_total", "cpu_fan_headers", "cpu_opt_headers", "pump_headers", "system_fan_headers"],
+};
+
+function transformItems(items: CanonicalProductSpecs["sections"][number]["items"]): DisplaySpecItem[] {
+  const presentKeys = new Set(items.map((item) => item.key));
+  const hidden = new Set<string>();
+  for (const item of items) {
+    const derived = HIDDEN_WHEN_STRUCTURED[item.key] ?? [];
+    for (const key of derived) {
+      if (presentKeys.has(key)) hidden.add(key);
+    }
+  }
+  return items
+    .filter((item) => !hidden.has(item.key))
+    .map((item) => ({
+      key: item.key,
+      label: HUMAN_LABELS[item.key] ?? item.label,
+      value: item.value,
+      value_kind: item.value_kind,
+      value_json: item.value_json,
+      source_type: item.source_type,
+      source_name: item.source_name,
+      source_url: item.source_url,
+      verification_status: item.verification_status,
+      conflict_status: item.conflict_status,
+    }));
+}
+
 
 export function SpecHighlights({ specs }: { specs: ProductSpecs | null }) {
   if (!specs?.highlights?.length) return null;
@@ -44,7 +97,9 @@ export function SpecHighlights({ specs }: { specs: ProductSpecs | null }) {
 }
 
 export function SpecSheet({ canonicalSpecs, specs }: { canonicalSpecs?: CanonicalProductSpecs | null; specs: ProductSpecs | null }) {
-  const canonicalSections: DisplaySpecSection[] = (canonicalSpecs?.sections ?? []).filter((section) => section.items?.length > 0);
+  const canonicalSections: DisplaySpecSection[] = (canonicalSpecs?.sections ?? [])
+    .map((section) => ({ title: section.title, items: transformItems(section.items) }))
+    .filter((section) => section.items?.length > 0);
   const fallbackSections: DisplaySpecSection[] = (specs?.sections ?? []).filter((section) => section.items?.length > 0);
   const sections = canonicalSections.length ? canonicalSections : fallbackSections;
   if (!sections.length) return null;
@@ -98,9 +153,13 @@ export function SpecSheet({ canonicalSpecs, specs }: { canonicalSpecs?: Canonica
                       {item.label}
                     </dt>
                     <dd className="min-w-0 space-y-1.5">
-                      <div className="break-words text-sm font-semibold leading-relaxed text-foreground">
-                        {item.value}
-                      </div>
+                      {item.value_kind === "json" && Array.isArray(item.value_json) && item.value_json.some((row) => typeof row === "object" && row !== null) ? (
+                        <StructuredSpecValue rows={item.value_json} />
+                      ) : (
+                        <div className="break-words text-sm font-semibold leading-relaxed text-foreground">
+                          {item.value}
+                        </div>
+                      )}
                       {hasCanonical ? <SpecMeta item={item} /> : null}
                     </dd>
                   </div>
@@ -111,6 +170,48 @@ export function SpecSheet({ canonicalSpecs, specs }: { canonicalSpecs?: Canonica
         </div>
       </CardContent>
     </Card>
+  );
+}
+
+function structuredLabel(key: string): string {
+  const labels: Record<string, string> = {
+    type: "Tipo",
+    kind: "Tipo",
+    interface: "Interfaz",
+    generation: "Gen.",
+    version: "Versión",
+    lanes: "Líneas",
+    count: "Cant.",
+    pins: "Pines",
+    form_factors: "Formatos",
+    feat: "Detalle",
+    header: "Header",
+    btn: "Botón",
+    val: "Valor",
+  };
+  return labels[key] ?? key;
+}
+
+function StructuredSpecValue({ rows }: { rows: unknown[] }) {
+  const objects = rows.filter((row): row is Record<string, unknown> => typeof row === "object" && row !== null);
+  const keys = Array.from(new Set(objects.flatMap((row) => Object.keys(row)))).filter((key) => key !== "type");
+  const labelKey = objects.some((row) => "type" in row) ? "type" : objects.some((row) => "kind" in row) ? "kind" : objects.some((row) => "interface" in row) ? "interface" : keys[0];
+
+  return (
+    <div className="grid gap-1.5">
+      {objects.map((row, index) => {
+        const title = row[labelKey];
+        const cells = keys.filter((key) => row[key] !== null && row[key] !== undefined && row[key] !== "" && !(Array.isArray(row[key]) && row[key].length === 0));
+        return (
+          <div key={index} className="rounded-lg border bg-muted/40 px-2.5 py-1.5 text-xs">
+            <span className="font-semibold text-foreground">{typeof title === "string" ? title : String(title ?? "")}</span>
+            {cells.length ? (
+              <span className="ml-2 text-muted-foreground">{cells.map((key) => `${structuredLabel(key)}: ${Array.isArray(row[key]) ? (row[key] as string[]).join(", ") : String(row[key])}`).join(" · ")}</span>
+            ) : null}
+          </div>
+        );
+      })}
+    </div>
   );
 }
 

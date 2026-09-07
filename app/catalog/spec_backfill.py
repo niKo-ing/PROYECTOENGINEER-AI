@@ -5,6 +5,7 @@ import unicodedata
 from dataclasses import dataclass
 from decimal import Decimal
 
+from app.catalog.spec_normalizer import normalize_to_json
 from app.models.catalog import CategorySpecificationDefinition, Product, SpecValueKind, SpecValueSourceType, SpecVerificationStatus
 from app.services.product_spec_value_service import ProductSpecValueService, SpecValueInput
 
@@ -208,6 +209,9 @@ def _input_for_definition(product: Product, definition: CategorySpecificationDef
         parsed_bool = _parse_boolean(value)
         if parsed_bool is not None:
             return SpecValueInput(product_id=product.id, definition_id=definition.id, value_kind=SpecValueKind.BOOLEAN.value, raw_value=value, value_boolean=parsed_bool, source_type=resolved_source_type, source_name=resolved_source_name, extraction_method=resolved_extraction_method, verification_status=SpecVerificationStatus.REVIEW.value, force_source_update=force_source_update)
+    if definition.data_type == "json":
+        structured = normalize_to_json(definition.key, value, definition.item_schema)
+        return SpecValueInput(product_id=product.id, definition_id=definition.id, value_kind=SpecValueKind.JSON.value, raw_value=value, value_json=structured, source_type=resolved_source_type, source_name=resolved_source_name, extraction_method=resolved_extraction_method, verification_status=SpecVerificationStatus.REVIEW.value, force_source_update=force_source_update)
 
     structured_text = value
     if definition.key in {"ram_type", "type", "memory_type"}:

@@ -20,6 +20,7 @@ from typing import Any
 
 from app.catalog.ai_config import AIResearchConfig
 from app.catalog.spec_backfill import _parse_boolean, _parse_number_with_unit, _ram_type, _resolution, _storage_type
+from app.catalog.spec_normalizer import normalize_to_json
 from app.catalog.spec_sources import SpecSource
 from app.models.catalog import CategorySpecificationDefinition, Product, SpecValueKind, SpecValueSourceType, SpecVerificationStatus
 from app.services.product_spec_value_service import SpecValueInput
@@ -36,9 +37,14 @@ SYSTEM_INSTRUCTIONS = (
     "1. Usa ÚNICAMENTE el texto de la página. NO inventes valores ni los completes con conocimiento previo.\n"
     "2. Cada valor debe citarse: incluye 'evidence', un fragmento literal corto del texto fuente donde aparece.\n"
     "3. Responde SOLO para el 'Modelo a investigar'; ignora otras variantes, modelos aledaños o filas vecinas.\n"
-    "4. Usa únicamente claves de la lista de definiciones. Si un dato no aparece en el texto, omitelo.\n"
-    "5. Normaliza la unidad al formato de la definición (GHz para frecuencia, MB para cache, W para TDP, "
-    "mAh para batería, \\\" para pantallla, MP para cámaras). Incluye siempre la unidad en 'value'.\n"
+    "4. Usa únicamente claves de la lista de definiciones. Extrae de la página CADA clave de la lista que tenga "
+    "evidencia en el texto. Sé EXHAUSTIVO: recorre todas las claves permitidas una por una y devuelve todas las "
+    "que aparezcan en la página, aunque el dato parezca obvio o lo conozcas de memoria. Solo omite una clave si "
+    "su valor NO aparece en el texto provisto.\n"
+    "5. Normaliza la unidad al formato de la definición (GHz para frecuencia, MB para cache, W o Watt para TDP, "
+    "MHz para clock de GPU, GB para VRAM, bit para bus de memoria, mAh para batería, \\\" para pantalla, MP para "
+    "cámaras). Incluye SIEMPRE la unidad en 'value' cuando la definición tenga unidad (p. ej. '1980 MHz', '220 W', "
+    "'12 GB', '192 bit'). No devuelvas números desnudos sin su unidad.\n"
     "6. Frecuencias: usa el valor máximo si la fuente dice 'hasta X GHz'; si menciona base y turbo, usa cada una.\n"
     "7. Booleanos: usa true/false sólo si el texto lo indica.\n"
     "8. VARIANTE DEL PRODUCTO: el producto que catalogamos es UNA variante concreta del modelo "
@@ -48,7 +54,14 @@ SYSTEM_INSTRUCTIONS = (
     "9. Si pese a comparar no puedes determinar cuál corresponde a la variante, marca esa clave como "
     "AMBIGUA devolviendo value='' y evidence='' (no elijas un valor al azar ni inventes).\n"
     "10. No repitas una misma 'key' dos veces: cada key debe aparecer como máximo una vez en 'values'.\n"
-    "11. Responde ÚNICAMENTE con un JSON válido con este esquema:\n"
+    "11. CLAVES BOOLEANAS DE FUNCIÓN (wifi, bluetooth, optical_spdif, dual_bios, raid_support, "
+    "ecc_support, xmp_support, expo_support, fan_control, onboard_rgb): distingue AUSENCIA VÁLIDA de "
+    "INFORMACIÓN FALTANTE. Devuelve true SOLO si el texto confirma la función. Devuelve false ÚNICAMENTE "
+    "cuando la página enumera la sección/tabla correspondiente (p. ej. la sección 'Red' o 'Conectividad') "
+    "y queda claro que la función NO está presente en esa variante (p. ej. solo aparece 'Realtek 2.5Gb' y "
+    "ninguna línea de Wi-Fi); en ese caso cita la sección como evidence. Si la página simplemente no "
+    "menciona la función ni su sección, OMITE la clave (ausencia no verificada): NO inventes 'false'.\n"
+    "12. Responde ÚNICAMENTE con un JSON válido con este esquema:\n"
     '   {"values":[{"key": string, "value": string, "evidence": string}]}\n'
     "   Sin texto adicional, sin comentarios, sin marcas de código."
 )
@@ -77,7 +90,8 @@ def build_defs_block(defs: list[CategorySpecificationDefinition]) -> str:
     lines = []
     for definition in defs:
         unit = f" | unidad: {definition.unit}" if definition.unit else ""
-        lines.append(f"- {definition.key} | {definition.label} | {definition.data_type}{unit}")
+        opts = f" | opciones: {', '.join(definition.options)}" if definition.options else ""
+        lines.append(f"- {definition.key} | {definition.label} | {definition.data_type}{unit}{opts}")
     return "\n".join(lines)
 
 
@@ -236,6 +250,24 @@ def extracted_input(product: Product, definition: CategorySpecificationDefinitio
                 force_source_update=force_source_update,
             )
 
+    if definition.data_type == "json":
+        structured = normalize_to_json(definition.key, value, definition.item_schema)
+        return SpecValueInput(
+            product_id=product.id,
+            definition_id=definition.id,
+            value_kind=SpecValueKind.JSON.value,
+            raw_value=value,
+            value_json=structured,
+            source_type=entry.source_type,
+            source_name=entry.source_name,
+            source_url=entry.url,
+            extraction_method=EXTRACTION_METHOD,
+            confidence=DEFAULT_CONFIDENCE,
+            verification_status=SpecVerificationStatus.REVIEW.value,
+            note=f"Evidencia: {spec.evidence}",
+            force_source_update=force_source_update,
+        )
+
     structured_text = value
     if definition.key in {"ram_type", "type", "memory_type"}:
         structured_text = _ram_type(value) or value
@@ -277,7 +309,7 @@ def extracted_input_multi(product: Product, definition: CategorySpecificationDef
         value_kind=SpecValueKind.JSON.value,
         raw_value="; ".join(values),
         value_json=values,
-        source_type=entry.source_type,
+        source_type=SpecValueSourceType.AI_RESEARCH.value,
         source_name=entry.source_name,
         source_url=entry.url,
         extraction_method=EXTRACTION_METHOD,

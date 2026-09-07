@@ -23,10 +23,82 @@ def format_spec_value(value: ProductSpecValue) -> str:
     if value.value_text:
         return value.value_text
     if value.value_json is not None:
-        if isinstance(value.value_json, list):
-            return ", ".join(str(item) for item in value.value_json)
-        return str(value.value_json)
+        return format_json_value(value.value_json)
     return value.raw_value or ""
+
+
+def format_json_value(value: dict | list) -> str:
+    """Render structured JSON items into a readable, single-line string."""
+    if isinstance(value, (str, int, float, bool)):
+        return str(value)
+    if isinstance(value, list):
+        if not value:
+            return ""
+        if all(isinstance(item, str) for item in value):
+            return ", ".join(value)
+        if all(isinstance(item, dict) for item in value):
+            rows: list[str] = []
+            for item in value:
+                version = item.get("version") or item.get("generation")
+                label = _json_item_label(item)
+                descriptor = f"{version} " if version and version != label else ""
+                counts = "; ".join(_json_count_parts(item))
+                if span := _json_dimension_str(item):
+                    rows.append(f"{label} {span}".strip())
+                    continue
+                rows.append(f"{label} {descriptor}({counts})".strip())
+            return ", ".join(rows)
+        return ", ".join(str(item) for item in value)
+    if isinstance(value, dict):
+        if "form_factor" in value:
+            return _json_dimension_str(value) or (", ".join(f"{k}: {v}" for k, v in value.items()))
+        return ", ".join(f"{k}: {v}" for k, v in value.items())
+    return str(value)
+
+
+def _json_item_label(item: dict) -> str:
+    for field in ("type", "kind", "interface", "name", "feat", "value", "slot"):
+        label = item.get(field)
+        if label:
+            return str(label)
+    return ""
+
+
+def _json_count_parts(item: dict) -> list[str]:
+    parts: list[str] = []
+    for field in ("count", "pins", "lanes", "form_factors", "heads", "type?"):
+        if field.endswith("?"):
+            continue
+        if item.get(field) not in (None, "", []):
+            parts.append(f"{field}={item[field]}")
+    return parts
+
+
+_DIM_FIELDS = {
+    "width_mm": "ancho",
+    "depth_mm": "profundidad",
+    "width": "ancho",
+    "depth": "profundidad",
+    "length": "largo",
+    "height": "alto",
+    "thickness": "grosor",
+    "form_factor": "formato",
+}
+
+
+def _json_dimension_str(item: dict) -> str:
+    """Render a dict with form_factor / width / depth / length as a human string."""
+    unit = item.get("unit")
+    parts: list[str] = []
+    for key, label in _DIM_FIELDS.items():
+        value = item.get(key)
+        if value in (None, ""):
+            continue
+        suffix = ""
+        if key != "form_factor":
+            suffix = " mm" if key.endswith("_mm") else (f" {unit}" if unit else "")
+        parts.append(f"{label}: {value}{suffix}")
+    return ", ".join(parts)
 
 
 def build_canonical_spec_sheet(product: Product) -> dict | None:
@@ -60,8 +132,11 @@ def build_canonical_spec_sheet(product: Product) -> dict | None:
                 "raw_value": spec_value.raw_value,
                 "unit": spec_value.unit,
                 "value_kind": spec_value.value_kind,
+                "value_json": spec_value.value_json,
+                "item_schema": spec_value.definition.item_schema,
                 "source_type": spec_value.source_type,
                 "source_name": spec_value.source_name,
+                "source_url": spec_value.source_url,
                 "verification_status": spec_value.verification_status,
                 "conflict_status": spec_value.conflict_status,
             }

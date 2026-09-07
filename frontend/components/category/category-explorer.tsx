@@ -1,15 +1,30 @@
+"use client";
+
 import Link from "next/link";
-import { ArrowRight, Layers } from "lucide-react";
+import { useState } from "react";
+import { ArrowRight, ChevronLeft, ChevronRight, Layers } from "lucide-react";
 
 import { categoryDescription, categoryIcon } from "@/lib/catalog-meta";
 import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import type { CategoryRead } from "@/types/category";
 
+const PAGE_SIZE = 3;
+
 export function CategoryExplorer({ groups }: { groups: CategoryRead[] }) {
+  const pageCount = Math.max(1, Math.ceil(groups.length / PAGE_SIZE));
+  const [page, setPage] = useState(0);
+  const current = Math.min(page, pageCount - 1);
+  const visible = groups.slice(current * PAGE_SIZE, current * PAGE_SIZE + PAGE_SIZE);
+
+  const next = () => setPage((p) => Math.min(p + 1, pageCount - 1));
+  const prev = () => setPage((p) => Math.max(p - 1, 0));
+
   return (
-    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-      {groups.map((group) => {
+    <div>
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        {visible.map((group) => {
         const Icon = categoryIcon(group);
         const subcategoryCount = group.children.length;
         const productCount = group.total_products;
@@ -51,6 +66,35 @@ export function CategoryExplorer({ groups }: { groups: CategoryRead[] }) {
           </Link>
         );
       })}
+      </div>
+
+      {pageCount > 1 ? (
+        <div className="mt-6 flex items-center justify-center gap-3">
+          <Button
+            variant="outline"
+            size="icon"
+            className="size-9 rounded-full"
+            onClick={prev}
+            disabled={current === 0}
+            aria-label="Categorías anteriores"
+          >
+            <ChevronLeft className="size-4" />
+          </Button>
+          <span className="text-sm tabular-nums text-muted-foreground">
+            {current + 1} / {pageCount}
+          </span>
+          <Button
+            variant="outline"
+            size="icon"
+            className="size-9 rounded-full"
+            onClick={next}
+            disabled={current === pageCount - 1}
+            aria-label="Más categorías"
+          >
+            <ChevronRight className="size-4" />
+          </Button>
+        </div>
+      ) : null}
     </div>
   );
 }

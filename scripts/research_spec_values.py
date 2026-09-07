@@ -178,22 +178,29 @@ def main() -> int:
                     if not context.strip():
                         print(f"  ! {entry.target}: página sin texto extraíble")
                         continue
-                    allowed = allowed_keys_for(defs, entry) & missing
-                    if not allowed:
-                        continue
-                    allowed_keys = frozenset(allowed)
-                    cache_key = (entry.url, allowed_keys)
-                    specs = extraction_cache.get(cache_key)
-                    if specs is None:
-                        def_list = [defs[k] for k in sorted(allowed)]
-                        prompt = build_prompt(context[:40000], entry, def_list, product_name=product.name)
-                        if not args.plan:
-                            print(f"    [{entry.target}] LLM ({len(prompt):,} caracteres de prompt, {len(allowed)} faltantes)...")
-                        raw = call_gemini(client, settings.gemini_model, settings.llm_timeout_seconds, prompt)
-                        specs = extract_specs(_extract_json(raw), set(allowed_keys), context)
-                        extraction_cache[cache_key] = specs
-                    for spec in specs:
-                        research.setdefault(spec.key, []).append((entry, spec))
+                    batch = allowed_keys_for(defs, entry) & missing
+                    attempt = 0
+                    while batch and attempt < 2:
+                        attempt += 1
+                        allowed_keys = frozenset(batch)
+                        cache_key = (entry.url, allowed_keys)
+                        specs = extraction_cache.get(cache_key)
+                        if specs is None:
+                            def_list = [defs[k] for k in sorted(batch)]
+                            prompt = build_prompt(context[:40000], entry, def_list, product_name=product.name)
+                            if not args.plan:
+                                print(f"    [{entry.target}] LLM intento {attempt} ({len(prompt):,} caracteres de prompt, {len(batch)} faltantes)...")
+                            raw = call_gemini(client, settings.gemini_model, settings.llm_timeout_seconds, prompt)
+                            specs = extract_specs(_extract_json(raw), set(allowed_keys), context)
+                            extraction_cache[cache_key] = specs
+                        for spec in specs:
+                            research.setdefault(spec.key, []).append((entry, spec))
+                        extracted_now = {spec.key for spec in specs}
+                        leftovers = batch - extracted_now
+                        if attempt == 1 and leftovers:
+                            batch = leftovers
+                        else:
+                            batch = set()
                 except RuntimeError as error:
                     print(f"  ! {entry.target}: {error}")
                 except ValueError as error:

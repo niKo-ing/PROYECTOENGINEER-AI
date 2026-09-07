@@ -20,8 +20,11 @@ export interface CanonicalSpecItem {
   raw_value: string | null;
   unit: string | null;
   value_kind: string | null;
+  value_json?: Record<string, unknown>[] | Record<string, unknown> | string | number | boolean | null;
+  item_schema?: Record<string, unknown> | null;
   source_type: string | null;
   source_name: string | null;
+  source_url?: string | null;
   verification_status: string | null;
   conflict_status: string | null;
 }

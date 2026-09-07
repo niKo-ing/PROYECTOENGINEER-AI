@@ -95,7 +95,7 @@ def test_chat_simple_without_tool_call():
     assert response.status_code == 200
     assert response.json()["answer"] == "Hola, ¿qué producto buscas?"
     assert response.json()["tools_used"] == []
-    assert {item["function"]["name"] for item in provider.definitions} == {"search_products", "get_product", "get_product_offers", "get_price_history", "get_user_profile"}
+    assert {item["function"]["name"] for item in provider.definitions} == {"search_products", "get_product", "compare_products", "get_product_offers", "get_price_history", "get_user_profile"}
 
 
 def test_chat_executes_search_products_tool():

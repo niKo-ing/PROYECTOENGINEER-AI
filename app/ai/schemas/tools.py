@@ -32,6 +32,11 @@ class GetProductInput(BaseModel):
     product_id: int = Field(ge=1)
 
 
+class CompareProductsInput(BaseModel):
+    product_ids: list[int] = Field(min_length=2, max_length=5)
+    limit_specs: int = Field(default=60, ge=1, le=120)
+
+
 class GetProductOffersInput(BaseModel):
     product_id: int = Field(ge=1)
     limit: int = Field(default=10, ge=1, le=20)

@@ -26,6 +26,13 @@ class Settings:
     gemini_model: str = os.getenv("GEMINI_MODEL", "")
     llm_timeout_seconds: float = float(os.getenv("LLM_TIMEOUT_SECONDS", "20"))
     ai_max_tool_calls: int = int(os.getenv("AI_MAX_TOOL_CALLS", "3"))
+    research_enabled: bool = os.getenv("RESEARCH_ENABLED", "true").strip().lower() in {"1", "true", "yes", "on"}
+    max_research_queries: int = int(os.getenv("MAX_RESEARCH_QUERIES", "3"))
+    max_research_sources: int = int(os.getenv("MAX_RESEARCH_SOURCES", "4"))
+    max_research_documents: int = int(os.getenv("MAX_RESEARCH_DOCUMENTS", "3"))
+    max_research_chunks: int = int(os.getenv("MAX_RESEARCH_CHUNKS", "24"))
+    max_research_chars: int = int(os.getenv("MAX_RESEARCH_CHARS", "6000"))
+    research_timeout_seconds: float = float(os.getenv("RESEARCH_TIMEOUT_SECONDS", "10"))
 
     @property
     def sqlalchemy_database_url(self) -> str:

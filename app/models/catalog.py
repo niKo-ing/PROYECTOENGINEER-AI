@@ -122,8 +122,10 @@ class CategorySpecificationDefinition(Base):
     required: Mapped[bool] = mapped_column(Boolean, default=False)
     comparable: Mapped[bool] = mapped_column(Boolean, default=True)
     facetable: Mapped[bool] = mapped_column(Boolean, default=True)
+    applicability: Mapped[str] = mapped_column(String(16), default="optional")
     sort_order: Mapped[int] = mapped_column(Integer, default=0)
     options: Mapped[list[str] | None] = mapped_column(JSON)
+    item_schema: Mapped[dict | None] = mapped_column("item_schema", JSON)
 
     category: Mapped[Category] = relationship(back_populates="spec_definitions")
 

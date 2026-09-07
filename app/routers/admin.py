@@ -335,7 +335,7 @@ def verify_spec_value(value_id: int, payload: VerifySpecValueRequest, user: Curr
             unit=payload.unit,
             source_type=payload.source_type or value.source_type,
             source_name=payload.source_name or value.source_name,
-            source_url=payload.source_url,
+            source_url=payload.source_url or value.source_url,
             extraction_method=payload.extraction_method or value.extraction_method,
             verification_status=SpecVerificationStatus.VERIFIED.value,
         )

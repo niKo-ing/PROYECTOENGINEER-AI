@@ -35,8 +35,11 @@ class CanonicalSpecItem(BaseModel):
     raw_value: str | None = None
     unit: str | None = None
     value_kind: str | None = None
+    value_json: dict | list | None = None
+    item_schema: dict | None = None
     source_type: str | None = None
     source_name: str | None = None
+    source_url: str | None = None
     verification_status: str | None = None
     conflict_status: str | None = None
 

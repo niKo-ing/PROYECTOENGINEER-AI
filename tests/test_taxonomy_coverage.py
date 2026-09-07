@@ -11,7 +11,7 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.pool import StaticPool
 
-from app.catalog.taxonomy import CPU_SPECS, GPU_SPECS, INITIAL_TAXONOMY, MONITOR_SPECS, MOBILE_SPECS, NOTEBOOK_SPECS
+from app.catalog.taxonomy import CPU_SPECS, GPU_SPECS, INITIAL_TAXONOMY, MONITOR_SPECS, MOBILE_SPECS, MOTHERBOARD_SPECS, NOTEBOOK_SPECS
 from app.db import Base
 from app.models.catalog import Category, CategorySpecificationDefinition
 from app.repositories.category_repository import CategoryRepository
@@ -172,18 +172,40 @@ def test_seed_remains_idempotent_after_expansion():
 
 
 def test_keys_unique_within_each_category():
-    for specs in (CPU_SPECS, GPU_SPECS, MONITOR_SPECS, NOTEBOOK_SPECS, MOBILE_SPECS):
+    for specs in (CPU_SPECS, GPU_SPECS, MONITOR_SPECS, NOTEBOOK_SPECS, MOBILE_SPECS, MOTHERBOARD_SPECS):
         keys = [spec.key for spec in specs]
         assert len(keys) == len(set(keys)), f"keys duplicadas en {keys}"
 
 
+def test_motherboard_specs_are_structured_and_complete():
+    specs = {spec.key: spec for spec in MOTHERBOARD_SPECS}
+    assert len(MOTHERBOARD_SPECS) >= 50
+    assert {
+        "socket",
+        "chipset",
+        "form_factor",
+        "memory_type",
+        "ram_slots",
+        "pcie_slots",
+        "m2_slots",
+        "sata_ports",
+        "wifi",
+        "bluetooth",
+        "ethernet",
+    } <= specs.keys()
+    required = {spec.key for spec in MOTHERBOARD_SPECS if spec.required}
+    assert {"socket", "chipset"} <= required
+    for key in ("pcie_slot_list", "m2_slot_list", "rear_ports", "motherboard_power_connector"):
+        assert specs[key].data_type == "json", key
+        assert specs[key].item_schema, f"{key} sin item_schema"
+
 def test_all_spec_definitions_have_label_group_and_sort_order():
-    for specs in (CPU_SPECS, GPU_SPECS, MONITOR_SPECS, NOTEBOOK_SPECS, MOBILE_SPECS):
+    for specs in (CPU_SPECS, GPU_SPECS, MONITOR_SPECS, NOTEBOOK_SPECS, MOBILE_SPECS, MOTHERBOARD_SPECS):
         for spec in specs:
             assert spec.key, "key vacío"
             assert spec.label, f"label vacío para {spec.key}"
             assert spec.group, f"grupo vacío para {spec.key}"
-            assert spec.data_type in {"text", "integer", "decimal", "boolean"}, spec.key
+            assert spec.data_type in {"text", "integer", "decimal", "boolean", "json"}, spec.key
             assert spec.filter_type, f"filter_type vacío para {spec.key}"
 
 

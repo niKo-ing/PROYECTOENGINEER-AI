@@ -82,6 +82,19 @@ MONITOR_RELEVANT_KEYS = (
     "vesa_mount",
 )
 
+MOTHERBOARD_RELEVANT_KEYS = (
+    "socket",
+    "chipset",
+    "form_factor",
+    "memory_type",
+    "ram_slots",
+    "max_memory",
+    "pcie_slots",
+    "m2_slots",
+    "sata_ports",
+    "ethernet",
+)
+
 CATEGORY_PROFILES = {
     "notebooks": NOTEBOOK_RELEVANT_KEYS,
     "pcs-de-escritorio": NOTEBOOK_RELEVANT_KEYS,
@@ -92,6 +105,7 @@ CATEGORY_PROFILES = {
     "tablets": MOBILE_RELEVANT_KEYS,
     "monitores": MONITOR_RELEVANT_KEYS,
     "smart-tvs": MONITOR_RELEVANT_KEYS,
+    "placas-madre": MOTHERBOARD_RELEVANT_KEYS,
 }
 
 
@@ -260,6 +274,8 @@ class CatalogQualityService:
                         "key": definition.key,
                         "label": definition.label,
                         "group": definition.group,
+                        "data_type": definition.data_type,
+                        "applicability": definition.applicability,
                         "products": product_count,
                         "products_with_value": len(product_ids_with_value),
                         "coverage": round((len(product_ids_with_value) / product_count) * 100) if product_count else 0,
