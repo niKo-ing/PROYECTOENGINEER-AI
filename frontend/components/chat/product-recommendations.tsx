@@ -55,6 +55,13 @@ function useRecommendationSwap(products: ProductRead[], messageId: string | unde
   useEffect(() => {
     const key = messageId ?? `products-${products.length}`;
     if (key === displayed.key) return;
+    if (products.length === 0) {
+      const clear = window.setTimeout(() => {
+        setDisplayed({ key, products: [] });
+        setVisible(true);
+      }, 0);
+      return () => window.clearTimeout(clear);
+    }
     const idle = window.setTimeout(() => setVisible(false), 0);
     const swap = window.setTimeout(() => {
       setDisplayed({ key, products });

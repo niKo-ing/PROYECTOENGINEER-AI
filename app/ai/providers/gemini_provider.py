@@ -78,6 +78,8 @@ class GeminiProvider(LLMProvider):
             systemInstruction=SYSTEM_INSTRUCTIONS,
             tools=[types.Tool(functionDeclarations=declarations)] if declarations else None,
             automaticFunctionCalling=types.AutomaticFunctionCallingConfig(disable=True),
+            maxOutputTokens=512,
+            temperature=0.2,
         )
 
     def _parse_response(self, response: Any, latency_ms: int) -> ProviderResponse:

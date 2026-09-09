@@ -9,7 +9,6 @@ import { ProductRecommendations } from "@/components/chat/product-recommendation
 import { SuggestionChips } from "@/components/chat/suggestion-chips";
 import { ChatComposer } from "@/components/chat/chat-composer";
 import { TypingIndicator } from "@/components/chat/typing-indicator";
-import { EvidencePanel } from "@/components/chat/evidence-panel";
 import {
   buildProductContext,
   isProbablyCatalogQuery,
@@ -37,6 +36,31 @@ type ChatInterfaceProps = {
   productId?: number | null;
   productName?: string | null;
 };
+
+const CATEGORY_HINTS: Array<{ category: string; terms: string[] }> = [
+  { category: "celulares", terms: ["celular", "celulares", "telefono", "telefonos", "smartphone", "iphone", "galaxy", "redmi", "poco"] },
+  { category: "notebooks", terms: ["notebook", "notebooks", "laptop", "portatil"] },
+  { category: "placas madre", terms: ["placa madre", "placas madre", "motherboard"] },
+  { category: "tarjetas graficas", terms: ["tarjeta grafica", "tarjetas graficas", "tarjeta de video", "gpu"] },
+  { category: "procesadores", terms: ["procesador", "procesadores", "cpu"] },
+  { category: "monitores", terms: ["monitor", "monitores", "pantalla"] },
+];
+
+function normalizeText(value: string): string {
+  return value
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "");
+}
+
+function filterProductsForMessage(products: ProductRead[], message: string): ProductRead[] {
+  const normalizedMessage = normalizeText(message);
+  const hint = CATEGORY_HINTS.find((item) => item.terms.some((term) => normalizedMessage.includes(term)));
+  if (!hint) return products;
+
+  const filtered = products.filter((product) => normalizeText(product.category).includes(hint.category));
+  return filtered.length > 0 ? filtered : products;
+}
 
 function toChatTurns(messages: ChatMessage[]): ChatTurn[] {
   return messages.map((message) => ({
@@ -110,7 +134,10 @@ export function ChatInterface({ accessToken, productId, productName }: ChatInter
       const result = await sendCatalogAwareMessage(trimmed, accessToken, productId, toChatTurns(messages));
       const backendProducts = Array.isArray(result.products) ? result.products : [];
       const catalogProducts = result.catalog.products ?? [];
-      const renderedProducts = backendProducts.length > 0 ? backendProducts : catalogProducts;
+      const renderedProducts = filterProductsForMessage(
+        (backendProducts.length > 0 ? backendProducts : catalogProducts) as ProductRead[],
+        trimmed,
+      );
       setMessages((current) => [
         ...current,
         {
@@ -220,50 +247,6 @@ export function ChatInterface({ accessToken, productId, productName }: ChatInter
                   </div>
                   <div className="min-w-0 flex-1 [overflow-wrap:anywhere] rounded-2xl rounded-bl-md bg-muted px-4 py-3">
                     <MarkdownContent markdown={message.text} />
-                    {message.toolsUsed && message.toolsUsed.length > 0 ? (
-                      <div className="mt-2.5 flex flex-wrap gap-1.5 border-t border-border/70 pt-2.5">
-                        {message.toolsUsed.map((tool) => (
-                          <span key={tool} className="rounded-full bg-background px-2 py-0.5 text-[11px] font-medium text-muted-foreground">
-                            {tool}
-                          </span>
-                        ))}
-                      </div>
-                    ) : null}
-                    {message.sources && message.sources.length > 0 ? (
-                      <div className="mt-2.5 border-t border-border/70 pt-2.5">
-                        <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
-                          Fuentes consultadas
-                        </p>
-                        <ul className="mt-1.5 space-y-1.5">
-                          {message.sources.map((source) => (
-                            <li key={`${source.source_name}-${source.source_url ?? source.title}`}>
-                              {source.source_url ? (
-                                <a
-                                  href={source.source_url}
-                                  target="_blank"
-                                  rel="noopener noreferrer"
-                                  className="text-xs leading-5 text-primary hover:underline"
-                                >
-                                  {source.source_name}
-                                  {source.title ? (
-                                    <span className="text-muted-foreground"> — {source.title}</span>
-                                  ) : null}
-                                </a>
-                              ) : (
-                                <span className="text-xs leading-5 text-muted-foreground">
-                                  {source.source_name}
-                                  {source.title ? ` — ${source.title}` : ""}
-                                </span>
-                              )}
-                            </li>
-                          ))}
-                        </ul>
-                      </div>
-                    ) : null}
-                    <EvidencePanel
-                      evidence={message.evidence}
-                      recommendation={message.recommendation}
-                    />
                   </div>
                 </article>
               )

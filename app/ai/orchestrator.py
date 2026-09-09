@@ -89,8 +89,16 @@ class AIOrchestrator:
         product_id: int | None = None,
         history: list[ChatTurn] | None = None,
     ) -> ChatResponse:
-        state = ConversationState.build(history or [], product_id)
         message = _strip_frontend_context(message)
+        if _is_simple_greeting(message):
+            return ChatResponse(
+                answer="Hola. Puedo ayudarte a buscar productos, comparar precios o revisar ofertas del catálogo.",
+                tools_used=[],
+                intent=AIIntentType.GENERAL_QUESTION,
+                trace_id=self.trace_id,
+            )
+
+        state = ConversationState.build(history or [], product_id)
         intent = detect_intent(message, state)
         resolution = self.entity_resolver.resolve_intent(message, intent, state)
         self._trace(
@@ -121,11 +129,19 @@ class AIOrchestrator:
         if intent.intent in (AIIntentType.SEARCH, AIIntentType.COMPARE) and plan.tools:
             return self._chat_evidence(prompt_message, prompt, state, intent, resolution, plan)
 
-        try:
-            initial = self.provider.request_tools(prompt, self.tool_engine.tool_definitions())
-            outputs = self._execute_provider_calls(initial)
-        except ProviderError as error:
-            raise HTTPException(status_code=error.status_code, detail=error.detail) from error
+        if _supports_provider_tool_selection(self.provider):
+            try:
+                initial = self.provider.request_tools(prompt, self.tool_engine.tool_definitions())
+                outputs = self._execute_provider_calls(initial)
+            except ProviderError as error:
+                raise HTTPException(status_code=error.status_code, detail=error.detail) from error
+        else:
+            # Gemini's function-selection call can hang with the current
+            # SDK/model combination. The app still runs its deterministic
+            # catalog plan below, so tools remain available without relying on
+            # provider-side tool selection.
+            initial = _NO_EVIDENCE
+            outputs: list[dict[str, Any]] = []
 
         deterministic_outputs = self._execute_plan(state, intent, resolution, outputs)
 
@@ -139,10 +155,9 @@ class AIOrchestrator:
             comparison["evidence"] = [item.as_dict() for item in report.evidence[:6]]
             comparison["unknowns"] = (comparison.get("unknowns") or []) + ([v.claim for v in report.verdicts if v.verdict and v.verdict.value == "insufficient_evidence"] if getattr(report, "verdicts", None) else [])
 
-        if not initial.tool_calls and not products and comparison is None:
-            # The provider answered directly with no catalog evidence to surface.
-            # Keep its text (as before) when there is nothing deterministic to add.
-            return self._response(initial, [], initial, products, comparison, intent, sources=sources, research=report is not None, evidence=[item.as_dict() for item in report.evidence] if report else None)
+        if not products and comparison is None:
+            final = self._final_turn(prompt, initial, outputs)
+            return self._response(final, [], initial, products, comparison, intent, sources=sources, research=report is not None, evidence=[item.as_dict() for item in report.evidence] if report else None)
 
         evidence_prompt = self._augment_prompt(
             prompt,
@@ -495,6 +510,14 @@ def _strip_frontend_context(message: str) -> str:
         if question:
             return question
     return message
+
+
+def _supports_provider_tool_selection(provider: LLMProvider) -> bool:
+    return provider.__class__.__name__ != "GeminiProvider"
+
+
+def _is_simple_greeting(message: str) -> bool:
+    return message.strip().casefold() in {"hola", "ola", "buenas", "hey", "hello", "hi"}
 
 
 def _searchable(intent: AIIntent, state: ConversationState) -> str | None:
