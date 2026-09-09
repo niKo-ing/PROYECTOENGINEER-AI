@@ -28,7 +28,7 @@ from app.ai.entity_resolution import EntityResolution, EntityResolver
 from app.ai.intent import detect_intent
 from app.ai.observability import new_trace_id, trace_step
 from app.ai.planner import RESEARCH_CATALOG_ONLY, Planner
-from app.ai.providers.base import LLMProvider, ProviderError, ProviderInvalidResponseError, ToolCall, Usage
+from app.ai.providers.base import LLMProvider, ProviderError, ProviderInvalidResponseError, ProviderResponse, ToolCall, Usage
 from app.ai.recommendation import RecommendationEngine
 from app.ai.research.query_planning import detect_topics
 from app.ai.research.schemas import ResearchReport, ResearchTarget
@@ -40,6 +40,10 @@ from app.ai.schemas.tools import ToolExecutionRequest
 from app.ai.tools.catalog import build_product_comparison
 from app.core.config import settings
 from app.core.security import AuthenticatedUser
+
+# Sentinel for the deterministic catalog-search path: the LLM writes the final
+# answer over the plan evidence without having been asked to pick tools first.
+_NO_EVIDENCE = ProviderResponse(text="", tool_calls=[], usage=None, continuation=None)
 
 _SOURCE_KINDS = {
     AIIntentType.COMPARE,
@@ -111,6 +115,10 @@ class AIOrchestrator:
             prompt_message = _expand_follow_up(message, state)
             self._trace("query_rewrite", {"original": message[:120], "rewritten": prompt_message[:240]})
         prompt = self._build_prompt(prompt_message, product_id, intent)
+
+        if intent.intent == AIIntentType.SEARCH:
+            return self._chat_search(prompt_message, prompt, state, intent, resolution)
+
         try:
             initial = self.provider.request_tools(prompt, self.tool_engine.tool_definitions())
             outputs = self._execute_provider_calls(initial)
@@ -150,6 +158,47 @@ class AIOrchestrator:
 
         used_tools = [output["name"] for output in outputs]
         return self._response(final, used_tools, initial, products, comparison, intent, sources=sources, research=report is not None, evidence=[item.as_dict() for item in report.evidence] if report else None)
+
+    # ── Deterministic catalog search ─────────────────────────────────────
+
+    def _chat_search(self, prompt_message: str, prompt: str, state, intent, resolution) -> ChatResponse:
+        plan = self.planner.build(intent, state, resolution, searchable_message=_searchable(intent, state))
+        self._trace("planner", {"tools": plan.tools, "finished": plan.finished})
+        plan_outputs = self._execute_plan(state, intent, resolution, [])
+        products = self._collect_products(state, resolution, [], plan_outputs)
+        comparison = self._build_comparison(intent, products, prompt_message)
+
+        report = self._run_research(prompt_message, intent, products, comparison)
+        sources = report.sources if report else []
+        research_context = report.context if report else None
+        if report is not None and report.evidence and comparison is not None and comparison.get("winner_id") is not None:
+            comparison["evidence"] = [item.as_dict() for item in report.evidence[:6]]
+            comparison["unknowns"] = (comparison.get("unknowns") or []) + ([v.claim for v in report.verdicts if v.verdict and v.verdict.value == "insufficient_evidence"] if getattr(report, "verdicts", None) else [])
+
+        evidence_prompt = self._augment_prompt(
+            prompt,
+            products,
+            comparison,
+            research_context=research_context,
+            verdicts=report.verdicts if report else [],
+            evidence=report.evidence if report else None,
+        )
+        try:
+            final = self.provider.generate_final(evidence_prompt, _NO_EVIDENCE, [])
+        except ProviderError as error:
+            raise HTTPException(status_code=error.status_code, detail=error.detail) from error
+
+        return self._response(
+            final,
+            plan.tools,
+            _NO_EVIDENCE,
+            products,
+            comparison,
+            intent,
+            sources=sources,
+            research=report is not None,
+            evidence=[item.as_dict() for item in report.evidence] if report else None,
+        )
 
     # ── Provider execution ──────────────────────────────────────────────
 

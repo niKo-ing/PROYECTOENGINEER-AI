@@ -114,6 +114,15 @@ def test_search_smartphones_matches_celulares_category():
     assert all(item["category"] == "Celulares" for item in data["items"])
 
 
+def test_search_intent_category_placeholder_resolves_via_synonyms():
+    seed_catalog()
+    data = search("poco", category="smartphone")
+    assert data["total"] == 1
+    assert data["items"][0]["category"] == "Celulares"
+    data = search("gpu")
+    assert data["total"] == 0
+
+
 def test_search_singular_and_phone_alias_match_the_category():
     seed_catalog()
     assert search("celular")["total"] == 3

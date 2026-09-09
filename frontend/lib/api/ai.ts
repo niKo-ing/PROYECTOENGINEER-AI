@@ -129,6 +129,8 @@ const PRODUCT_TERMS = [
   "notebook",
   "laptop",
   "celular",
+  "telefono",
+  "telefonos",
   "tablet",
   "iphone",
   "galaxy",

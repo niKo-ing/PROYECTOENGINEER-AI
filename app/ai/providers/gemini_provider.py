@@ -35,23 +35,29 @@ class GeminiProvider(LLMProvider):
             self._raise_provider_error(error, "Gemini request failed")
 
     def generate_final(self, message: str, initial: ProviderResponse, tool_outputs: list[dict[str, Any]]) -> ProviderResponse:
-        if initial.continuation is None:
-            raise ProviderInvalidResponseError()
-        response_parts = [
-            types.Part.from_function_response(name=item["name"], response={"result": item["output"]})
-            for item in tool_outputs
-        ]
-        contents = [
-            types.Content(role="user", parts=[types.Part(text=message)]),
-            initial.continuation,
-            types.Content(role="user", parts=response_parts),
-        ]
+        if tool_outputs:
+            if initial.continuation is None:
+                raise ProviderInvalidResponseError()
+            response_parts = [
+                types.Part.from_function_response(name=item["name"], response={"result": item["output"]})
+                for item in tool_outputs
+            ]
+            contents = [
+                types.Content(role="user", parts=[types.Part(text=message)]),
+                initial.continuation,
+                types.Content(role="user", parts=response_parts),
+            ]
+        else:
+            # No function responses to feed back. The message already carries the
+            # deterministic evidence (products/comparison); answer over it as a
+            # single fresh user turn to avoid a malformed multi-part sequence.
+            contents = [types.Content(role="user", parts=[types.Part(text=message)])]
         try:
             started = perf_counter()
             response = self.client.models.generate_content(
                 model=self.model,
                 contents=contents,
-                config=self._active_tool_config or self._tool_config([]),
+                config=self._tool_config([]),
             )
             return self._parse_response(response, int((perf_counter() - started) * 1000))
         except ProviderInvalidResponseError:

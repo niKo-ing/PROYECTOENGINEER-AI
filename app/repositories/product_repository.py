@@ -4,7 +4,7 @@ from typing import Any
 from sqlalchemy import and_, func, or_, select
 from sqlalchemy.orm import Session, selectinload
 
-from app.catalog.synonyms import expand_query
+from app.catalog.synonyms import expand_query, expand_token, normalize_spanish
 from app.models.catalog import Category, CategorySpecificationDefinition, Product, ProductSpecValue, Store, StoreOffer
 from app.repositories.category_repository import CategoryRepository
 from app.schemas.product import ProductCreate
@@ -129,13 +129,32 @@ class ProductRepository:
 
     def _resolve_category_ids(self, category: str) -> list[int]:
         category_repository = CategoryRepository(self.db)
-        category = category.strip()
-        match = category_repository.get_by_slug(category)
+        term = category.strip()
+        match = category_repository.get_by_slug(term)
         if match is None:
-            match = self.db.scalar(select(Category).where(Category.name == category))
+            match = self.db.scalar(select(Category).where(Category.name == term))
+        if match is None and term:
+            match = self._match_category_by_synonyms(term)
         if match is None:
             return []
         return list(category_repository.subtree_ids(match.id))
+
+    def _match_category_by_synonyms(self, term: str) -> Category | None:
+        """Resolve a category placeholder ("smartphone", "gpu", "telefonos"...)
+        against the real catalog taxonomy using the commercial synonym groups."""
+        normalized = normalize_spanish(term)
+        for candidate in self.db.scalars(select(Category)).all():
+            labels = {candidate.slug, candidate.name}
+            for label in labels:
+                if not label:
+                    continue
+                flat = normalize_spanish(label).replace("-", " ").strip()
+                for fragment in {flat, *flat.split()}:
+                    if not fragment:
+                        continue
+                    if normalized in expand_token(fragment):
+                        return candidate
+        return None
 
     def _spec_value_exists(self, key: str, values: list[str]):
         return (

@@ -110,7 +110,11 @@ def test_chat_executes_search_products_tool():
     response = client.post("/api/v1/ai/chat", json={"message": "Busca un notebook gamer"})
     assert response.status_code == 200
     assert response.json()["tools_used"] == ["search_products"]
-    assert provider.outputs[0]["output"]["items"][0]["name"] == "Notebook Gamer"
+    # SEARCH is answered deterministically: no LLM tool-call round-trip is done,
+    # the plan searches the catalog directly and the provider only writes prose.
+    assert provider.received_message is None
+    assert provider.outputs == []
+    assert response.json()["products"][0]["name"] == "Notebook Gamer"
 
 
 def test_chat_executes_get_product_tool():

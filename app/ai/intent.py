@@ -121,7 +121,7 @@ def detect_intent(message: str, state: ConversationState | None = None) -> AIInt
         return _intent(AIIntentType.COMPARE, entities, constraints, state)
     if _wants_price(norm) or "precio" in norm or "lucas" in norm or " mil" in norm or "$" in text:
         return _intent(AIIntentType.PRICE_CHECK, entities, constraints, state)
-    if _wants_search(norm, text) or price is not None:
+    if _wants_search(norm, text) or price is not None or _names_catalog_entity(entities):
         return _intent(AIIntentType.SEARCH, entities, constraints, state)
 
     if not text:
@@ -195,6 +195,13 @@ def _wants_search(norm: str, raw: str) -> bool:
 
 def _has_any(norm: str, terms: tuple[str, ...]) -> bool:
     return any(term in norm for term in terms)
+
+
+def _names_catalog_entity(entities: list[AIEntity]) -> bool:
+    return any(
+        entity.type in (AIEntityType.PRODUCT, AIEntityType.PRODUCT_FAMILY, AIEntityType.BRAND, AIEntityType.CATEGORY)
+        for entity in entities
+    )
 
 
 def parse_price_clp(text: str) -> int | None:

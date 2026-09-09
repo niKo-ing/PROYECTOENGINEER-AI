@@ -114,6 +114,13 @@ def test_intent_detection_basic_cases():
     assert detect_intent("hola").intent == AIIntentType.GENERAL_QUESTION
 
 
+def test_intent_detection_bare_catalog_nouns_search():
+    for message in ("telefonos", "telefono", "celulares", "notebooks", "gpu", "tarjeta grafica", "samsung"):
+        assert detect_intent(message).intent == AIIntentType.SEARCH, f"{message!r} debería ser SEARCH"
+    for greeting in ("hola", "buenas", "gracias"):
+        assert detect_intent(greeting).intent == AIIntentType.GENERAL_QUESTION, f"{greeting!r} debería ser GENERAL_QUESTION"
+
+
 def test_intent_detection_follow_ups_need_active_products():
     plain = detect_intent("comparalas")
     assert plain.intent != AIIntentType.COMPARE or not plain.constraints

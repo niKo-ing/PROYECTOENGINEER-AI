@@ -33,20 +33,28 @@ class OpenAIProvider(LLMProvider):
             raise ProviderError() from error
 
     def generate_final(self, message: str, initial: ProviderResponse, tool_outputs: list[dict[str, Any]]) -> ProviderResponse:
-        assistant_message = {
-            "role": "assistant",
-            "content": initial.text or None,
-            "tool_calls": [
-                {"id": call.id, "type": "function", "function": {"name": call.name, "arguments": json.dumps(call.arguments)}}
-                for call in initial.tool_calls
-            ],
-        }
-        messages: list[dict[str, Any]] = [
-            {"role": "system", "content": SYSTEM_INSTRUCTIONS},
-            {"role": "user", "content": message},
-            assistant_message,
-            *[{"role": "tool", "tool_call_id": item["call_id"], "content": json.dumps(item["output"])} for item in tool_outputs],
-        ]
+        if initial.tool_calls:
+            assistant_message = {
+                "role": "assistant",
+                "content": initial.text or None,
+                "tool_calls": [
+                    {"id": call.id, "type": "function", "function": {"name": call.name, "arguments": json.dumps(call.arguments)}}
+                    for call in initial.tool_calls
+                ],
+            }
+            messages: list[dict[str, Any]] = [
+                {"role": "system", "content": SYSTEM_INSTRUCTIONS},
+                {"role": "user", "content": message},
+                assistant_message,
+                *[{"role": "tool", "tool_call_id": item["call_id"], "content": json.dumps(item["output"])} for item in tool_outputs],
+            ]
+        else:
+            # No tool calls to continue: answer over the (augmented) message as a
+            # fresh single turn instead of an assistant message with empty tool_calls.
+            messages = [
+                {"role": "system", "content": SYSTEM_INSTRUCTIONS},
+                {"role": "user", "content": message},
+            ]
         try:
             started = perf_counter()
             completion = self.client.chat.completions.create(model=self.model, messages=messages)
