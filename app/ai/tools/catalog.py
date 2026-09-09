@@ -13,6 +13,7 @@ def _project(product: Product) -> dict:
         price_clp=product.price_clp,
         rating=float(product.rating) if product.rating is not None else None,
         brand=product.brand,
+        image_url=product.image_url,
         lowest_price=product.lowest_price,
         lowest_price_store=product.lowest_price_store,
         offer_count=product.offer_count,

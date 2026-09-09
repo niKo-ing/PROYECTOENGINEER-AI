@@ -82,6 +82,7 @@ def test_search_products_tool_returns_compact_filtered_results():
         "price_clp": 899990,
         "rating": 4.5,
         "brand": None,
+        "image_url": None,
         "lowest_price": 899990,
         "lowest_price_store": "Tienda Notebook Gamer",
         "offer_count": 1,

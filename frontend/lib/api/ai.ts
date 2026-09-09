@@ -200,16 +200,6 @@ const ACCENTS: Record<string, string> = {
   "ñ": "n",
 };
 
-const INTENT_LABELS: Record<CatalogIntent, string> = {
-  search: "búsqueda de productos",
-  cheapest: "cuál es más barato",
-  compare: "comparación de productos",
-  offers: "ofertas disponibles",
-  price_history: "historial de precios",
-  best_value: "relación precio/valor",
-  single_product: "consulta sobre un producto específico",
-};
-
 function normalize(value: string): string {
   return value.toLowerCase().replace(/[áéíóúüñ]/g, (character) => ACCENTS[character] ?? character);
 }
@@ -399,91 +389,31 @@ export async function buildCatalogContext(
   }
 }
 
-function composePrompt(context: CatalogContext, message: string): string {
-  const intro = [
-    "[CONTEXTO DE CATÁLOGO SOLOTODO — datos reales obtenidos de la API en tiempo real, no inventados]",
-    `Intención detectada: ${context.intent ? INTENT_LABELS[context.intent] : "catálogo"}`,
-  ];
-  if (context.query) {
-    intro.push(`Búsqueda usada contra /api/v1/products: "${context.query}"`);
-  }
-  const instructions = [
-    "Respondé en español usando SOLO los datos de este contexto o los devueltos por los tools del catálogo.",
-    "Si un dato (precio, tienda, rating, ofertas, historial) no aparece, decí que no está disponible en la API.",
-    "No inventes productos, precios, tiendas, ratings ni historial.",
-    "Si nombrás un producto, citá su enlace /product/{id}.",
-  ];
-  return [...intro, "", ...context.statements, "", ...instructions, "", `Pregunta del usuario: ${message}`].join("\n");
-}
-
 export async function sendCatalogAwareMessage(
   message: string,
   accessToken: string,
   productId?: number | null,
   history?: ChatTurn[] | null,
 ): Promise<OrchestratedChatResult> {
-  if (isReferenceQuery(message)) {
-    // A bare follow-up ("comparalas", "¿cuál es mejor?", "ese producto", "los dos")
-    // references prior turns. The backend reconstructs those from `history`, so we
-    // must NOT search the catalog for the reference word (it only produces noise).
-    // Send the raw message + history and let the orchestrator resolve the context.
-    const result = await sendChatMessage(message, accessToken, productId, history);
-    return { ...result, catalog: emptyCatalog() };
-  }
-  const catalog = await buildCatalogContext(message, { productId: productId ?? null });
-  if (!catalog.detected) {
-    const result = await sendChatMessage(message, accessToken, productId, history);
-    return { ...result, catalog };
-  }
-  const prompt = composePrompt(catalog, message);
-  const result = await sendChatMessage(prompt, accessToken, productId, history);
-  return { ...result, catalog };
-}
-
-function emptyCatalog(): CatalogContext {
-  return { detected: false, intent: null, query: null, references: [], products: [], statements: [], missing: false };
-}
-
-const REFERENCE_PATTERNS = [
-  "comparal",
-  "comparame",
-  "comparar",
-  "comparacion",
-  "los dos",
-  "las dos",
-  "ambos",
-  "ambas",
-  "el primero",
-  "el segundo",
-  "la primera",
-  "la segunda",
-  "ese producto",
-  "ese",
-  "esa",
-  "estos",
-  "estas",
-  "cual es mejor",
-  "cual conviene",
-  "mejor opcion",
-  "y contra",
-  "por que",
-  "porque",
-  "explica",
-  "que tiene",
-  "cual me conviene",
-];
-
-function isReferenceQuery(message: string): boolean {
-  const normalized = normalize(message);
-  if (!REFERENCE_PATTERNS.some((pattern) => normalized.includes(pattern))) {
-    return false;
-  }
-  // A self-contained query that names its own catalog entity (brand/model/product
-  // or a search verb) should keep the normal catalog-aware path; only messages
-  // that are purely a reference to prior turns go raw to the backend.
-  const namesProduct = PRODUCT_TERMS.concat(BRAND_TERMS, MODEL_TERMS).some((term) => normalized.includes(term));
-  const hasSearchVerb = SEARCH_VERBS.some((verb) => normalized.includes(verb));
-  return !namesProduct && !hasSearchVerb;
+  // The backend is the single source of truth: it already runs the deterministic
+  // catalog searches/comparisons and returns the resolved products. Re-searching
+  // the catalog here and baking it into the prompt only added extra API calls,
+  // tokens and embedded instructions that fight the backend evidence.
+  const result = await sendChatMessage(message, accessToken, productId, history);
+  const products = Array.isArray(result.products) ? (result.products as ProductRead[]) : [];
+  const references = products.map((product) => toReference(product));
+  return {
+    ...result,
+    catalog: {
+      detected: products.length > 0,
+      intent: null,
+      query: null,
+      references,
+      products,
+      statements: [],
+      missing: false,
+    },
+  };
 }
 
 export async function buildProductContext(productId: number): Promise<{ intro: string; references: CatalogReference[]; products: ProductRead[] }> {

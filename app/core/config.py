@@ -24,7 +24,7 @@ class Settings:
     llm_provider: str = os.getenv("LLM_PROVIDER", "gemini").lower()
     gemini_api_key: str = os.getenv("GEMINI_API_KEY", "")
     gemini_model: str = os.getenv("GEMINI_MODEL", "")
-    llm_timeout_seconds: float = float(os.getenv("LLM_TIMEOUT_SECONDS", "20"))
+    llm_timeout_seconds: float = float(os.getenv("LLM_TIMEOUT_SECONDS", "60"))
     ai_max_tool_calls: int = int(os.getenv("AI_MAX_TOOL_CALLS", "3"))
     research_enabled: bool = os.getenv("RESEARCH_ENABLED", "true").strip().lower() in {"1", "true", "yes", "on"}
     # Hard ceilings for any research pass (depth budgets stay below these).

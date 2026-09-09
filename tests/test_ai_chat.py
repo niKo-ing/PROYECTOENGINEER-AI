@@ -2,7 +2,7 @@ from dataclasses import dataclass, field
 
 from fastapi import HTTPException
 from fastapi.testclient import TestClient
-from sqlalchemy import create_engine, delete
+from sqlalchemy import create_engine, delete, select
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.pool import StaticPool
 
@@ -86,10 +86,49 @@ def add_product() -> int:
         return product.id
 
 
+def add_smartphone(name: str, brand: str, price: int) -> int:
+    with TestingSession() as db:
+        category = db.scalar(select(Category).where(Category.slug == "smartphone")) or Category(name="smartphone", slug="smartphone")
+        store = Store(name=f"Tienda {brand}", domain=f"{brand}.test")
+        product = Product(name=f"{name} {brand}", brand=brand, category_entity=category, rating=4.3)
+        db.add(product)
+        db.add(StoreOffer(product=product, store=store, url=f"https://{brand}.test/{name}", price=price))
+        db.commit()
+        db.refresh(product)
+        return product.id
+
+
 def add_profile(user_id: str, name: str):
     with TestingSession() as db:
         db.add(UserProfile(user_id=user_id, display_name=name, typical_budget_clp=500000, general_preferences={}, favorite_categories=["notebook"], favorite_brands=[], rejected_brands=[], shopping_preferences={}))
         db.commit()
+
+
+def test_chat_strips_frontend_catalog_context_and_keeps_evidence():
+    reset_database()
+    iphone = add_smartphone("iPhone 15 128GB", "Apple", 669990)
+    add_smartphone("Poco M8 5G", "Xiaomi", 279990)
+    provider = FakeProvider(initial=ProviderResponse(text=""))
+    set_context(provider)
+
+    composed = (
+        "[CONTEXTO DE CATÁLOGO SOLOTODO — datos reales de la API]\n"
+        "Intención detectada: búsqueda de productos\n"
+        'Búsqueda usada contra /api/v1/products: "cual"\n\n'
+        "Producto #86: \"Placa Madre Asus\" — Marca ASUS | Categoría Placas madre | Precio desde $149.990\n"
+        "Respondé en español usando SOLO los datos de este contexto.\n"
+        "No inventes productos.\n\n"
+        "Pregunta del usuario: cual es mejor calidad precio iphone 15 o xiaomi m8 poco"
+    )
+    response = client.post("/api/v1/ai/chat", json={"message": composed})
+    assert response.status_code == 200
+    payload = response.json()
+    # The embedded frontend context must not drive the catalog comparison.
+    assert payload["tools_used"] == ["compare_products"]
+    names = {product["name"] for product in payload["products"]}
+    assert any("iPhone 15" in name for name in names)
+    assert any("Poco M8" in name for name in names)
+    assert str(iphone) in {str(product["id"]) for product in payload["products"]}
 
 
 def test_chat_simple_without_tool_call():

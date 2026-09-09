@@ -119,26 +119,36 @@ class EntityResolver:
                 return result
 
         # 3. Brands / families → catalog search for candidates.
-        brand_terms = {e.brand for e in intent.entities if e.type == AIEntityType.BRAND and e.brand}
-        family_terms = {e.family for e in intent.entities if e.type == AIEntityType.PRODUCT_FAMILY and e.family}
-        model_terms = {e.model for e in intent.entities if e.type == AIEntityType.PRODUCT and e.model}
+        brand_entities = [e for e in intent.entities if e.type == AIEntityType.BRAND]
+        family_entities = [e for e in intent.entities if e.type == AIEntityType.PRODUCT_FAMILY]
+        product_entities = [e for e in intent.entities if e.type == AIEntityType.PRODUCT]
 
-        query_terms = [term for term in {*family_terms, *model_terms} if term and " " not in term and len(term) >= 3]
-        if not query_terms and not brand_terms:
+        # Search each family/model with ITS OWN brand, so multi-brand
+        # comparisons ("iphone 15 o el xiaomi m8") don't cross-filter each other.
+        term_pairs: list[tuple[str | None, str | None]] = []
+        for entity in family_entities:
+            if entity.family:
+                term_pairs.append((entity.family, entity.brand))
+        for entity in product_entities:
+            model = entity.model or entity.value
+            if model and len(model) >= 3:
+                term_pairs.append((model, entity.brand))
+        term_pairs = _dedupe_pairs(term_pairs)
+
+        for term, brand in term_pairs:
+            result.candidates.extend(self._search(term, brand=brand))
+
+        if brand_entities:
+            for brand_term in {e.brand for e in brand_entities if e.brand}:
+                result.candidates.extend(self._search(brand_term))
+
+        if not result.candidates:
             # Fall back to a clean search query stripped of stop words.
             candidate_query = _searchable_message(message)
             if candidate_query:
-                result.candidates = self._search(candidate_query, brand=next(iter(brand_terms), None))
-            return result
+                result.candidates = self._search(candidate_query, brand=next(iter({e.brand for e in brand_entities if e.brand}), None))
 
-        for query in (model_terms or family_terms or [None]):
-            if query:
-                result.candidates.extend(self._search(query, brand=next(iter(brand_terms), None)))
-        if not result.candidates:
-            brand = next(iter(brand_terms), None) or next(iter(family_terms), None)
-            if brand:
-                result.candidates = self._search(brand)
-
+        result.candidates = _dedupe_candidates(result.candidates)
         return result
 
     def _search(self, query: str, brand: str | None = None) -> list[ResolvedProduct]:
@@ -172,3 +182,24 @@ def _searchable_message(message: str) -> str | None:
         if token.strip() and token not in _STOP and any(ch.isalnum() for ch in token)
     ]
     return " ".join(tokens[-5:]) if tokens else None
+
+
+def _dedupe_pairs(pairs: list[tuple[str | None, str | None]]) -> list[tuple[str | None, str | None]]:
+    seen: set[tuple[str | None, str | None]] = set()
+    unique: list[tuple[str | None, str | None]] = []
+    for pair in pairs:
+        if pair not in seen:
+            seen.add(pair)
+            unique.append(pair)
+    return unique
+
+
+def _dedupe_candidates(candidates: list) -> list:
+    seen: set[int] = set()
+    unique = []
+    for candidate in candidates:
+        if candidate.product_id in seen:
+            continue
+        seen.add(candidate.product_id)
+        unique.append(candidate)
+    return unique

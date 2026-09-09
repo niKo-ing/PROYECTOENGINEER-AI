@@ -170,7 +170,13 @@ def _is_follow_up(text: str, norm: str, ref_indices: list[int]) -> bool:
 
 
 def _wants_compare(norm: str) -> bool:
-    return "compar" in norm or "cual es mejor" in norm or "mejor opcion" in norm or "best" in norm or _has_any(norm, ("contra", " vs ", "entre los", "entre estas", "entre estos", "cual conviene", "que conviene"))
+    if "compar" in norm or "cual es mejor" in norm or "mejor opcion" in norm or "best" in norm:
+        return True
+    if _has_any(norm, ("contra", " vs ", "entre los", "entre estas", "entre estos", "cual conviene", "que conviene")):
+        return True
+    if "es mejor" in norm and _has_any(norm, (" o ", "entre ", "contra ", " vs ")):
+        return True
+    return False
 
 
 def _wants_recommend(norm: str) -> bool:
@@ -258,7 +264,12 @@ def _brand_model_terms(text: str) -> tuple[list[str], list[str]]:
     # family markers like "poco", "iphone"
     for family in ("iphone", "poco", "galaxy", "ryzen", "core"):
         if family in norm and family not in brands:
-            model_tokens.append(family)
+            # "iphone 15" → precise product token "iphone 15"
+            offset = tokens.index(family)
+            if offset + 1 < len(tokens) and tokens[offset + 1].isdigit():
+                model_tokens.append(f"{family} {tokens[offset + 1]}")
+            else:
+                model_tokens.append(family)
     return brands, model_tokens
 
 

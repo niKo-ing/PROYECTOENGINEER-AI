@@ -28,14 +28,14 @@ from app.ai.entity_resolution import EntityResolution, EntityResolver
 from app.ai.intent import detect_intent
 from app.ai.observability import new_trace_id, trace_step
 from app.ai.planner import RESEARCH_CATALOG_ONLY, Planner
-from app.ai.providers.base import LLMProvider, ProviderError, ProviderInvalidResponseError, ProviderResponse, ToolCall, Usage
+from app.ai.providers.base import LLMProvider, ProviderError, ProviderInvalidResponseError, ProviderResponse, ProviderTimeoutError, ToolCall, Usage
 from app.ai.recommendation import RecommendationEngine
 from app.ai.research.query_planning import detect_topics
 from app.ai.research.schemas import ResearchReport, ResearchTarget
 from app.ai.research.source_discovery import target_identity
 from app.ai.research.web_research_service import WebResearchService
 from app.ai.schemas.chat import ChatResponse, ChatTurn, ChatUsage
-from app.ai.schemas.intent import AIIntent, AIIntentType
+from app.ai.schemas.intent import AIIntent, AIEntityType, AIIntentType
 from app.ai.schemas.tools import ToolExecutionRequest
 from app.ai.tools.catalog import build_product_comparison
 from app.core.config import settings
@@ -90,6 +90,7 @@ class AIOrchestrator:
         history: list[ChatTurn] | None = None,
     ) -> ChatResponse:
         state = ConversationState.build(history or [], product_id)
+        message = _strip_frontend_context(message)
         intent = detect_intent(message, state)
         resolution = self.entity_resolver.resolve_intent(message, intent, state)
         self._trace(
@@ -116,8 +117,9 @@ class AIOrchestrator:
             self._trace("query_rewrite", {"original": message[:120], "rewritten": prompt_message[:240]})
         prompt = self._build_prompt(prompt_message, product_id, intent)
 
-        if intent.intent == AIIntentType.SEARCH:
-            return self._chat_search(prompt_message, prompt, state, intent, resolution)
+        plan = self.planner.build(intent, state, resolution, searchable_message=_searchable(intent, state))
+        if intent.intent in (AIIntentType.SEARCH, AIIntentType.COMPARE) and plan.tools:
+            return self._chat_evidence(prompt_message, prompt, state, intent, resolution, plan)
 
         try:
             initial = self.provider.request_tools(prompt, self.tool_engine.tool_definitions())
@@ -151,24 +153,46 @@ class AIOrchestrator:
             evidence=report.evidence if report else None,
         )
 
-        try:
-            final = self.provider.generate_final(evidence_prompt, initial, outputs)
-        except ProviderError as error:
-            raise HTTPException(status_code=error.status_code, detail=error.detail) from error
+        final = self._final_turn(evidence_prompt, initial, outputs)
 
         used_tools = [output["name"] for output in outputs]
         return self._response(final, used_tools, initial, products, comparison, intent, sources=sources, research=report is not None, evidence=[item.as_dict() for item in report.evidence] if report else None)
 
-    # ── Deterministic catalog search ─────────────────────────────────────
+    # ── Deterministic catalog evidence (SEARCH / COMPARE) ───────────────
 
-    def _chat_search(self, prompt_message: str, prompt: str, state, intent, resolution) -> ChatResponse:
-        plan = self.planner.build(intent, state, resolution, searchable_message=_searchable(intent, state))
+    def _final_turn(self, evidence_prompt: str, initial, outputs: list[dict]) -> Any:
+        """Run the final generation with one retry on timeout or empty text.
+
+        Gemini occasionally exceeds the per-call timeout or returns an empty
+        completion; both are transient, so a single retry avoids surfacing a
+        504/502 to the user for a scenario that succeeds on the next attempt.
+        """
+        try:
+            final = self.provider.generate_final(evidence_prompt, initial, outputs)
+        except ProviderTimeoutError:
+            try:
+                final = self.provider.generate_final(evidence_prompt, initial, outputs)
+            except ProviderError as error:
+                raise HTTPException(status_code=error.status_code, detail=error.detail) from error
+        except ProviderError as error:
+            raise HTTPException(status_code=error.status_code, detail=error.detail) from error
+        if not final.text.strip():
+            try:
+                final = self.provider.generate_final(evidence_prompt, initial, outputs)
+            except ProviderError:
+                pass
+        return final
+
+    def _chat_evidence(self, prompt_message: str, prompt: str, state, intent, resolution, plan) -> ChatResponse:
         self._trace("planner", {"tools": plan.tools, "finished": plan.finished})
         plan_outputs = self._execute_plan(state, intent, resolution, [])
         products = self._collect_products(state, resolution, [], plan_outputs)
         comparison = self._build_comparison(intent, products, prompt_message)
 
-        report = self._run_research(prompt_message, intent, products, comparison)
+        extra_targets = _unmatched_product_targets(intent, products)
+        if extra_targets:
+            self._trace("external_targets", {"products": [target.name for target in extra_targets]})
+        report = self._run_research(prompt_message, intent, products, comparison, extra_targets=extra_targets)
         sources = report.sources if report else []
         research_context = report.context if report else None
         if report is not None and report.evidence and comparison is not None and comparison.get("winner_id") is not None:
@@ -183,10 +207,7 @@ class AIOrchestrator:
             verdicts=report.verdicts if report else [],
             evidence=report.evidence if report else None,
         )
-        try:
-            final = self.provider.generate_final(evidence_prompt, _NO_EVIDENCE, [])
-        except ProviderError as error:
-            raise HTTPException(status_code=error.status_code, detail=error.detail) from error
+        final = self._final_turn(evidence_prompt, _NO_EVIDENCE, [])
 
         return self._response(
             final,
@@ -259,16 +280,19 @@ class AIOrchestrator:
 
     # ── External Web Research (catalog gaps only) ──────────────────────
 
-    def _run_research(self, message: str, intent: AIIntent, products: list[dict], comparison: dict[str, Any] | None) -> ResearchReport | None:
-        if not self._should_research(message, intent, products, comparison):
+    def _run_research(self, message: str, intent: AIIntent, products: list[dict], comparison: dict[str, Any] | None, extra_targets: list[ResearchTarget] | None = None) -> ResearchReport | None:
+        if not settings.research_enabled or settings.max_research_queries <= 0:
             return None
-        targets = _to_research_targets(products)
+        extra = list(extra_targets or [])
+        if not extra and not self._should_research(message, intent, products, comparison):
+            return None
+        targets = _to_research_targets(products) + extra
 
         decision = self.planner.decide_research(
             intent,
             products_available=bool(products),
             has_spec_gaps=_has_spec_gaps(targets, comparison),
-            wants_external=_wants_external_information(message),
+            wants_external=_wants_external_information(message) or bool(extra),
             message=message,
         )
         if decision is not None and decision.mode != RESEARCH_CATALOG_ONLY:
@@ -457,6 +481,22 @@ class AIOrchestrator:
 
 # ── Module helpers ──────────────────────────────────────────────────────
 
+def _strip_frontend_context(message: str) -> str:
+    """Extract the real user question from the frontend's composed prompt.
+
+    The web app injects a "[CONTEXTO DE CATÁLOGO ...]" block plus its own
+    "Respondé usando SOLO los datos de este contexto..." instructions into the
+    message before calling the backend. Those embedded instructions make the
+    LLM ignore the backend's deterministic catalog evidence. When the wrapper
+    is present, parse intent and evidence from the raw question only.
+    """
+    if "Pregunta del usuario:" in message:
+        question = message.split("Pregunta del usuario:", 1)[1].strip()
+        if question:
+            return question
+    return message
+
+
 def _searchable(intent: AIIntent, state: ConversationState) -> str | None:
     for entity in intent.entities:
         if entity.family:
@@ -574,6 +614,52 @@ def _to_research_targets(products: list[dict]) -> list[ResearchTarget]:
         )
         for product in products[:5]
     ]
+
+
+def _unmatched_product_targets(intent: AIIntent, products: list[dict]) -> list[ResearchTarget]:
+    """External research targets for product mentions that the catalog lacks.
+
+    Catalog-first strategy: products resolved in the catalog get the comparison
+    from structured data; mentions like "el iphone 15" that have no catalog
+    match become external research targets so the answer can still compare
+    against out-of-catalog options.
+    """
+    if intent.intent != AIIntentType.COMPARE:
+        return []
+    haystacks: set[str] = set()
+    for product in products:
+        name = (product.get("name") or "").casefold()
+        brand = (product.get("brand") or "").casefold()
+        if name:
+            haystacks.add(name)
+        if brand:
+            haystacks.add(brand)
+
+    targets: list[ResearchTarget] = []
+    seen: set[str] = set()
+    for entity in intent.entities:
+        if entity.type not in (AIEntityType.PRODUCT_FAMILY, AIEntityType.PRODUCT):
+            continue
+        term = (entity.family or entity.model or entity.value or "").strip()
+        if not term or len(term) < 3:
+            continue
+        key = term.casefold()
+        if key in seen:
+            continue
+        seen.add(key)
+        if any(key in haystack or haystack in key for haystack in haystacks):
+            continue
+        targets.append(
+            ResearchTarget(
+                id=0,
+                name=term,
+                brand=entity.brand,
+                model=entity.model or term,
+                category=None,
+                specs={},
+            )
+        )
+    return targets
 
 
 def _kb_query(message: str, targets: list[ResearchTarget], topics: list[str] | None = None) -> str:

@@ -58,6 +58,7 @@ class ProductToolResult(BaseModel):
     price_clp: int
     rating: float | None
     brand: str | None = None
+    image_url: str | None = None
     lowest_price: int | None = None
     lowest_price_store: str | None = None
     offer_count: int = 0

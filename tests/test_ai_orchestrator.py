@@ -15,10 +15,11 @@ from sqlalchemy.pool import StaticPool
 from app.ai.conversation_state import ConversationState, reference_indices
 from app.ai.entity_resolution import EntityResolver
 from app.ai.intent import detect_intent, parse_price_clp
+from app.ai.orchestrator import _unmatched_product_targets
 from app.ai.providers.base import LLMProvider, ProviderResponse
 from app.ai.recommendation import RecommendationEngine
 from app.ai.schemas.chat import ChatTurn
-from app.ai.schemas.intent import AIIntentType
+from app.ai.schemas.intent import AIIntent, AIEntity, AIEntityType, AIIntentType
 from app.core.security import AuthenticatedUser, get_current_user
 from app.db import Base, get_db
 from app.main import app
@@ -110,6 +111,7 @@ def active_state(products: list[dict]) -> ConversationState:
 def test_intent_detection_basic_cases():
     assert detect_intent("busco un iphone").intent == AIIntentType.SEARCH
     assert detect_intent("comparalas").intent == AIIntentType.COMPARE
+    assert detect_intent("que es mejor el iphone 15 o el xiaomi m8").intent == AIIntentType.COMPARE
     assert detect_intent("dame el precio").intent == AIIntentType.PRICE_CHECK
     assert detect_intent("hola").intent == AIIntentType.GENERAL_QUESTION
 
@@ -119,6 +121,25 @@ def test_intent_detection_bare_catalog_nouns_search():
         assert detect_intent(message).intent == AIIntentType.SEARCH, f"{message!r} debería ser SEARCH"
     for greeting in ("hola", "buenas", "gracias"):
         assert detect_intent(greeting).intent == AIIntentType.GENERAL_QUESTION, f"{greeting!r} debería ser GENERAL_QUESTION"
+
+
+def test_unmatched_product_targets_only_research_out_of_catalog():
+    intent = AIIntent(
+        intent=AIIntentType.COMPARE,
+        entities=[
+            AIEntity(type=AIEntityType.BRAND, value="xiaomi", brand="xiaomi"),
+            AIEntity(type=AIEntityType.PRODUCT_FAMILY, value="iphone", family="iphone"),
+        ],
+    )
+    products = [{"id": 49, "name": "Celular Xiaomi Poco M8 5G", "brand": "Xiaomi"}]
+    targets = _unmatched_product_targets(intent, products)
+    assert [t.name for t in targets] == ["iphone"]
+    assert targets[0].brand is None
+    assert targets[0].model == "iphone"
+
+    # Non-compare intents never force external targets.
+    search_intent = AIIntent(intent=AIIntentType.SEARCH, entities=intent.entities)
+    assert _unmatched_product_targets(search_intent, products) == []
 
 
 def test_intent_detection_follow_ups_need_active_products():
@@ -197,6 +218,21 @@ def test_entity_resolution_resolves_brand_and_family():
     names = [candidate.name for candidate in resolution.candidates]
     assert any("POCO" in name for name in names)
     assert resolution.resolved == [] or all(product.name == "iPhone 15 Pro" for product in resolution.resolved)
+
+
+def test_entity_resolution_multibrand_compare_keeps_both_brands():
+    reset_database()
+    iphone = add_product("iPhone 15 128GB", 669990, brand="Apple", ram=8)
+    add_product("POCO M8 5G", 279990, brand="Xiaomi", ram=8)
+
+    intent = detect_intent("que es mejor el iphone 15 o el xiaomi m8", active_state([]))
+    assert intent.intent == AIIntentType.COMPARE
+    with TestingSession() as db:
+        resolution = EntityResolver(db).resolve_intent("que es mejor el iphone 15 o el xiaomi m8", intent, active_state([]))
+
+    candidate_ids = [candidate.product_id for candidate in resolution.candidates]
+    assert iphone in candidate_ids
+    assert any("POCO M8" in candidate.name for candidate in resolution.candidates)
 
 
 # ── Compare & recommendation engine ─────────────────────────────────────
