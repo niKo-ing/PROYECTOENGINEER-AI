@@ -90,7 +90,7 @@ class AIOrchestrator:
         history: list[ChatTurn] | None = None,
     ) -> ChatResponse:
         message = _strip_frontend_context(message)
-        if _is_simple_greeting(message):
+        if _is_simple_greeting(message) and not _supports_provider_tool_selection(self.provider):
             return ChatResponse(
                 answer="Hola. Puedo ayudarte a buscar productos, comparar precios o revisar ofertas del catálogo.",
                 tools_used=[],
@@ -156,6 +156,8 @@ class AIOrchestrator:
             comparison["unknowns"] = (comparison.get("unknowns") or []) + ([v.claim for v in report.verdicts if v.verdict and v.verdict.value == "insufficient_evidence"] if getattr(report, "verdicts", None) else [])
 
         if not products and comparison is None:
+            if _supports_provider_tool_selection(self.provider) and not initial.tool_calls:
+                return self._response(initial, [], initial, products, comparison, intent, sources=sources, research=report is not None, evidence=[item.as_dict() for item in report.evidence] if report else None)
             final = self._final_turn(prompt, initial, outputs)
             return self._response(final, [], initial, products, comparison, intent, sources=sources, research=report is not None, evidence=[item.as_dict() for item in report.evidence] if report else None)
 
