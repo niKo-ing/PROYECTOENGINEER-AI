@@ -13,7 +13,18 @@ from app.ai.observability import AITrace, new_trace_id
 from app.ai.orchestrator import _expand_follow_up, _kb_query
 from app.ai.research.schemas import ResearchTarget
 from app.ai.schemas.chat import ChatTurn, ChatResponse
-from app.ai.conversation_state import ConversationState
+from app.ai.conversation_state import ConversationState, _looks_like_follow_up
+
+
+def test_looks_like_follow_up_catches_object_compare_forms():
+    # "compárame los", "comparamelos", "compáralos" refer to prior products even
+    # though "compara X" (with a name) must not be treated as a bare follow-up.
+    assert _looks_like_follow_up("comparamelos")
+    assert _looks_like_follow_up("comparame los")
+    assert _looks_like_follow_up("compáralos")
+    assert _looks_like_follow_up("comparalo")
+    assert not _looks_like_follow_up("compara la RTX 5070 con la 5070 Ti")
+
 
 
 def test_expand_follow_up_prepends_last_user_turn():

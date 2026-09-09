@@ -16,6 +16,7 @@ import {
   type CatalogReference,
 } from "@/lib/api/ai";
 import type { EvidenceEntry, RecommendationDetail, ResearchSource } from "@/lib/api/chat";
+import type { ChatTurn } from "@/lib/api/chat";
 import type { ProductRead } from "@/types/product";
 
 type ChatMessage = {
@@ -35,6 +36,14 @@ type ChatInterfaceProps = {
   productId?: number | null;
   productName?: string | null;
 };
+
+function toChatTurns(messages: ChatMessage[]): ChatTurn[] {
+  return messages.map((message) => ({
+    role: message.role,
+    content: message.text,
+    products: message.products ?? null,
+  }));
+}
 
 export function ChatInterface({ accessToken, productId, productName }: ChatInterfaceProps) {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
@@ -97,7 +106,10 @@ export function ChatInterface({ accessToken, productId, productName }: ChatInter
     setIsLoading(true);
 
     try {
-      const result = await sendCatalogAwareMessage(trimmed, accessToken, productId);
+      const result = await sendCatalogAwareMessage(trimmed, accessToken, productId, toChatTurns(messages));
+      const backendProducts = Array.isArray(result.products) ? result.products : [];
+      const catalogProducts = result.catalog.products ?? [];
+      const renderedProducts = backendProducts.length > 0 ? backendProducts : catalogProducts;
       setMessages((current) => [
         ...current,
         {
@@ -106,7 +118,7 @@ export function ChatInterface({ accessToken, productId, productName }: ChatInter
           text: result.answer,
           toolsUsed: result.tools_used.length > 0 ? result.tools_used : undefined,
           references: result.catalog.references.length > 0 ? result.catalog.references : undefined,
-          products: result.catalog.products.length > 0 ? result.catalog.products : undefined,
+          products: renderedProducts.length > 0 ? (renderedProducts as ProductRead[]) : undefined,
           sources: result.sources && result.sources.length > 0 ? result.sources : undefined,
           evidence: result.evidence && result.evidence.length > 0 ? result.evidence : undefined,
           recommendation: result.recommendation ?? undefined,

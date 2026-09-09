@@ -1,3 +1,11 @@
+export type ChatRole = "user" | "assistant";
+
+export type ChatTurn = {
+  role: ChatRole;
+  content: string;
+  products?: unknown[] | null;
+};
+
 export type ResearchSource = {
   source_type: string;
   source_name: string;
@@ -46,6 +54,8 @@ export type RecommendationDetail = {
 export type ChatResult = {
   answer: string;
   tools_used: string[];
+  products?: unknown[] | null;
+  comparison?: Record<string, unknown> | null;
   usage: {
     model: string;
     input_tokens: number | null;
@@ -59,9 +69,15 @@ export type ChatResult = {
   trace_id?: string | null;
 };
 
-export async function sendChatMessage(message: string, accessToken: string, productId?: number | null): Promise<ChatResult> {
+export async function sendChatMessage(
+  message: string,
+  accessToken: string,
+  productId?: number | null,
+  history?: ChatTurn[] | null,
+): Promise<ChatResult> {
   const body: Record<string, unknown> = { message };
   if (productId) body.product_id = productId;
+  if (history && history.length > 0) body.history = history;
 
   const response = await fetch("/api/v1/ai/chat", {
     method: "POST",

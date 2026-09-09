@@ -309,3 +309,37 @@ def test_orchestrator_asks_for_clarification_without_domain():
     body = response.json()
     assert body["need_clarification"] is True
     assert body["intent"] in ("recommend", "compare")
+
+
+def test_orchestrator_follow_up_compare_without_provider_tool_calls():
+    """A bare follow-up ("comparalos") must surface the deterministic comparison
+    even when the LLM answers without requesting tools: the final text is written
+    over the real catalog products, never over a generic "which products?" line."""
+    reset_database()
+    first = add_product("iPhone 15 128GB", 669990, brand="Apple", ram=8)
+    second = add_product("iPhone 16 128GB", 1136750, brand="Apple", ram=8)
+
+    provider = FakeProvider(
+        initial=ProviderResponse(text="Para poder comparar, necesito que me digas cuáles son."),
+        final=ProviderResponse(text="El iPhone 15 128GB es más barato que el iPhone 16."),
+    )
+    set_context(provider)
+    history = [
+        ChatTurn(role="user", content="iphones"),
+        ChatTurn(role="assistant", content="Encontré dos opciones.", products=[
+            {"id": first, "name": "iPhone 15 128GB", "brand": "Apple", "category": "celulares", "lowest_price": 669990, "offer_count": 2},
+            {"id": second, "name": "iPhone 16 128GB", "brand": "Apple", "category": "celulares", "lowest_price": 1136750, "offer_count": 1},
+        ]),
+    ]
+    response = client.post(
+        "/api/v1/ai/chat",
+        json={"message": "comparalos", "history": [turn.model_dump() for turn in history]},
+    )
+    assert response.status_code == 200
+    body = response.json()
+    assert body["intent"] == "compare"
+    assert body["need_clarification"] is False
+    assert body["answer"] == "El iPhone 15 128GB es más barato que el iPhone 16."
+    ids = {item["id"] for item in body["products"]}
+    assert ids == {first, second}
+    assert body["comparison"]["count"] == 2

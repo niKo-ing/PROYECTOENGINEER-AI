@@ -81,7 +81,7 @@ def _looks_like_follow_up(text: str) -> bool:
     lowered = normalize_spanish(text)
     return any(
         token in lowered
-        for token in ("comparal", "ese", "esa", "el primero", "el segundo", "la primera", "la segunda", "y contra", "cual es mejor", "cual me conviene", "por que", "que tiene")
+        for token in ("comparal", "comparame", "comparame los", "ese", "esa", "el primero", "el segundo", "la primera", "la segunda", "y contra", "cual es mejor", "cual me conviene", "por que", "que tiene")
     )
 
 

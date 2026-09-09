@@ -129,9 +129,9 @@ class AIOrchestrator:
             comparison["evidence"] = [item.as_dict() for item in report.evidence[:6]]
             comparison["unknowns"] = (comparison.get("unknowns") or []) + ([v.claim for v in report.verdicts if v.verdict and v.verdict.value == "insufficient_evidence"] if getattr(report, "verdicts", None) else [])
 
-        if not initial.tool_calls:
-            # The provider answered directly; keep its text (as before), but
-            # still expose any deterministic products/comparison to the frontend.
+        if not initial.tool_calls and not products and comparison is None:
+            # The provider answered directly with no catalog evidence to surface.
+            # Keep its text (as before) when there is nothing deterministic to add.
             return self._response(initial, [], initial, products, comparison, intent, sources=sources, research=report is not None, evidence=[item.as_dict() for item in report.evidence] if report else None)
 
         evidence_prompt = self._augment_prompt(

@@ -1,5 +1,5 @@
 import { fetchCategories } from "@/lib/api/categories";
-import { sendChatMessage, type ChatResult } from "@/lib/api/chat";
+import { sendChatMessage, type ChatResult, type ChatTurn } from "@/lib/api/chat";
 import { fetchOffers, fetchPriceHistory } from "@/lib/api/offers";
 import { fetchProduct, searchProducts } from "@/lib/api/products";
 import type { CategoryRead } from "@/types/category";
@@ -418,15 +418,70 @@ export async function sendCatalogAwareMessage(
   message: string,
   accessToken: string,
   productId?: number | null,
+  history?: ChatTurn[] | null,
 ): Promise<OrchestratedChatResult> {
+  if (isReferenceQuery(message)) {
+    // A bare follow-up ("comparalas", "¿cuál es mejor?", "ese producto", "los dos")
+    // references prior turns. The backend reconstructs those from `history`, so we
+    // must NOT search the catalog for the reference word (it only produces noise).
+    // Send the raw message + history and let the orchestrator resolve the context.
+    const result = await sendChatMessage(message, accessToken, productId, history);
+    return { ...result, catalog: emptyCatalog() };
+  }
   const catalog = await buildCatalogContext(message, { productId: productId ?? null });
   if (!catalog.detected) {
-    const result = await sendChatMessage(message, accessToken, productId);
+    const result = await sendChatMessage(message, accessToken, productId, history);
     return { ...result, catalog };
   }
   const prompt = composePrompt(catalog, message);
-  const result = await sendChatMessage(prompt, accessToken, productId);
+  const result = await sendChatMessage(prompt, accessToken, productId, history);
   return { ...result, catalog };
+}
+
+function emptyCatalog(): CatalogContext {
+  return { detected: false, intent: null, query: null, references: [], products: [], statements: [], missing: false };
+}
+
+const REFERENCE_PATTERNS = [
+  "comparal",
+  "comparame",
+  "comparar",
+  "comparacion",
+  "los dos",
+  "las dos",
+  "ambos",
+  "ambas",
+  "el primero",
+  "el segundo",
+  "la primera",
+  "la segunda",
+  "ese producto",
+  "ese",
+  "esa",
+  "estos",
+  "estas",
+  "cual es mejor",
+  "cual conviene",
+  "mejor opcion",
+  "y contra",
+  "por que",
+  "porque",
+  "explica",
+  "que tiene",
+  "cual me conviene",
+];
+
+function isReferenceQuery(message: string): boolean {
+  const normalized = normalize(message);
+  if (!REFERENCE_PATTERNS.some((pattern) => normalized.includes(pattern))) {
+    return false;
+  }
+  // A self-contained query that names its own catalog entity (brand/model/product
+  // or a search verb) should keep the normal catalog-aware path; only messages
+  // that are purely a reference to prior turns go raw to the backend.
+  const namesProduct = PRODUCT_TERMS.concat(BRAND_TERMS, MODEL_TERMS).some((term) => normalized.includes(term));
+  const hasSearchVerb = SEARCH_VERBS.some((verb) => normalized.includes(verb));
+  return !namesProduct && !hasSearchVerb;
 }
 
 export async function buildProductContext(productId: number): Promise<{ intro: string; references: CatalogReference[]; products: ProductRead[] }> {
