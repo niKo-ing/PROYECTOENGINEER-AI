@@ -164,3 +164,24 @@
     animation: none !important;
   }
 }
+
+/* Let the chat fill the viewport below the actual site header height. */
+.site-shell:has(.chat-page) {
+  height: 100dvh;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.site-shell:has(.chat-page) > header {
+  flex-shrink: 0;
+}
+
+.site-shell:has(.chat-page) > main {
+  flex: 1;
+  min-height: 0;
+  min-width: 0;
+}
+
+.site-shell:has(.chat-page) > footer {
+  display: none;
+}

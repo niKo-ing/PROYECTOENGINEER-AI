@@ -18,7 +18,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
       <body className="min-h-screen antialiased">
         <CompareProvider>
           <Providers>
-            <div className="flex min-h-screen flex-col">
+            <div className="site-shell flex min-h-screen flex-col">
               <SiteHeader />
               <main className="flex-1">{children}</main>
               <SiteFooter />

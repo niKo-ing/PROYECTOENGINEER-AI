@@ -11,7 +11,7 @@ export function CompareBar() {
   const { ids, clear } = useCompare();
   const pathname = usePathname();
 
-  if (ids.length === 0 || pathname === "/compare") return null;
+  if (ids.length === 0 || pathname === "/compare" || pathname === "/chat") return null;
 
   const href = `/compare?ids=${ids.join(",")}`;
   const canCompare = ids.length >= 2;

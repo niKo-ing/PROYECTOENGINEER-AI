@@ -50,9 +50,9 @@ export function SoloTodoApp() {
   }, []);
 
   return (
-    <div className="mx-auto max-w-5xl px-4 py-6 sm:px-6 sm:py-8">
+    <div className="chat-page flex h-full min-h-0 w-full flex-col overflow-hidden">
       {configurationError && (
-        <p className="mb-5 rounded-xl bg-destructive/10 px-4 py-3 text-sm text-destructive" role="alert">
+        <p className="mx-auto mt-4 w-full max-w-3xl rounded-xl bg-destructive/10 px-4 py-3 text-sm text-destructive" role="alert">
           {configurationError}
         </p>
       )}

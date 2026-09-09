@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Info, Sparkles } from "lucide-react";
 
+import { cn } from "@/lib/utils";
 import { MarkdownContent } from "@/components/chat/markdown-content";
 import { ProductRecommendations } from "@/components/chat/product-recommendations";
 import { SuggestionChips } from "@/components/chat/suggestion-chips";
@@ -149,9 +150,9 @@ export function ChatInterface({ accessToken, productId, productName }: ChatInter
   const contextLoading = isLoadingContext && !hasConversation;
 
   return (
-    <div className="grid items-start gap-5 lg:grid-cols-[minmax(0,1fr)_320px]">
-      <section className="flex h-[70vh] min-h-[520px] flex-col overflow-hidden rounded-3xl border bg-card shadow-sm lg:h-[calc(100dvh-8.5rem)]">
-        <header className="flex items-center gap-3 border-b px-5 py-4 sm:px-6">
+    <div className="grid min-h-0 min-w-0 flex-1 grid-rows-[minmax(0,1fr)_auto] lg:grid-cols-[minmax(0,1fr)_28rem] lg:grid-rows-[minmax(0,1fr)] lg:gap-4 lg:p-4 xl:grid-cols-[minmax(0,1fr)_32rem]">
+      <section className="flex min-h-0 min-w-0 flex-col overflow-hidden bg-card lg:rounded-2xl lg:border">
+        <header className="flex shrink-0 items-center gap-3 border-b bg-background/80 px-4 pb-3 pt-[max(1rem,env(safe-area-inset-top))] backdrop-blur sm:px-6 sm:pb-4">
           <div className="flex size-9 items-center justify-center rounded-xl bg-primary/10 text-primary" aria-hidden="true">
             <Sparkles className="size-4" />
           </div>
@@ -173,117 +174,128 @@ export function ChatInterface({ accessToken, productId, productName }: ChatInter
           role="log"
           aria-live="polite"
           aria-label="Conversación con el asistente"
-          className="flex-1 space-y-5 overflow-y-auto overscroll-contain px-4 py-6 sm:px-6"
+          className="min-h-0 min-w-0 flex-1 overflow-y-auto overscroll-contain"
         >
-          {!hasConversation && (
-            <div className="mx-auto mt-10 max-w-md px-2 text-center">
-              <div className="mx-auto flex size-12 items-center justify-center rounded-2xl bg-primary/10 text-primary" aria-hidden="true">
-                <Sparkles className="size-5" />
-              </div>
-              <h2 className="mt-4 text-lg font-semibold tracking-tight text-foreground">
-                ¿Qué estás buscando hoy?
-              </h2>
-              <p className="mt-2 text-sm leading-6 text-muted-foreground">
-                Buscá productos, compará precios o preguntá por el historial de una oferta. Estas
-                sugerencias te muestran por dónde empezar.
-              </p>
-              <div className="mt-6">
-                <SuggestionChips onPick={(text) => void submit(text)} />
-              </div>
-            </div>
-          )}
-
-          {messages.map((message) =>
-            message.role === "user" ? (
-              <article
-                key={message.id}
-                className="animate-message-in flex justify-end"
-              >
-                <div className="max-w-[92%] rounded-2xl rounded-br-md bg-primary px-4 py-2.5 text-sm leading-6 text-primary-foreground shadow-sm sm:max-w-[78%]">
-                  <p className="whitespace-pre-wrap">{message.text}</p>
+          <div
+            className={cn(
+              "mx-auto flex min-h-full w-full max-w-6xl flex-col px-4 py-8 sm:px-6",
+              hasConversation ? "space-y-5" : "justify-center"
+            )}
+          >
+            {!hasConversation && (
+              <div className="mx-auto w-full max-w-2xl px-2 text-center">
+                <div className="mx-auto flex size-12 items-center justify-center rounded-2xl bg-primary/10 text-primary" aria-hidden="true">
+                  <Sparkles className="size-5" />
                 </div>
-              </article>
-            ) : (
-              <article key={message.id} className="animate-message-in flex items-start gap-2.5">
-                <div
-                  className="mt-1 flex size-7 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary"
-                  aria-hidden="true"
+                <h2 className="mt-4 text-lg font-semibold tracking-tight text-foreground">
+                  ¿Qué estás buscando hoy?
+                </h2>
+                <p className="mt-2 text-sm leading-6 text-muted-foreground">
+                  Buscá productos, compará precios o preguntá por el historial de una oferta. Estas
+                  sugerencias te muestran por dónde empezar.
+                </p>
+                <div className="mt-6">
+                  <SuggestionChips onPick={(text) => void submit(text)} />
+                </div>
+              </div>
+            )}
+
+            {messages.map((message) =>
+              message.role === "user" ? (
+                <article
+                  key={message.id}
+                  className="animate-message-in flex justify-end"
                 >
-                  <Sparkles className="size-4" />
-                </div>
-                <div className="min-w-0 max-w-[92%] flex-1 rounded-2xl rounded-bl-md bg-muted px-4 py-3 sm:max-w-[82%] lg:max-w-[78%]">
-                  <MarkdownContent markdown={message.text} />
-                  {message.toolsUsed && message.toolsUsed.length > 0 ? (
-                    <div className="mt-2.5 flex flex-wrap gap-1.5 border-t border-border/70 pt-2.5">
-                      {message.toolsUsed.map((tool) => (
-                        <span key={tool} className="rounded-full bg-background px-2 py-0.5 text-[11px] font-medium text-muted-foreground">
-                          {tool}
-                        </span>
-                      ))}
-                    </div>
-                  ) : null}
-                  {message.sources && message.sources.length > 0 ? (
-                    <div className="mt-2.5 border-t border-border/70 pt-2.5">
-                      <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
-                        Fuentes consultadas
-                      </p>
-                      <ul className="mt-1.5 space-y-1.5">
-                        {message.sources.map((source) => (
-                          <li key={`${source.source_name}-${source.source_url ?? source.title}`}>
-                            {source.source_url ? (
-                              <a
-                                href={source.source_url}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="text-xs leading-5 text-primary hover:underline"
-                              >
-                                {source.source_name}
-                                {source.title ? (
-                                  <span className="text-muted-foreground"> — {source.title}</span>
-                                ) : null}
-                              </a>
-                            ) : (
-                              <span className="text-xs leading-5 text-muted-foreground">
-                                {source.source_name}
-                                {source.title ? ` — ${source.title}` : ""}
-                              </span>
-                            )}
-                          </li>
+                  <div className="max-w-[92%] [overflow-wrap:anywhere] rounded-2xl rounded-br-md bg-primary px-4 py-2.5 text-sm leading-6 text-primary-foreground shadow-sm sm:max-w-[78%]">
+                    <p className="whitespace-pre-wrap">{message.text}</p>
+                  </div>
+                </article>
+              ) : (
+                <article key={message.id} className="animate-message-in flex items-start gap-2.5">
+                  <div
+                    className="mt-1 flex size-7 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary"
+                    aria-hidden="true"
+                  >
+                    <Sparkles className="size-4" />
+                  </div>
+                  <div className="min-w-0 flex-1 [overflow-wrap:anywhere] rounded-2xl rounded-bl-md bg-muted px-4 py-3">
+                    <MarkdownContent markdown={message.text} />
+                    {message.toolsUsed && message.toolsUsed.length > 0 ? (
+                      <div className="mt-2.5 flex flex-wrap gap-1.5 border-t border-border/70 pt-2.5">
+                        {message.toolsUsed.map((tool) => (
+                          <span key={tool} className="rounded-full bg-background px-2 py-0.5 text-[11px] font-medium text-muted-foreground">
+                            {tool}
+                          </span>
                         ))}
-                      </ul>
-                    </div>
-                  ) : null}
-                  <EvidencePanel
-                    evidence={message.evidence}
-                    recommendation={message.recommendation}
-                  />
-                </div>
-              </article>
-            )
-          )}
+                      </div>
+                    ) : null}
+                    {message.sources && message.sources.length > 0 ? (
+                      <div className="mt-2.5 border-t border-border/70 pt-2.5">
+                        <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
+                          Fuentes consultadas
+                        </p>
+                        <ul className="mt-1.5 space-y-1.5">
+                          {message.sources.map((source) => (
+                            <li key={`${source.source_name}-${source.source_url ?? source.title}`}>
+                              {source.source_url ? (
+                                <a
+                                  href={source.source_url}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="text-xs leading-5 text-primary hover:underline"
+                                >
+                                  {source.source_name}
+                                  {source.title ? (
+                                    <span className="text-muted-foreground"> — {source.title}</span>
+                                  ) : null}
+                                </a>
+                              ) : (
+                                <span className="text-xs leading-5 text-muted-foreground">
+                                  {source.source_name}
+                                  {source.title ? ` — ${source.title}` : ""}
+                                </span>
+                              )}
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    ) : null}
+                    <EvidencePanel
+                      evidence={message.evidence}
+                      recommendation={message.recommendation}
+                    />
+                  </div>
+                </article>
+              )
+            )}
 
-          {isLoading ? <TypingIndicator label={thinkingLabel} /> : null}
+            {isLoading ? <TypingIndicator label={thinkingLabel} /> : null}
 
-          {contextLoading ? (
-            <div className="animate-message-in flex items-center gap-2 text-sm text-muted-foreground">
-              <Info className="size-4 text-primary/70" aria-hidden="true" />
-              Cargando el contexto real del producto desde el catálogo…
-            </div>
-          ) : null}
+            {contextLoading ? (
+              <div className="animate-message-in flex items-center gap-2 text-sm text-muted-foreground">
+                <Info className="size-4 text-primary/70" aria-hidden="true" />
+                Cargando el contexto real del producto desde el catálogo…
+              </div>
+            ) : null}
 
-          {error ? (
-            <div className="animate-message-in rounded-xl border border-destructive/40 bg-destructive/10 px-4 py-2.5 text-sm text-destructive" role="alert">
-              {error}
-            </div>
-          ) : null}
+            {error ? (
+              <div className="animate-message-in rounded-xl border border-destructive/40 bg-destructive/10 px-4 py-2.5 text-sm text-destructive" role="alert">
+                {error}
+              </div>
+            ) : null}
+          </div>
         </div>
 
-        <ChatComposer
-          draft={draft}
-          isLoading={isLoading}
-          onChange={setDraft}
-          onSend={() => void submit()}
-        />
+        <div className="shrink-0 border-t bg-background/60">
+          <div className="mx-auto w-full max-w-6xl px-4 pb-[max(1rem,env(safe-area-inset-bottom))] pt-3 sm:px-6">
+            <ChatComposer
+              draft={draft}
+              isLoading={isLoading}
+              onChange={setDraft}
+              onSend={() => void submit()}
+            />
+          </div>
+        </div>
       </section>
 
       <ProductRecommendations products={recommendations} messageId={lastAssistant?.id} />

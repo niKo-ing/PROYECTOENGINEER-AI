@@ -13,8 +13,10 @@ export default function ChatPage() {
 
 function ChatSkeleton() {
   return (
-    <div className="mx-auto max-w-5xl px-5 py-8 sm:px-8 sm:py-12">
-      <Skeleton className="h-24 w-full rounded-3xl" />
+    <div className="chat-page flex h-full min-h-0 items-center justify-center px-5">
+      <div className="w-full max-w-3xl">
+        <Skeleton className="h-24 w-full rounded-3xl" />
+      </div>
     </div>
   );
 }

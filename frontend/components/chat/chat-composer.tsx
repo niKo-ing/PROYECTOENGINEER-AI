@@ -23,8 +23,8 @@ export function ChatComposer({ draft, isLoading, onChange, onSend }: ChatCompose
   }
 
   return (
-    <div className="border-t bg-background/60 px-4 py-3 sm:px-5">
-      <div className="flex items-end gap-2 rounded-2xl border border-input bg-background p-1.5 pl-4 shadow-sm transition focus-within:border-primary/50 focus-within:ring-2 focus-within:ring-ring/50">
+    <div>
+      <div className="flex items-end gap-2 rounded-3xl border border-input bg-card p-2 pl-5 shadow-sm transition focus-within:border-primary/50 focus-within:ring-2 focus-within:ring-ring/50">
         <textarea
           rows={1}
           value={draft}
@@ -33,19 +33,20 @@ export function ChatComposer({ draft, isLoading, onChange, onSend }: ChatCompose
           placeholder="Preguntame por un producto…"
           aria-label="Mensaje para el asistente"
           disabled={isLoading}
-          className="max-h-40 min-h-10.5 flex-1 resize-none bg-transparent py-2 text-sm leading-5 outline-none placeholder:text-muted-foreground disabled:opacity-60"
+          className="max-h-40 min-h-10.5 min-w-0 flex-1 resize-none bg-transparent py-2 text-base leading-6 outline-none placeholder:text-muted-foreground disabled:opacity-60"
         />
         <Button
           type="submit"
           size="icon"
+          onClick={onSend}
           disabled={!canSend}
           aria-label="Enviar mensaje"
-          className="size-10 shrink-0 rounded-xl transition-transform active:scale-90"
+          className="size-11 shrink-0 rounded-2xl transition-transform active:scale-90"
         >
-          <ArrowUp className="size-4" aria-hidden="true" />
+          <ArrowUp className="size-5" aria-hidden="true" />
         </Button>
       </div>
-      <p className="mt-1.5 px-1 text-[11px] leading-4 text-muted-foreground">
+      <p className="mt-2 hidden sm:block text-center text-[11px] leading-4 text-muted-foreground">
         Enter para enviar · Shift + Enter para una nueva línea
       </p>
     </div>
