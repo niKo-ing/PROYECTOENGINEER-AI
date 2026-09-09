@@ -2,6 +2,74 @@
 
 Base de infraestructura para un monolito modular. El backend usa FastAPI y SQLAlchemy; el frontend usa Next.js, React, TypeScript y Tailwind CSS. PostgreSQL en Supabase es la base de datos objetivo.
 
+## Inicio rápido con Docker
+
+Esta es la forma recomendada para ejecutar la app en otro computador, tanto en Windows como en Linux. Solo requiere tener Docker instalado.
+
+### 1. Requisitos
+
+- Windows: instalar **Docker Desktop** y dejarlo abierto.
+- Linux: instalar **Docker Engine** y el plugin `docker compose`.
+- Tener el archivo `.env` en la raíz del proyecto con las credenciales reales.
+
+### 2. Preparar variables de entorno
+
+Copie el archivo de ejemplo:
+
+```bash
+cp .env.example .env
+```
+
+En Windows PowerShell:
+
+```powershell
+Copy-Item .env.example .env
+```
+
+Luego edite `.env` y configure, como mínimo:
+
+```env
+SUPABASE_URL=https://TU-PROYECTO.supabase.co
+NEXT_PUBLIC_SUPABASE_URL=https://TU-PROYECTO.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=TU_ANON_KEY
+LLM_PROVIDER=gemini
+GEMINI_API_KEY=TU_API_KEY
+GEMINI_MODEL=gemini-flash-lite-latest
+```
+
+Si no configura `DATABASE_URL`, el backend usa SQLite local dentro del contenedor y parte con datos locales del contenedor. Para que otro computador vea el mismo catalogo, usuarios y conversaciones, configure `DATABASE_URL` con Supabase/PostgreSQL.
+
+### 3. Levantar backend y frontend
+
+Linux, macOS o Windows PowerShell:
+
+```bash
+docker compose up --build
+```
+
+Abrir:
+
+```text
+Frontend: http://localhost:3000
+Backend:  http://localhost:8000/health
+API docs: http://localhost:8000/docs
+```
+
+Para detener:
+
+```bash
+docker compose down
+```
+
+Para reconstruir desde cero si cambian dependencias:
+
+```bash
+docker compose build --no-cache
+docker compose up
+```
+
+> No suba `.env` al repositorio. Ese archivo contiene claves reales.
+
 ## Arquitectura actual
 
 ```text
@@ -32,28 +100,76 @@ Configure **una** de estas opciones, sin versionar `.env`:
 - `DATABASE_URL`: URL completa de SQLAlchemy, recomendada para Supabase.
 - `POSTGRES_USER`, `POSTGRES_PASSWORD`, `POSTGRES_HOST`, `POSTGRES_PORT` y `POSTGRES_DB`: el backend construye la URL si `DATABASE_URL` está vacío.
 
-Obtenga host, puerto, usuario, contraseña y nombre de base desde **Supabase Dashboard → Connect**. Use el host/puerto del pooler cuando Supabase lo indique. Sin esas credenciales, el backend usa SQLite local exclusivamente para desarrollo y pruebas; Docker requiere una configuración PostgreSQL/Supabase válida.
+Obtenga host, puerto, usuario, contraseña y nombre de base desde **Supabase Dashboard → Connect**. Use el host/puerto del pooler cuando Supabase lo indique. Sin esas credenciales, el backend usa SQLite local exclusivamente para desarrollo y pruebas; para una demo en otro computador conviene usar PostgreSQL/Supabase.
 
 Para habilitar `POST /api/v1/ai/chat`, defina `GEMINI_API_KEY` y `GEMINI_MODEL` en `.env` con `LLM_PROVIDER=gemini`. El endpoint permanece inactivo con estado `503` mientras falte una de esas variables. Para cambiar de proveedor, use `LLM_PROVIDER=openai` y configure las variables OpenAI correspondientes.
 
-## Backend local
+## Desarrollo local sin Docker
+
+Use esta opción si quiere ejecutar backend y frontend directamente en el sistema operativo, sin contenedores.
+
+### Backend en Linux/macOS
+
+Desde la raíz del proyecto:
 
 ```bash
 python -m venv .venv
-.venv/bin/pip install -e '.[dev]'
-.venv/bin/uvicorn app.main:app --reload
+.venv/bin/python -m pip install -e '.[dev]'
+.venv/bin/python -m uvicorn app.main:app --host 127.0.0.1 --port 8000 --reload
 ```
 
-La documentación interactiva queda disponible en `http://localhost:8000/docs`.
+### Backend en Windows PowerShell
 
-## Docker
+Desde la raíz del proyecto:
+
+```powershell
+python -m venv .venv
+.\.venv\Scripts\python.exe -m pip install -e ".[dev]"
+.\.venv\Scripts\python.exe -m uvicorn app.main:app --host 127.0.0.1 --port 8000 --reload
+```
+
+Verificar:
+
+```text
+http://127.0.0.1:8000/health
+```
+
+### Frontend en Linux/macOS
+
+En otra terminal:
 
 ```bash
-cp .env.example .env
-docker compose up --build
+cd frontend
+pnpm install
+pnpm dev
 ```
 
-El Compose levanta únicamente el backend. PostgreSQL permanece en Supabase y Redis no se agrega todavía.
+### Frontend en Windows PowerShell
+
+Si no tiene `pnpm`, puede usar `npm`:
+
+```powershell
+cd frontend
+npm install
+npm run dev
+```
+
+Si quiere usar `pnpm`:
+
+```powershell
+npm install -g pnpm
+cd frontend
+pnpm install
+pnpm dev
+```
+
+Abrir:
+
+```text
+http://127.0.0.1:3000
+```
+
+Si Next.js muestra `Slow filesystem detected` en Windows, mueva el proyecto a una ruta simple, por ejemplo `C:\proyectos\solotodo-ai`, y evite OneDrive/Google Drive/Dropbox.
 
 ## CI / CD (GitHub Actions)
 
@@ -168,18 +284,14 @@ Cada imagen publicada queda inmutable con la etiqueta `sha-<sha del commit>`:
    ```
 3. Como alternativa a los comandos manuales, redirigir el CD a la rama/tag anterior y volver a correr el workflow desde la UI de Actions (botón **Re-run** sobre el commit deseado).
 
-## Frontend local
-
-```bash
-cd frontend
-pnpm install
-pnpm dev
-```
-
-El frontend mínimo inicia en `http://localhost:3000`. No contiene todavía catálogo, autenticación, perfil, chatbot ni recomendaciones.
-
 ## Pruebas
 
 ```bash
 .venv/bin/pytest -q
+```
+
+En Windows:
+
+```powershell
+.\.venv\Scripts\python.exe -m pytest -q
 ```
