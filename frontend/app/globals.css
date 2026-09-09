@@ -159,9 +159,12 @@
 @media (prefers-reduced-motion: reduce) {
   .animate-message-in,
   .animate-card-in,
-  .animate-fade-in,
-  .thinking-dot {
+  .animate-fade-in {
     animation: none !important;
+  }
+
+  .thinking-dot {
+    animation: thinking-dot 1.4s ease-in-out infinite;
   }
 }
 
