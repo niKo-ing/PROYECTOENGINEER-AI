@@ -40,6 +40,7 @@ class CanonicalSpecItem(BaseModel):
     source_type: str | None = None
     source_name: str | None = None
     source_url: str | None = None
+    confidence: float | None = None
     verification_status: str | None = None
     conflict_status: str | None = None
 

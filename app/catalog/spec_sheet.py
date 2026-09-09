@@ -137,6 +137,7 @@ def build_canonical_spec_sheet(product: Product) -> dict | None:
                 "source_type": spec_value.source_type,
                 "source_name": spec_value.source_name,
                 "source_url": spec_value.source_url,
+                "confidence": float(spec_value.confidence) if spec_value.confidence is not None else None,
                 "verification_status": spec_value.verification_status,
                 "conflict_status": spec_value.conflict_status,
             }

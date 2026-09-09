@@ -25,6 +25,7 @@ export interface CanonicalSpecItem {
   source_type: string | null;
   source_name: string | null;
   source_url?: string | null;
+  confidence: number | null;
   verification_status: string | null;
   conflict_status: string | null;
 }

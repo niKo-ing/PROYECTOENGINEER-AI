@@ -2,12 +2,12 @@
 
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
-import { ArrowLeft, Award, CalendarClock, ChevronDown, MessageSquare, RefreshCw, Sparkles, Store, WifiOff } from "lucide-react";
+import { ArrowLeft, Award, CalendarClock, ChevronDown, MessageSquare, RefreshCw, Store, WifiOff } from "lucide-react";
 
 import { OffersList } from "@/components/product/offers-list";
 import { PriceHistoryChart } from "@/components/product/price-history-chart";
 import { ProductGallery } from "@/components/product/product-gallery";
-import { SpecHighlights, SpecSheet } from "@/components/product/product-specs";
+import { ProductFeatureSummary, SpecSheet } from "@/components/product/product-specs";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -67,82 +67,62 @@ export default function ProductPage() {
   const galleryImages = product.images.length > 0 ? product.images : [product.image_url].filter(Boolean) as string[];
 
   return (
-    <div className="mx-auto max-w-5xl px-4 py-6 sm:px-6 sm:py-8">
+    <div className="mx-auto w-full max-w-[92rem] px-4 py-6 sm:px-6 sm:py-8 lg:px-8">
       <BackLink />
 
       {/* Encabezado del producto */}
-      <div className="mb-6 grid gap-6 lg:grid-cols-[1fr_320px]">
-        <div>
+      <div className="mb-8 grid gap-8 xl:grid-cols-[minmax(0,1fr)_360px] xl:gap-14 2xl:grid-cols-[minmax(0,1fr)_380px]">
+        <div className="grid min-w-0 gap-8 lg:grid-cols-[minmax(22rem,27rem)_minmax(0,1fr)] xl:gap-10">
           <ProductGallery
             images={galleryImages}
             alt={product.name}
-            className="mx-auto mb-6 max-w-sm sm:max-w-md lg:max-w-lg"
+            className="mx-auto w-full max-w-sm lg:max-w-none lg:self-start"
           />
-          <div className="mb-3 flex flex-wrap items-center gap-2">
-            {product.brand ? <Badge variant="secondary">{product.brand}</Badge> : null}
-            {product.category ? <Badge variant="outline">{product.category}</Badge> : null}
-            {product.rating ? (
-              <span className="flex items-center gap-1 text-sm font-medium text-amber-600">
-                ★ {Number(product.rating).toFixed(1)}
-              </span>
-            ) : null}
-          </div>
-          <h1 className="text-2xl font-bold tracking-tight sm:text-3xl">{product.name}</h1>
 
-          <div className="mt-4 flex flex-wrap gap-4 text-sm text-muted-foreground">
-            {product.lowest_price_store ? (
-              <span className="flex items-center gap-1.5">
-                <Store className="h-4 w-4" />
-                Disponible en {product.lowest_price_store}
-              </span>
-            ) : null}
-            <span className="flex items-center gap-1.5">
-              <CalendarClock className="h-4 w-4" />
-              {product.offer_count} {product.offer_count === 1 ? "oferta" : "ofertas"}
-            </span>
-          </div>
-
-          <SpecHighlights specs={product.specs} />
-
-          {product.description_ai ? (
-            <div className="mt-5 rounded-xl border bg-muted/40 p-4">
-              <span className="mb-2 inline-flex items-center gap-1.5 rounded-full bg-primary/10 px-2.5 py-1 text-xs font-medium text-primary">
-                <Sparkles className="h-3.5 w-3.5" />
-                Descripción generada con IA
-              </span>
-              <div className="whitespace-pre-line text-sm leading-relaxed text-foreground sm:text-base">{product.description_ai}</div>
+          <div className="min-w-0 self-start pt-1">
+            <div className="mb-4 flex flex-wrap items-center gap-2">
+              {product.brand ? <Badge variant="secondary">{product.brand}</Badge> : null}
+              {product.category ? <Badge variant="outline">{product.category}</Badge> : null}
+              {product.rating ? (
+                <span className="flex items-center gap-1 rounded-full bg-amber-50 px-2.5 py-1 text-sm font-medium text-amber-700">
+                  ★ {Number(product.rating).toFixed(1)}
+                </span>
+              ) : null}
             </div>
-          ) : null}
+            <h1 className="max-w-[34rem] text-lg font-bold leading-snug tracking-tight text-foreground sm:text-xl lg:text-2xl">{product.name}</h1>
 
-          <SpecSheet canonicalSpecs={product.canonical_specs} specs={product.specs} />
+            <div className="mt-5 flex flex-wrap gap-x-5 gap-y-2 text-sm text-muted-foreground">
+              {product.lowest_price_store ? (
+                <span className="flex items-center gap-1.5">
+                  <Store className="h-4 w-4" />
+                  Disponible en {product.lowest_price_store}
+                </span>
+              ) : null}
+              <span className="flex items-center gap-1.5">
+                <CalendarClock className="h-4 w-4" />
+                {product.offer_count} {product.offer_count === 1 ? "oferta" : "ofertas"}
+              </span>
+            </div>
 
-          {product.description ? (
-            product.description.length > 300 ? (
-              <details className="group mt-6 rounded-xl border px-4 py-3">
-                <summary className="cursor-pointer list-none">
-                  <span className="inline-flex items-center gap-1.5 text-sm font-medium text-muted-foreground">
-                    <ChevronDown className="size-4 transition-transform group-open:rotate-180" aria-hidden="true" />
-                    Descripción completa de la tienda
-                  </span>
-                </summary>
-                <p className="mt-2 whitespace-pre-wrap text-sm leading-relaxed text-muted-foreground">
-                  {product.description}
-                </p>
-              </details>
-            ) : (
-              <p className="mt-4 leading-relaxed text-muted-foreground">{product.description}</p>
-            )
-          ) : null}
+            <ProductFeatureSummary
+              name={product.name}
+              brand={product.brand}
+              category={product.category}
+              canonicalSpecs={product.canonical_specs}
+              specs={product.specs}
+            />
+
+          </div>
         </div>
 
-        <Card className="h-fit">
-          <CardContent className="p-5">
+        <Card className="h-fit shadow-sm xl:sticky xl:top-24 xl:ml-4">
+          <CardContent className="p-6 sm:p-7">
             <p className="text-sm text-muted-foreground">Precio más bajo</p>
             {product.lowest_price !== null ? (
               <>
-                <p className="mt-1 text-3xl font-bold tracking-tight">{formatCLP(product.lowest_price)}</p>
+                <p className="mt-2 text-3xl font-bold tracking-tight">{formatCLP(product.lowest_price)}</p>
                 {product.lowest_price_store ? (
-                  <p className="mt-1 flex items-center gap-1.5 text-sm text-emerald-600">
+                  <p className="mt-2 flex items-center gap-1.5 text-sm font-medium text-emerald-600">
                     <Award className="h-4 w-4" />
                     en {product.lowest_price_store}
                   </p>
@@ -151,17 +131,33 @@ export default function ProductPage() {
             ) : (
               <p className="mt-1 text-muted-foreground">Sin precios disponibles</p>
             )}
-            <Separator className="my-4" />
-            <p className="text-xs text-muted-foreground">
+            <Separator className="my-5" />
+            <p className="text-sm leading-6 text-muted-foreground">
               Compará las ofertas de las distintas tiendas para encontrar la mejor opción.
             </p>
+            <Button asChild className="mt-6 w-full gap-2">
+              <Link href={`/chat?product=${product.id}&name=${encodeURIComponent(product.name)}`}>
+                <MessageSquare className="h-4 w-4" />
+                Preguntá al asistente
+              </Link>
+            </Button>
           </CardContent>
         </Card>
       </div>
 
-      <div className="rounded-xl border bg-card p-1">
+      <details className="group mb-8 rounded-xl border bg-card">
+        <summary className="flex cursor-pointer list-none items-center justify-between gap-4 px-5 py-4">
+          <span className="font-semibold tracking-tight text-foreground">Ver ficha técnica completa</span>
+          <ChevronDown className="size-4 text-muted-foreground transition-transform group-open:rotate-180" aria-hidden="true" />
+        </summary>
+        <div className="border-t">
+          <SpecSheet canonicalSpecs={product.canonical_specs} specs={product.specs} />
+        </div>
+      </details>
+
+      <div className="rounded-xl border bg-card p-2 sm:p-3">
         <Tabs defaultValue="offers">
-          <TabsList className="w-full justify-start">
+          <TabsList className="w-full justify-start sm:w-auto">
             <TabsTrigger value="offers" className="flex-1 sm:flex-none">
               Ofertas
             </TabsTrigger>
@@ -169,29 +165,20 @@ export default function ProductPage() {
               Historial de precios
             </TabsTrigger>
           </TabsList>
-          <TabsContent value="offers" className="mt-4 px-2 pb-2 sm:px-3">
+          <TabsContent value="offers" className="mt-5 px-1 pb-1 sm:px-2">
             <OffersList offers={offersQuery.data} isLoading={offersQuery.isLoading} isError={offersQuery.isError} />
           </TabsContent>
-          <TabsContent value="history" className="px-2 pb-2 sm:px-3">
+          <TabsContent value="history" className="px-1 pb-1 sm:px-2">
             <Card className="border-0 shadow-none">
-              <CardHeader className="px-2 sm:px-3">
+              <CardHeader className="px-2 sm:px-3 sm:pt-5">
                 <CardTitle className="text-base">Evolución del precio</CardTitle>
               </CardHeader>
-              <CardContent>
+              <CardContent className="px-2 sm:px-3">
                 <PriceHistoryChart data={historyQuery.data ?? []} />
               </CardContent>
             </Card>
           </TabsContent>
         </Tabs>
-      </div>
-
-      <div className="mt-4 flex justify-center">
-        <Button asChild className="w-full gap-2 sm:w-auto">
-          <Link href={`/chat?product=${product.id}&name=${encodeURIComponent(product.name)}`}>
-            <MessageSquare className="h-4 w-4" />
-            Preguntá al asistente sobre este producto
-          </Link>
-        </Button>
       </div>
     </div>
   );
@@ -214,19 +201,22 @@ function BackLink() {
 
 function ProductDetailSkeleton() {
   return (
-    <div className="mx-auto max-w-5xl px-4 py-6 sm:px-6 sm:py-8">
+    <div className="mx-auto w-full max-w-[92rem] px-4 py-6 sm:px-6 sm:py-8 lg:px-8">
       <Skeleton className="h-4 w-24" />
-      <div className="mt-6 grid gap-6 lg:grid-cols-[1fr_320px]">
-        <div className="space-y-4">
-          <div className="flex gap-2">
-            <Skeleton className="h-6 w-20" />
-            <Skeleton className="h-6 w-24" />
+      <div className="mt-6 grid gap-8 xl:grid-cols-[minmax(0,1fr)_360px] xl:gap-14 2xl:grid-cols-[minmax(0,1fr)_380px]">
+        <div className="grid gap-8 lg:grid-cols-[minmax(22rem,27rem)_minmax(0,1fr)] xl:gap-10">
+          <Skeleton className="aspect-[3/4] w-full rounded-xl" />
+          <div className="space-y-4">
+            <div className="flex gap-2">
+              <Skeleton className="h-6 w-20" />
+              <Skeleton className="h-6 w-24" />
+            </div>
+            <Skeleton className="h-12 w-3/4" />
+            <Skeleton className="h-5 w-52" />
+            <Skeleton className="h-28 w-full rounded-xl" />
           </div>
-          <Skeleton className="h-9 w-3/4" />
-          <Skeleton className="h-4 w-40" />
-          <Skeleton className="h-16 w-full" />
         </div>
-        <Skeleton className="h-44 rounded-xl" />
+        <Skeleton className="h-56 rounded-xl" />
       </div>
       <div className="mt-6 space-y-3">
         <Skeleton className="h-9 w-full" />

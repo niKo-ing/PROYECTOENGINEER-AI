@@ -1,9 +1,7 @@
 "use client";
 
-import { AlertTriangle, Bot, CheckCircle2, Database, Factory, ListChecks, PenTool, ShieldCheck, Store, WandSparkles } from "lucide-react";
+import { AlertCircle, ListChecks } from "lucide-react";
 
-import { Badge } from "@/components/ui/badge";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import type { CanonicalProductSpecs, ProductSpecs } from "@/types/product";
 
 type DisplaySpecItem = {
@@ -14,7 +12,7 @@ type DisplaySpecItem = {
   value_json?: unknown;
   source_type?: string | null;
   source_name?: string | null;
-  source_url?: string | null;
+  confidence?: number | null;
   verification_status?: string | null;
   conflict_status?: string | null;
 };
@@ -48,6 +46,31 @@ const HIDDEN_WHEN_STRUCTURED: Record<string, string[]> = {
   fan_header_list: ["fan_headers_total", "cpu_fan_headers", "cpu_opt_headers", "pump_headers", "system_fan_headers"],
 };
 
+const SUMMARY_LIMIT = 8;
+const SUMMARY_PRIORITY = [
+  "gpu",
+  "procesador",
+  "vram",
+  "ram",
+  "memoria",
+  "tipo de memoria",
+  "almacenamiento",
+  "pantalla",
+  "panel",
+  "tasa de refresco",
+  "bus de memoria",
+  "interfaz pcie",
+  "frecuencias core",
+  "frecuencia memoria",
+  "consumo/tdp",
+  "tdp",
+  "fuente recomendada",
+  "conector de poder",
+  "salidas de video",
+  "largo",
+  "dimensiones",
+];
+
 function transformItems(items: CanonicalProductSpecs["sections"][number]["items"]): DisplaySpecItem[] {
   const presentKeys = new Set(items.map((item) => item.key));
   const hidden = new Set<string>();
@@ -67,10 +90,288 @@ function transformItems(items: CanonicalProductSpecs["sections"][number]["items"
       value_json: item.value_json,
       source_type: item.source_type,
       source_name: item.source_name,
-      source_url: item.source_url,
+      confidence: item.confidence,
       verification_status: item.verification_status,
       conflict_status: item.conflict_status,
     }));
+}
+
+function getDisplaySections(canonicalSpecs?: CanonicalProductSpecs | null, specs?: ProductSpecs | null): DisplaySpecSection[] {
+  const canonicalSections: DisplaySpecSection[] = (canonicalSpecs?.sections ?? [])
+    .map((section) => ({ title: section.title, items: transformItems(section.items) }))
+    .filter((section) => section.items?.length > 0);
+  const fallbackSections: DisplaySpecSection[] = (specs?.sections ?? []).filter((section) => section.items?.length > 0);
+  return canonicalSections.length ? canonicalSections : fallbackSections;
+}
+
+function cleanValue(value: string) {
+  return value
+    .replace(/\bYes x\s*/gi, "")
+    .replace(/\bNo x\s*/gi, "No ")
+    .replace(/\s*\(Native ([^)]+)\)/gi, " ($1)")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+function formatDisplayValue(item: DisplaySpecItem) {
+  if (item.value_kind === "json" && Array.isArray(item.value_json)) {
+    const objects = item.value_json.filter((row): row is Record<string, unknown> => typeof row === "object" && row !== null);
+    const labels = objects
+      .map((row) => {
+        const title = row.type ?? row.kind ?? row.interface ?? row.header ?? row.btn;
+        const count = typeof row.count === "number" || typeof row.count === "string" ? `${row.count} x ` : "";
+        return title ? `${count}${String(title)}` : "";
+      })
+      .filter(Boolean);
+    if (labels.length) return labels.join(", ");
+  }
+
+  return cleanValue(item.value);
+}
+
+function formatSummaryValue(value: string) {
+  const cleaned = cleanValue(value);
+  if (cleaned.length <= 72) return normalizeCapacitySpacing(cleaned);
+
+  const parts = cleaned.split(/,\s*/).filter(Boolean);
+  if (parts.length > 2) return `${parts.slice(0, 2).join(", ")} +${parts.length - 2} más`;
+
+  return `${cleaned.slice(0, 69).trim()}…`;
+}
+
+function summaryLabel(label: string) {
+  const normalized = normalizeLabel(label);
+
+  if (normalized.includes("frecuencia pantalla") || normalized.includes("tasa de refresco")) {
+    return "Tasa de refresco";
+  }
+  if (normalized.includes("frecuencia") && !normalized.includes("memoria")) {
+    return "Frecuencias core";
+  }
+  if (normalized.includes("memoria") && normalized.includes("frecuencia")) {
+    return "Frecuencia memoria";
+  }
+  if (normalized === "bus" || normalized.includes("bus de memoria")) {
+    return "Bus de memoria";
+  }
+  if (normalized.includes("capacidad almacenamiento")) {
+    return "Almacenamiento";
+  }
+  if (normalized.includes("tamano pantalla")) {
+    return "Pantalla";
+  }
+  if (normalized.includes("tipo de panel")) {
+    return "Panel";
+  }
+  if (normalized === "interfaz" || normalized.includes("pcie")) {
+    return "Interfaz PCIe";
+  }
+  if (normalized.includes("salidas de video") || normalized.includes("puertos de video")) {
+    return "Salidas de video";
+  }
+  return label;
+}
+
+function buildSummaryItems(canonicalSpecs?: CanonicalProductSpecs | null, specs?: ProductSpecs | null) {
+  const seen = new Set<string>();
+  const items: Array<{ label: string; value: string }> = [];
+
+  for (const section of getDisplaySections(canonicalSpecs, specs)) {
+    for (const item of section.items) {
+      const rawValue = formatDisplayValue(item);
+      if (shouldSkipSummaryItem(item.label, rawValue)) continue;
+
+      const value = formatSummaryValue(rawValue);
+      const label = summaryLabel(item.label);
+      const key = `${label}:${value}`.toLowerCase();
+      if (!value || seen.has(key)) continue;
+      seen.add(key);
+      items.push({ label, value });
+    }
+  }
+
+  return items;
+}
+
+function shouldSkipSummaryItem(label: string, value: string) {
+  const normalized = normalizeLabel(label);
+  if (normalized === "pantalla" && value.length > 72) return true;
+  if (normalized.includes("camara") && value.length > 72) return true;
+  if (normalized.includes("bateria") && value.toLowerCase().includes("si/c")) return true;
+  return false;
+}
+
+function deriveSpecsFromName(name?: string | null) {
+  if (!name) return [];
+  const items: Array<{ label: string; value: string }> = [];
+
+  const gpu = name.match(/\b(?:NVIDIA\s+)?GeForce\s+(?:RTX|GTX)\s*[A-Z]?\s*\d{3,4}(?:\s*Ti)?\b/i);
+  if (gpu) items.push({ label: "GPU", value: cleanValue(gpu[0].replace(/\s+/g, " ")) });
+
+  const cpu = name.match(/\b(?:Intel\s+)?Core\s+i[3579][-\s]?\d{3,5}[A-Z]*\b|\b(?:AMD\s+)?Ryzen\s+[3579]\s+\d{4}[A-Z]*\b/i);
+  if (cpu) items.push({ label: "Procesador", value: cleanValue(cpu[0].replace(/\s+/g, " ")) });
+
+  const memory = name.match(/\b(\d+)\s*GB\s+(DDR[345]|GDDR[56X]*)\b/i);
+  if (memory) {
+    const capacity = `${memory[1]} GB`;
+    const memoryType = memory[2].toUpperCase();
+    if (/GDDR/i.test(memoryType)) {
+      items.push({ label: "VRAM", value: capacity });
+    } else {
+      items.push({ label: "RAM", value: capacity });
+    }
+    items.push({ label: "Tipo de memoria", value: memoryType });
+  }
+
+  const standaloneRam = name.match(/\b\d+\s*GB\s+RAM\b/i);
+  if (standaloneRam && !items.some((item) => item.label === "RAM")) {
+    items.push({ label: "RAM", value: cleanValue(standaloneRam[0].replace(/\s*RAM/i, "").replace(/(\d+)\s*GB/i, "$1 GB")) });
+  }
+
+  const storage = name.match(/\b(?:\d+\s*(?:GB|TB)\s*)?(?:SSD|HDD|NVMe)\b/i);
+  if (storage) items.push({ label: "Almacenamiento", value: cleanValue(storage[0].replace(/(\d+)\s*(GB|TB)/i, "$1 $2").toUpperCase()) });
+
+  const titleStorage = name.match(/\b(\d+)\s*(GB|TB)\s+(?:ROM|almacenamiento)\b/i) ?? name.match(/\b(\d+)(GB|TB)\s+Rom\b/i);
+  if (titleStorage) items.push({ label: "Almacenamiento", value: `${titleStorage[1]} ${titleStorage[2].toUpperCase()}` });
+
+  const bus = name.match(/\b\d{2,4}[-\s]?bit\b/i);
+  if (bus) items.push({ label: "Bus de memoria", value: cleanValue(bus[0].replace(/[-\s]?bit/i, " bit")) });
+
+  const pcie = name.match(/\bPCI[-\s]?e\s*(\d(?:\.\d)?)\s*x\s*(\d{1,2})\b/i);
+  if (pcie) items.push({ label: "Interfaz PCIe", value: `PCIe ${pcie[1]} x${pcie[2]}` });
+
+  const screen = name.match(/\b\d{1,2}(?:[.,]\d)?\s*(?:"|pulgadas?|inch|in)\b/i);
+  if (screen) items.push({ label: "Pantalla", value: cleanValue(screen[0].replace(",", ".")) });
+
+  const screenWithPanel = name.match(/\b(\d{1,2}(?:[.,]\d)?)\s*(AMOLED|OLED|LCD|IPS|LED)\b/i);
+  if (screenWithPanel) {
+    if (!items.some((item) => item.label === "Pantalla")) {
+      items.push({ label: "Pantalla", value: `${screenWithPanel[1].replace(",", ".")}"` });
+    }
+    items.push({ label: "Panel", value: screenWithPanel[2].toUpperCase() });
+  }
+
+  const refreshRate = name.match(/\b\d{2,3}\s*Hz\b/i);
+  if (refreshRate) items.push({ label: "Tasa de refresco", value: cleanValue(refreshRate[0].replace(/\s+/g, " ")) });
+
+  const coreFrequencies = name.match(/\b\d{3,5}\s*(?:\/\s*\d{3,5}){1,3}\s*MHz\b/i);
+  if (coreFrequencies) items.push({ label: "Frecuencias core", value: cleanValue(coreFrequencies[0].replace(/\s*\/\s*/g, " / ")) });
+
+  return items;
+}
+
+export function ProductFeatureSummary({
+  name,
+  brand,
+  category,
+  canonicalSpecs,
+  specs,
+}: {
+  name?: string | null;
+  brand?: string | null;
+  category?: string | null;
+  canonicalSpecs?: CanonicalProductSpecs | null;
+  specs: ProductSpecs | null;
+}) {
+  const specItems = mergeSummaryItems(deriveSpecsFromName(name), buildSummaryItems(canonicalSpecs, specs));
+  const identityItems = [
+    brand ? { label: "Fabricante", value: brand } : null,
+    category ? { label: "Categoría", value: category } : null,
+  ].filter((item): item is { label: string; value: string } => Boolean(item));
+  const primaryItems = mergeSummaryItems(identityItems, specItems).slice(0, SUMMARY_LIMIT);
+
+  if (!primaryItems.length) return null;
+
+  return (
+    <section className="mt-6 border-t pt-5">
+      <h2 className="text-sm font-semibold tracking-tight text-foreground">Características clave</h2>
+      <dl className="mt-3 grid gap-x-5 gap-y-2 text-sm leading-5 sm:grid-cols-2">
+        {primaryItems.map((item, index) => (
+          <div key={`${normalizeLabel(item.label)}-${normalizeLabel(item.value)}-${index}`} className="min-w-0 rounded-lg bg-muted/30 px-3 py-2">
+            <dt className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">{item.label}</dt>
+            <dd className="mt-0.5 min-w-0 break-words font-semibold text-foreground">{item.value}</dd>
+          </div>
+        ))}
+      </dl>
+    </section>
+  );
+}
+
+function normalizeCapacitySpacing(value: string) {
+  return value.replace(/\b(\d+)\s*(GB|TB|MB)\b/gi, (_, amount: string, unit: string) => `${amount} ${unit.toUpperCase()}`);
+}
+
+function mergeSummaryItems(...groups: Array<Array<{ label: string; value: string }>>) {
+  const merged: Array<{ label: string; value: string }> = [];
+
+  for (const item of groups.flat()) {
+    const label = summaryLabel(item.label);
+    const value = cleanValue(item.value);
+    if (!value) continue;
+    const existing = merged.find((current) => normalizeLabel(current.label) === normalizeLabel(label));
+    if (!existing) {
+      merged.push({ label, value });
+      continue;
+    }
+
+    existing.value = mergeDisplayValues(existing.label, existing.value, value);
+  }
+
+  return merged.sort((a, b) => summaryRank(a.label) - summaryRank(b.label));
+}
+
+function mergeDisplayValues(label: string, currentValue: string, nextValue: string) {
+  const current = cleanValue(currentValue);
+  const next = cleanValue(nextValue);
+  const currentKey = current.toLowerCase();
+  const nextKey = next.toLowerCase();
+
+  if (currentKey === nextKey) return current;
+  if (currentKey.includes(nextKey)) return current;
+  if (nextKey.includes(currentKey)) return next;
+
+  if (normalizeLabel(label) === "frecuencias core") {
+    const mhzValues = Array.from(
+      new Set([current, next].join(" / ").match(/\d{3,5}\s*MHz/gi)?.map((value) => value.replace(/\s*MHz/i, "")) ?? []),
+    );
+    if (mhzValues.length > 1) return `${mhzValues.join(" / ")} MHz`;
+  }
+
+  const values = current.split(" / ").map((value) => value.trim());
+  if (values.some((value) => value.toLowerCase() === nextKey || value.toLowerCase().includes(nextKey) || nextKey.includes(value.toLowerCase()))) {
+    return current;
+  }
+  return `${current} / ${next}`;
+}
+
+function summaryRank(label: string) {
+  const normalized = normalizeLabel(label);
+  const index = SUMMARY_PRIORITY.findIndex((item) => normalizeLabel(item) === normalized);
+  return index === -1 ? SUMMARY_PRIORITY.length : index;
+}
+
+function normalizeLabel(label: string) {
+  return label
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .trim();
+}
+
+function needsReview(item: DisplaySpecItem) {
+  if (!item.verification_status && !item.conflict_status) return false;
+  const fromAi = item.source_type === "ai" || item.source_type === "ai_research";
+  return (
+    item.conflict_status === "pending" ||
+    (fromAi && item.verification_status !== "verified" && (!item.source_name || item.confidence === null || item.confidence === undefined || item.confidence < 0.75))
+  );
+}
+
+function reviewTitle(item: DisplaySpecItem) {
+  if (item.conflict_status === "pending") return "Dato con conflicto pendiente de revisión";
+  if (item.source_type === "ai" || item.source_type === "ai_research") return "Dato generado con IA pendiente de verificación";
+  if (item.verification_status === "review") return "Dato pendiente de verificación";
+  return "Dato pendiente de verificación";
 }
 
 
@@ -78,7 +379,7 @@ export function SpecHighlights({ specs }: { specs: ProductSpecs | null }) {
   if (!specs?.highlights?.length) return null;
 
   return (
-    <div className="mt-5 border-b pb-5">
+    <div className="mt-6 border-b pb-6">
       <p className="mb-2.5 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
         Características clave
       </p>
@@ -86,7 +387,7 @@ export function SpecHighlights({ specs }: { specs: ProductSpecs | null }) {
         {specs.highlights.map((highlight) => (
           <li
             key={highlight}
-            className="rounded-lg border bg-muted/50 px-3 py-2 text-xs font-semibold text-foreground"
+            className="rounded-lg border bg-muted/50 px-3.5 py-2.5 text-sm font-semibold leading-5 text-foreground"
           >
             {highlight}
           </li>
@@ -97,70 +398,51 @@ export function SpecHighlights({ specs }: { specs: ProductSpecs | null }) {
 }
 
 export function SpecSheet({ canonicalSpecs, specs }: { canonicalSpecs?: CanonicalProductSpecs | null; specs: ProductSpecs | null }) {
-  const canonicalSections: DisplaySpecSection[] = (canonicalSpecs?.sections ?? [])
-    .map((section) => ({ title: section.title, items: transformItems(section.items) }))
-    .filter((section) => section.items?.length > 0);
-  const fallbackSections: DisplaySpecSection[] = (specs?.sections ?? []).filter((section) => section.items?.length > 0);
-  const sections = canonicalSections.length ? canonicalSections : fallbackSections;
+  const sections = getDisplaySections(canonicalSpecs, specs);
   if (!sections.length) return null;
-  const hasCanonical = canonicalSections.length > 0;
 
   return (
-    <Card className="mt-6 overflow-hidden border-muted shadow-none">
-      <CardHeader className="border-b bg-muted/30 pb-4">
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <CardTitle className="flex items-center gap-2 text-base">
-            <span className="flex size-8 items-center justify-center rounded-xl bg-primary/10 text-primary">
-              <ListChecks className="size-4" aria-hidden="true" />
-            </span>
-            Ficha técnica
-          </CardTitle>
-          {hasCanonical ? (
-            <Badge variant="secondary" className="gap-1.5 rounded-full px-3 py-1 text-xs">
-              <ShieldCheck className="size-3.5" aria-hidden="true" />
-              Specs canónicas
-            </Badge>
-          ) : (
-            <Badge variant="outline" className="rounded-full px-3 py-1 text-xs">
-              Ficha JSON heredada
-            </Badge>
-          )}
-        </div>
-      </CardHeader>
-      <CardContent className="p-4 sm:p-5">
-        <div className="grid gap-4 lg:grid-cols-2">
+    <div>
+      <div className="border-b bg-muted/20 p-5">
+        <h2 className="flex items-center gap-2 text-lg font-semibold leading-none tracking-tight">
+          <span className="flex size-8 items-center justify-center rounded-lg bg-primary/10 text-primary">
+            <ListChecks className="size-4" aria-hidden="true" />
+          </span>
+          Ficha técnica completa
+        </h2>
+      </div>
+      <div className="p-0">
+        <div className="grid lg:grid-cols-2">
           {sections.map((section) => (
             <section
               key={section.title}
               aria-label={section.title}
-              className="rounded-2xl border bg-background/80 p-4 transition-colors hover:border-primary/30"
+              className="min-w-0 border-b p-5 odd:lg:border-r"
             >
-              <div className="mb-3 flex items-center justify-between gap-3 border-b pb-2.5">
-                <h3 className="text-sm font-semibold tracking-tight text-foreground">
-                  {section.title}
-                </h3>
-                <span className="text-xs text-muted-foreground">
-                  {section.items.length} {section.items.length === 1 ? "dato" : "datos"}
-                </span>
-              </div>
+              <h3 className="mb-2 text-sm font-semibold tracking-tight text-foreground">{section.title}</h3>
               <dl className="divide-y divide-border/70">
                 {section.items.map((item) => (
                   <div
                     key={`${section.title}-${item.label}-${item.value}`}
-                    className="group grid gap-x-6 gap-y-1.5 py-3 first:pt-0 last:pb-0 sm:grid-cols-[minmax(8rem,0.8fr)_minmax(0,1.4fr)]"
+                    className="grid gap-x-6 gap-y-1.5 py-3 first:pt-1 last:pb-0 sm:grid-cols-[minmax(10rem,0.65fr)_minmax(0,1.35fr)]"
                   >
                     <dt className="min-w-0 text-sm leading-relaxed text-muted-foreground">
                       {item.label}
                     </dt>
                     <dd className="min-w-0 space-y-1.5">
                       {item.value_kind === "json" && Array.isArray(item.value_json) && item.value_json.some((row) => typeof row === "object" && row !== null) ? (
-                        <StructuredSpecValue rows={item.value_json} />
+                        <div className="flex min-w-0 items-start gap-2">
+                          <StructuredSpecValue rows={item.value_json} />
+                          {needsReview(item) ? <ReviewIndicator item={item} /> : null}
+                        </div>
                       ) : (
-                        <div className="break-words text-sm font-semibold leading-relaxed text-foreground">
-                          {item.value}
+                        <div className="flex min-w-0 items-start gap-2">
+                          <span className="min-w-0 break-words text-sm font-semibold leading-relaxed text-foreground">
+                            {formatDisplayValue(item)}
+                          </span>
+                          {needsReview(item) ? <ReviewIndicator item={item} /> : null}
                         </div>
                       )}
-                      {hasCanonical ? <SpecMeta item={item} /> : null}
                     </dd>
                   </div>
                 ))}
@@ -168,8 +450,21 @@ export function SpecSheet({ canonicalSpecs, specs }: { canonicalSpecs?: Canonica
             </section>
           ))}
         </div>
-      </CardContent>
-    </Card>
+      </div>
+    </div>
+  );
+}
+
+function ReviewIndicator({ item }: { item: DisplaySpecItem }) {
+  const conflict = item.conflict_status === "pending";
+  return (
+    <span
+      className={`mt-0.5 inline-flex size-5 shrink-0 items-center justify-center rounded-full ${conflict ? "bg-amber-100 text-amber-700" : "bg-sky-100 text-sky-700"}`}
+      title={reviewTitle(item)}
+      aria-label={reviewTitle(item)}
+    >
+      <AlertCircle className="size-3.5" aria-hidden="true" />
+    </span>
   );
 }
 
@@ -203,7 +498,7 @@ function StructuredSpecValue({ rows }: { rows: unknown[] }) {
         const title = row[labelKey];
         const cells = keys.filter((key) => row[key] !== null && row[key] !== undefined && row[key] !== "" && !(Array.isArray(row[key]) && row[key].length === 0));
         return (
-          <div key={index} className="rounded-lg border bg-muted/40 px-2.5 py-1.5 text-xs">
+          <div key={index} className="text-sm leading-relaxed">
             <span className="font-semibold text-foreground">{typeof title === "string" ? title : String(title ?? "")}</span>
             {cells.length ? (
               <span className="ml-2 text-muted-foreground">{cells.map((key) => `${structuredLabel(key)}: ${Array.isArray(row[key]) ? (row[key] as string[]).join(", ") : String(row[key])}`).join(" · ")}</span>
@@ -213,84 +508,4 @@ function StructuredSpecValue({ rows }: { rows: unknown[] }) {
       })}
     </div>
   );
-}
-
-function SpecMeta({ item }: { item: DisplaySpecItem }) {
-  const isConflict = item.conflict_status === "pending";
-  const verification = verificationLabel(item.verification_status);
-  const source = sourceLabel(item.source_type, item.source_name);
-  if (!verification && !source && !isConflict) return null;
-
-  return (
-    <div className="flex flex-wrap items-center gap-1.5 opacity-80 transition-opacity group-hover:opacity-100">
-      {isConflict ? (
-        <Badge variant="outline" className="gap-1 border-amber-300 bg-amber-50 px-2 py-0.5 text-[11px] text-amber-700" title="Hay un valor entrante distinto pendiente de revisión">
-          <AlertTriangle className="size-3" aria-hidden="true" />
-          conflicto
-        </Badge>
-      ) : null}
-      {verification ? (
-        <Badge variant="outline" className={verification.className} title={verification.title}>
-          <verification.Icon className="size-3" aria-hidden="true" />
-          {verification.label}
-        </Badge>
-      ) : null}
-      {source ? (
-        <Badge variant="outline" className="gap-1 border-transparent bg-muted/70 px-2 py-0.5 text-[11px] text-muted-foreground" title={source.title}>
-          <source.Icon className="size-3" aria-hidden="true" />
-          {source.label}
-        </Badge>
-      ) : null}
-    </div>
-  );
-}
-
-function verificationLabel(status?: string | null) {
-  if (status === "verified") {
-    return {
-      label: "verificado",
-      title: "Dato revisado por una persona",
-      Icon: CheckCircle2,
-      className: "gap-1 border-emerald-200 bg-emerald-50 px-2 py-0.5 text-[11px] text-emerald-700",
-    };
-  }
-  if (status === "review") {
-    return {
-      label: "por revisar",
-      title: "Dato extraído automáticamente pendiente de revisión humana",
-      Icon: ShieldCheck,
-      className: "gap-1 border-sky-200 bg-sky-50 px-2 py-0.5 text-[11px] text-sky-700",
-    };
-  }
-  if (status === "auto") {
-    return {
-      label: "auto",
-      title: "Dato generado o extraído automáticamente",
-      Icon: WandSparkles,
-      className: "gap-1 border-transparent bg-muted/70 px-2 py-0.5 text-[11px] text-muted-foreground",
-    };
-  }
-  return null;
-}
-
-function sourceLabel(type?: string | null, name?: string | null) {
-  if (!type) return null;
-  const label = name || sourceTypeLabel(type);
-  const title = name ? `${sourceTypeLabel(type)}: ${name}` : sourceTypeLabel(type);
-  const Icon = type === "manufacturer" ? Factory : type === "store" ? Store : type === "admin" ? PenTool : type === "ai" || type === "ai_research" ? Bot : Database;
-  return { label, title, Icon };
-}
-
-function sourceTypeLabel(type: string) {
-  const labels: Record<string, string> = {
-    ai: "IA",
-    ai_research: "Investigación IA",
-    admin: "Admin",
-    manufacturer: "Fabricante",
-    store: "Tienda",
-    scraper: "Scraper",
-    ingestion: "Ingesta",
-    external: "Fuente externa",
-  };
-  return labels[type] ?? type;
 }
