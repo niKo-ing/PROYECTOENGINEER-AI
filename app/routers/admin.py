@@ -9,7 +9,7 @@ from pydantic import BaseModel, HttpUrl
 from sqlalchemy.orm import Session, selectinload
 from sqlalchemy import func, select
 
-from app.core.security import AuthenticatedUser, get_current_user
+from app.core.security import AuthenticatedUser, get_current_admin
 from app.catalog.catalog_quality import CatalogQualityService
 from app.db import SessionLocal, get_db
 from app.ingestion.discovery.discovery import StoreDiscovery
@@ -20,7 +20,7 @@ from app.repositories.product_spec_value_repository import ProductSpecValueRepos
 from app.services.product_spec_value_service import ProductSpecValueService
 
 router = APIRouter(prefix="/admin", tags=["admin"])
-CurrentUser = Annotated[AuthenticatedUser, Depends(get_current_user)]
+CurrentAdmin = Annotated[AuthenticatedUser, Depends(get_current_admin)]
 DbSession = Annotated[Session, Depends(get_db)]
 
 
@@ -87,7 +87,9 @@ class AdminSpecValueSchema(BaseModel):
     label: str
     group: str
     value: str
+    value_kind: str
     raw_value: str | None
+    unit: str | None
     source_type: str
     source_name: str | None
     source_url: str | None
@@ -219,7 +221,9 @@ def _spec_value_to_admin_schema(value: ProductSpecValue) -> AdminSpecValueSchema
         label=definition.label if definition else "Especificación",
         group=definition.group if definition else "General",
         value=_format_value(value),
+        value_kind=value.value_kind,
         raw_value=value.raw_value,
+        unit=value.unit,
         source_type=value.source_type,
         source_name=value.source_name,
         source_url=value.source_url,
@@ -250,7 +254,7 @@ def _activity_to_schema(event: ProductSpecValueHistory) -> AdminActivityItem:
 
 
 @router.post("/ingestion/discover", response_model=DiscoveryResultSchema)
-def discover_url(payload: DiscoverRequest, _user: CurrentUser):
+def discover_url(payload: DiscoverRequest, _user: CurrentAdmin):
     """Analyze a public product URL and extract structured data signals."""
     discovery = StoreDiscovery()
     result = discovery.discover(str(payload.url))
@@ -258,7 +262,7 @@ def discover_url(payload: DiscoverRequest, _user: CurrentUser):
 
 
 @router.get("/dashboard", response_model=AdminDashboardResponse)
-def get_admin_dashboard(_user: CurrentUser, db: DbSession):
+def get_admin_dashboard(_user: CurrentAdmin, db: DbSession):
     total_products = db.scalar(select(func.count(Product.id))) or 0
     total_offers = db.scalar(select(func.count(StoreOffer.id))) or 0
     total_stores = db.scalar(select(func.count(Store.id))) or 0
@@ -301,18 +305,18 @@ def get_admin_dashboard(_user: CurrentUser, db: DbSession):
 
 
 @router.get("/catalog/quality", response_model=AdminCatalogQualityResponse)
-def get_catalog_quality(_user: CurrentUser, db: DbSession):
+def get_catalog_quality(_user: CurrentAdmin, db: DbSession):
     return CatalogQualityService(db).build_report()
 
 
 @router.get("/spec-values/review", response_model=AdminSpecReviewResponse)
-def list_spec_values_for_review(_user: CurrentUser, db: DbSession, limit: int = Query(default=100, ge=1, le=500)):
+def list_spec_values_for_review(_user: CurrentAdmin, db: DbSession, limit: int = Query(default=100, ge=1, le=500)):
     values = ProductSpecValueRepository(db).list_for_review(limit=limit)
     return AdminSpecReviewResponse(items=[_spec_value_to_admin_schema(value) for value in values])
 
 
 @router.post("/spec-values/{value_id}/verify", response_model=AdminSpecValueSchema)
-def verify_spec_value(value_id: int, payload: VerifySpecValueRequest, user: CurrentUser, db: DbSession):
+def verify_spec_value(value_id: int, payload: VerifySpecValueRequest, user: CurrentAdmin, db: DbSession):
     repository = ProductSpecValueRepository(db)
     value = repository.get(value_id)
     if value is None:
@@ -345,7 +349,7 @@ def verify_spec_value(value_id: int, payload: VerifySpecValueRequest, user: Curr
 
 
 @router.post("/ingestion/run", response_model=IngestionRunSchema)
-def trigger_ingestion_run(store_domain: str, _user: CurrentUser):
+def trigger_ingestion_run(store_domain: str, _user: CurrentAdmin):
     """Manually trigger a full ingestion sync for a store.
 
     Supports both modes configured in sync_config:
@@ -423,8 +427,8 @@ def trigger_ingestion_run(store_domain: str, _user: CurrentUser):
 def trigger_discovery_run(
     store_domain: str,
     categories: list[str],
+    _user: CurrentAdmin,
     max_urls_per_category: int = 20,
-    _user: CurrentUser = None,
 ):
     """Manually trigger URL discovery + ingestion for a store and categories."""
     from app.models.catalog import Store

@@ -24,7 +24,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { fetchAdminDashboard, fetchSpecReviewQueue, verifySpecValue } from "@/lib/api/admin";
+import { fetchAdminDashboard, fetchSpecReviewQueue, verifySpecValue, type VerifySpecValuePayload } from "@/lib/api/admin";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 import type { AdminActivityItem, AdminDashboardResponse, AdminSpecValue } from "@/types/admin";
 
@@ -115,12 +115,12 @@ export default function AdminPage() {
     }
   }
 
-  async function verifyItem(item: AdminSpecValue) {
+  async function verifyItem(item: AdminSpecValue, payload?: VerifySpecValuePayload) {
     if (!accessToken) return;
     setVerifyingId(item.id);
     setError("");
     try {
-      await verifySpecValue(accessToken, item.id);
+      await verifySpecValue(accessToken, item.id, payload);
       await refresh(accessToken);
     } catch (err) {
       setError(err instanceof Error ? err.message : "No fue posible verificar el dato.");
@@ -311,7 +311,7 @@ function ActivityRow({ event }: { event: AdminActivityItem }) {
   );
 }
 
-function ReviewPanel({ title, items, verifyingId, onVerify, conflictsOnly = false }: { title: string; items: AdminSpecValue[]; verifyingId: number | null; onVerify: (item: AdminSpecValue) => void; conflictsOnly?: boolean }) {
+function ReviewPanel({ title, items, verifyingId, onVerify, conflictsOnly = false }: { title: string; items: AdminSpecValue[]; verifyingId: number | null; onVerify: (item: AdminSpecValue, payload?: VerifySpecValuePayload) => void; conflictsOnly?: boolean }) {
   return (
     <div className="space-y-4">
       <div className="flex flex-wrap items-center justify-between gap-3">
@@ -325,7 +325,7 @@ function ReviewPanel({ title, items, verifyingId, onVerify, conflictsOnly = fals
       </div>
       {items.length ? (
         <div className="grid gap-4">
-          {items.map((item) => <ReviewCard key={item.id} item={item} verifying={verifyingId === item.id} onVerify={() => onVerify(item)} />)}
+          {items.map((item) => <ReviewCard key={item.id} item={item} verifying={verifyingId === item.id} onVerify={(payload) => onVerify(item, payload)} />)}
         </div>
       ) : (
         <EmptyPanel title="Sin elementos" description={conflictsOnly ? "No hay conflictos pendientes." : "No hay especificaciones pendientes de revisión."} />
@@ -334,8 +334,31 @@ function ReviewPanel({ title, items, verifyingId, onVerify, conflictsOnly = fals
   );
 }
 
-function ReviewCard({ item, verifying, onVerify }: { item: AdminSpecValue; verifying: boolean; onVerify: () => void }) {
+function ReviewCard({ item, verifying, onVerify }: { item: AdminSpecValue; verifying: boolean; onVerify: (payload?: VerifySpecValuePayload) => void }) {
   const hasConflict = item.conflict_status === "pending";
+  const [editing, setEditing] = useState(false);
+  const [draftValue, setDraftValue] = useState(item.raw_value || item.value);
+  const [draftUnit, setDraftUnit] = useState(item.unit ?? "");
+  const [draftSourceName, setDraftSourceName] = useState(item.source_name ?? "");
+  const [draftSourceUrl, setDraftSourceUrl] = useState(item.source_url ?? "");
+  const [draftNote, setDraftNote] = useState("");
+
+  const hasCorrection = editing && (
+    draftValue.trim() !== (item.raw_value || item.value).trim() ||
+    draftUnit.trim() !== (item.unit ?? "") ||
+    draftSourceName.trim() !== (item.source_name ?? "") ||
+    draftSourceUrl.trim() !== (item.source_url ?? "")
+  );
+
+  function submitVerification() {
+    const note = draftNote.trim() || (hasCorrection ? "Corregido y verificado desde /admin" : "Verificado desde /admin");
+    if (!hasCorrection) {
+      onVerify({ note });
+      return;
+    }
+    onVerify(buildCorrectionPayload(item, draftValue, draftUnit, draftSourceName, draftSourceUrl, note));
+  }
+
   return (
     <Card className="overflow-hidden shadow-none">
       <CardContent className="p-0">
@@ -357,6 +380,38 @@ function ReviewCard({ item, verifying, onVerify }: { item: AdminSpecValue; verif
               <p className="mt-1 break-words text-lg font-semibold text-foreground">{item.value}</p>
               {item.raw_value && item.raw_value !== item.value ? <p className="mt-2 break-words text-xs text-muted-foreground">Original: {item.raw_value}</p> : null}
             </div>
+            {editing ? (
+              <div className="mt-4 space-y-3 rounded-xl border bg-card p-4">
+                <div>
+                  <label className="text-xs font-medium text-muted-foreground" htmlFor={`spec-value-${item.id}`}>Valor corregido</label>
+                  <Input id={`spec-value-${item.id}`} className="mt-1" value={draftValue} onChange={(event) => setDraftValue(event.target.value)} />
+                </div>
+                <div className="grid gap-3 sm:grid-cols-2">
+                  <div>
+                    <label className="text-xs font-medium text-muted-foreground" htmlFor={`spec-unit-${item.id}`}>Unidad</label>
+                    <Input id={`spec-unit-${item.id}`} className="mt-1" value={draftUnit} onChange={(event) => setDraftUnit(event.target.value)} placeholder="Ej: GB, MHz, W" />
+                  </div>
+                  <div>
+                    <label className="text-xs font-medium text-muted-foreground" htmlFor={`spec-source-${item.id}`}>Fuente</label>
+                    <Input id={`spec-source-${item.id}`} className="mt-1" value={draftSourceName} onChange={(event) => setDraftSourceName(event.target.value)} placeholder="Ej: ASUS" />
+                  </div>
+                </div>
+                <div>
+                  <label className="text-xs font-medium text-muted-foreground" htmlFor={`spec-url-${item.id}`}>URL de respaldo</label>
+                  <Input id={`spec-url-${item.id}`} className="mt-1" value={draftSourceUrl} onChange={(event) => setDraftSourceUrl(event.target.value)} placeholder="https://..." />
+                </div>
+                <div>
+                  <label className="text-xs font-medium text-muted-foreground" htmlFor={`spec-note-${item.id}`}>Nota de revisión</label>
+                  <textarea
+                    id={`spec-note-${item.id}`}
+                    className="mt-1 min-h-20 w-full rounded-md border border-input bg-background px-3 py-2 text-sm shadow-xs outline-none focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50"
+                    value={draftNote}
+                    onChange={(event) => setDraftNote(event.target.value)}
+                    placeholder="Qué se revisó o corrigió"
+                  />
+                </div>
+              </div>
+            ) : null}
           </div>
           <aside className="border-t bg-muted/20 p-4 sm:p-5 xl:border-l xl:border-t-0">
             <dl className="space-y-3 text-sm">
@@ -371,15 +426,50 @@ function ReviewCard({ item, verifying, onVerify }: { item: AdminSpecValue; verif
                 </a>
               </Button>
             ) : null}
-            <Button className="mt-4 w-full gap-2" onClick={onVerify} disabled={verifying || hasConflict} title={hasConflict ? "Resolvé el conflicto antes de verificar" : "Marcar como verificado"}>
+            <Button variant="outline" className="mt-4 w-full" onClick={() => setEditing((value) => !value)} disabled={verifying}>
+              {editing ? "Cancelar corrección" : "Corregir antes de verificar"}
+            </Button>
+            <Button className="mt-3 w-full gap-2" onClick={submitVerification} disabled={verifying} title={hasConflict ? "Verifica el valor actual o la corrección y resuelve el conflicto" : "Marcar como verificado"}>
               {verifying ? <Loader2 className="size-4 animate-spin" aria-hidden="true" /> : <ShieldCheck className="size-4" aria-hidden="true" />}
-              Verificar
+              {hasCorrection ? "Guardar y verificar" : hasConflict ? "Confirmar y resolver" : "Verificar"}
             </Button>
           </aside>
         </div>
       </CardContent>
     </Card>
   );
+}
+
+function buildCorrectionPayload(item: AdminSpecValue, draftValue: string, draftUnit: string, draftSourceName: string, draftSourceUrl: string, note: string): VerifySpecValuePayload {
+  const value = draftValue.trim();
+  const payload: VerifySpecValuePayload = {
+    note,
+    value_kind: item.value_kind || "text",
+    raw_value: value,
+    unit: draftUnit.trim() || null,
+    source_type: "admin",
+    source_name: draftSourceName.trim() || "Admin",
+    source_url: draftSourceUrl.trim() || null,
+    extraction_method: "admin_review",
+  };
+
+  if (item.value_kind === "number") {
+    const normalizedNumber = Number(value.replace(",", ".").replace(/[^0-9.-]/g, ""));
+    if (Number.isFinite(normalizedNumber)) {
+      payload.value_number = normalizedNumber;
+      return payload;
+    }
+  }
+
+  if (item.value_kind === "boolean") {
+    const normalized = value.toLowerCase();
+    payload.value_boolean = ["true", "sí", "si", "yes", "1"].includes(normalized);
+    return payload;
+  }
+
+  payload.value_kind = "text";
+  payload.value_text = value;
+  return payload;
 }
 
 function PlaceholderPanel({ section }: { section: AdminSection }) {

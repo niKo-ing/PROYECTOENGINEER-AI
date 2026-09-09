@@ -7,7 +7,9 @@ export interface AdminSpecValue {
   label: string;
   group: string;
   value: string;
+  value_kind: string;
   raw_value: string | null;
+  unit: string | null;
   source_type: string;
   source_name: string | null;
   source_url: string | null;

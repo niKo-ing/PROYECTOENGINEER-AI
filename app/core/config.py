@@ -19,6 +19,8 @@ class Settings:
     supabase_url: str = os.getenv("SUPABASE_URL", "").rstrip("/")
     supabase_jwt_audience: str = os.getenv("SUPABASE_JWT_AUDIENCE", "authenticated")
     supabase_jwt_secret: str = os.getenv("SUPABASE_JWT_SECRET", "")
+    admin_emails: str = os.getenv("ADMIN_EMAILS", "")
+    admin_user_ids: str = os.getenv("ADMIN_USER_IDS", "")
     openai_api_key: str = os.getenv("OPENAI_API_KEY", "")
     openai_model: str = os.getenv("OPENAI_MODEL", "")
     llm_provider: str = os.getenv("LLM_PROVIDER", "gemini").lower()

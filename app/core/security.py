@@ -17,6 +17,10 @@ class AuthenticatedUser:
     email: str | None = None
 
 
+def _split_csv(value: str) -> set[str]:
+    return {item.strip().lower() for item in value.split(",") if item.strip()}
+
+
 def unauthorized(detail: str = "Token de autenticación inválido") -> HTTPException:
     return HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail=detail, headers={"WWW-Authenticate": "Bearer"})
 
@@ -68,3 +72,18 @@ def get_current_user(credentials: HTTPAuthorizationCredentials | None = Depends(
     if credentials is None or credentials.scheme.lower() != "bearer":
         raise unauthorized("Se requiere un token Bearer")
     return validate_supabase_token(credentials.credentials)
+
+
+def get_current_admin(user: AuthenticatedUser = Depends(get_current_user)) -> AuthenticatedUser:
+    admin_emails = _split_csv(settings.admin_emails)
+    admin_user_ids = _split_csv(settings.admin_user_ids)
+
+    if not admin_emails and not admin_user_ids and settings.app_env.lower() != "production":
+        return user
+
+    email = user.email.lower() if user.email else ""
+    user_id = user.id.lower()
+    if email in admin_emails or user_id in admin_user_ids:
+        return user
+
+    raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Se requiere permiso de administrador")
