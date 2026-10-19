@@ -22,6 +22,38 @@ def call(tools, tool_name, /, **args):
     return json.loads(tools[tool_name].invoke(args))
 
 
+def test_tools_never_run_at_the_same_time_on_the_shared_session(db, monkeypatch):
+    """Gemini pide varias herramientas por paso y LangGraph las corre en hilos: comparten UNA sesión de BD,
+    que no admite uso simultáneo («concurrent operations are not permitted»). Deben ejecutarse de a una."""
+    import threading
+    import time
+    from concurrent.futures import ThreadPoolExecutor
+
+    state = {"now": 0, "max": 0}
+    guard = threading.Lock()
+
+    class SlowSearch:
+        def __init__(self, _db):
+            pass
+
+        def execute(self, params):
+            with guard:
+                state["now"] += 1
+                state["max"] = max(state["max"], state["now"])
+            time.sleep(0.05)
+            with guard:
+                state["now"] -= 1
+            return {"items": [], "total": 0}
+
+    monkeypatch.setattr("app.agent.tools.SearchProductsTool", SlowSearch)
+    memory = LongTermMemory(db, USER, LocalHashEmbeddingProvider())
+    search = {t.name: t for t in build_tools(db, USER, memory)}["search_products"]
+    with ThreadPoolExecutor(8) as pool:
+        results = list(pool.map(lambda i: search.invoke({"query": f"x{i}"}), range(8)))
+    assert state["max"] == 1
+    assert all(json.loads(r)["total"] == 0 for r in results)
+
+
 def test_registry_has_read_reasoning_and_write_tools(tools):
     assert set(tools) == set(READ_TOOLS) | set(WRITE_TOOLS)
     assert len(WRITE_TOOLS) == 3
