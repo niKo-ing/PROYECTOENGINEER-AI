@@ -64,6 +64,13 @@ def upgrade() -> None:
         op.create_index("ix_shopping_lists_user_id", "shopping_lists", ["user_id"])
 
 
+    # Supabase expone `public` por su API REST con la llave pública: estas tablas guardan datos
+    # por usuario, así que nacen con RLS activado y sin políticas (el backend, rol postgres, lo ignora).
+    if bind.dialect.name == "postgresql":
+        for table in ("agent_memories", "price_alerts", "shopping_lists"):
+            op.execute(f'ALTER TABLE public."{table}" ENABLE ROW LEVEL SECURITY')
+
+
 def downgrade() -> None:
     op.drop_table("shopping_lists")
     op.drop_table("price_alerts")
