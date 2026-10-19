@@ -12,6 +12,7 @@ uv venv --python 3.12 .venv
 uv pip install -e '.[dev]'
 
 # 2. Pruebas (sin red, ~10 s): deben dar 88 passed, 3 skipped
+#    (si su .env trae un DATABASE_URL de Supabase, anteponga DATABASE_URL=sqlite:///./dev_local.db)
 .venv/bin/python -m pytest tests/agent -q
 
 # 3. Demo guionada, sin red: 5 historias con la traza completa (plan, herramientas, replanes, memoria)
@@ -30,15 +31,20 @@ TEST_POSTGRES_URL=postgresql://usuario:clave@localhost:5432/base .venv/bin/pytho
 
 ### Probar la pantalla del agente (frontend)
 
-Hace falta Node con `pnpm` y dos terminales:
+Hace falta Node con `pnpm` y dos terminales. Si el `DATABASE_URL` de su `.env` apunta a Supabase y esa conexión no está disponible, fuerce una base SQLite local solo para esta prueba (el valor del entorno manda sobre el `.env` y no lo modifica):
 
 ```bash
+# Una sola vez: catálogo de ejemplo en una base local aparte (dev_local.db)
+DATABASE_URL=sqlite:///./dev_local.db .venv/bin/python scripts/sembrar_catalogo_demo.py
+
 # Terminal 1: backend (modo demo activo por defecto fuera de producción)
-.venv/bin/python -m uvicorn app.main:app --port 8000
+DATABASE_URL=sqlite:///./dev_local.db .venv/bin/python -m uvicorn app.main:app --port 8000
 
 # Terminal 2: frontend
 cd frontend && pnpm install && pnpm dev
 ```
+
+El chat de IA original sigue en **/chat**; el agente es una pantalla adicional en `/agente`.
 
 Abra **http://localhost:3000/agente** (también está el botón «Agente» en la barra superior).
 
