@@ -10,6 +10,7 @@ from app.routers.products import router as products_router
 from app.routers.categories import router as categories_router
 from app.routers.user_profile import router as user_profile_router
 from app.routers.ai import router as ai_router
+from app.agent.security import enable_agent_rls
 from app.routers.agent import demo_router as agent_demo_router, router as agent_router
 from app.routers.admin import router as admin_router
 
@@ -182,4 +183,5 @@ def create_app() -> FastAPI:
 
 
 Base.metadata.create_all(bind=engine)
+enable_agent_rls(engine)
 app = create_app()
