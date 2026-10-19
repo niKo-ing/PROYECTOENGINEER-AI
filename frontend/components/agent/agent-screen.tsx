@@ -199,9 +199,9 @@ export function AgentScreen() {
           <div className="flex size-9 items-center justify-center rounded-xl bg-primary/10 text-primary" aria-hidden="true">
             <Bot className="size-4" />
           </div>
-          <div className="min-w-0">
+          <div className="min-w-0 flex-1">
             <h1 className="text-base font-semibold tracking-tight">Agente de ahorro</h1>
-            <p className="truncate text-xs text-muted-foreground">Busca, razona sobre precios y deja alertas y listas guardadas</p>
+            <p className="hidden truncate text-xs text-muted-foreground sm:block">Busca, razona sobre precios y deja alertas y listas guardadas</p>
           </div>
           <div className="ml-auto flex flex-wrap items-center gap-2">
             {showDemo ? (
@@ -233,7 +233,7 @@ export function AgentScreen() {
 
         {mode === "demo" ? (
           <div className="flex shrink-0 flex-wrap items-center gap-2 border-b bg-muted/40 px-4 py-2 text-xs text-muted-foreground sm:px-6">
-            <span className="min-w-full flex-1 sm:min-w-0">Modo demo: catálogo de ejemplo y modelo guionado. Sin login, sin red y sin gastar cuota.</span>
+            <span className="hidden min-w-0 flex-1 sm:block">Modo demo: catálogo de ejemplo y modelo guionado. Sin login, sin red y sin gastar cuota.</span>
             <Button type="button" variant="outline" size="sm" onClick={() => void simulatePriceDrop()} className="gap-1.5">
               <TrendingDown className="size-3.5" aria-hidden="true" />
               Simular baja de precio
@@ -267,7 +267,8 @@ export function AgentScreen() {
                       key={story.title}
                       type="button"
                       onClick={() => void submit(story.prompt)}
-                      className="rounded-2xl border bg-card px-4 py-3 text-sm shadow-sm transition hover:-translate-y-0.5 hover:border-primary/40 hover:shadow-md"
+                      style={{ animationDelay: `${index * 70}ms` }}
+                      className="rounded-2xl border bg-card px-4 py-3 text-sm shadow-sm transition duration-200 hover:-translate-y-0.5 hover:border-primary/40 hover:shadow-md active:translate-y-0 active:scale-[0.99] motion-safe:animate-card-in"
                     >
                       <span className="text-xs font-semibold text-primary">Historia {index + 1}</span>
                       <span className="block font-medium">{story.title}</span>
@@ -285,17 +286,17 @@ export function AgentScreen() {
 
             {messages.map((message) =>
               message.role === "user" ? (
-                <article key={message.id} className="animate-message-in flex justify-end">
+                <article key={message.id} className="motion-safe:animate-message-in flex justify-end">
                   <div className="max-w-[92%] [overflow-wrap:anywhere] rounded-2xl rounded-br-md bg-primary px-4 py-2.5 text-sm leading-6 text-primary-foreground shadow-sm sm:max-w-[78%]">
                     <p className="whitespace-pre-wrap">{message.text}</p>
                   </div>
                 </article>
               ) : message.role === "notice" ? (
-                <p key={message.id} className="animate-message-in rounded-xl border border-dashed bg-muted/40 px-4 py-2 text-center text-xs text-muted-foreground">
+                <p key={message.id} className="motion-safe:animate-message-in rounded-xl border border-dashed bg-muted/40 px-4 py-2 text-center text-xs text-muted-foreground">
                   {message.text}
                 </p>
               ) : (
-                <article key={message.id} className="animate-message-in flex items-start gap-2.5">
+                <article key={message.id} className="motion-safe:animate-message-in flex items-start gap-2.5">
                   <div className="mt-1 flex size-7 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary" aria-hidden="true">
                     <Bot className="size-4" />
                   </div>
@@ -323,7 +324,7 @@ export function AgentScreen() {
             {isLoading ? <TypingIndicator label="Planificando y consultando el catálogo…" /> : null}
 
             {error ? (
-              <div className="animate-message-in rounded-xl border border-destructive/40 bg-destructive/10 px-4 py-2.5 text-sm text-destructive" role="alert">
+              <div className="motion-safe:animate-message-in rounded-xl border border-destructive/40 bg-destructive/10 px-4 py-2.5 text-sm text-destructive" role="alert">
                 {error}
               </div>
             ) : null}
@@ -343,10 +344,10 @@ export function AgentScreen() {
             <TabsTrigger value="razonamiento">Cómo pensó</TabsTrigger>
             <TabsTrigger value="guardado">Guardado</TabsTrigger>
           </TabsList>
-          <TabsContent value="razonamiento" className="min-h-0 flex-1 overflow-y-auto">
-            <AgentReasoning run={selectedRun} />
+          <TabsContent value="razonamiento" className="min-h-0 flex-1 overflow-y-auto motion-safe:animate-fade-in">
+            <AgentReasoning run={selectedRun} loading={isLoading} />
           </TabsContent>
-          <TabsContent value="guardado" className="min-h-0 flex-1 overflow-y-auto">
+          <TabsContent value="guardado" className="min-h-0 flex-1 overflow-y-auto motion-safe:animate-fade-in">
             <AgentSaved state={state} />
           </TabsContent>
         </Tabs>

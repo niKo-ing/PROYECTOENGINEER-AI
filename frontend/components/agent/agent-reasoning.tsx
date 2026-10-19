@@ -3,6 +3,7 @@
 import { AlertTriangle, Brain, CheckCircle2, Circle, Cog, Database, ListChecks, RefreshCcw, Wrench } from "lucide-react";
 import type { ReactNode } from "react";
 
+import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
 import type { AgentRun, TraceEvent } from "@/lib/api/agent";
 
@@ -42,11 +43,12 @@ function formatArgs(args: Record<string, unknown>): string {
   return text.length > 90 ? `${text.slice(0, 87)}…` : text;
 }
 
-function Row({ icon, tone = "default", children }: { icon: ReactNode; tone?: "default" | "warn" | "write" | "ok"; children: ReactNode }) {
+function Row({ icon, tone = "default", index = 0, children }: { icon: ReactNode; tone?: "default" | "warn" | "write" | "ok"; index?: number; children: ReactNode }) {
   return (
     <li
+      style={{ animationDelay: `${Math.min(index * 45, 700)}ms` }}
       className={cn(
-        "flex items-start gap-2.5 rounded-xl px-3 py-2 text-sm leading-5",
+        "flex items-start gap-2.5 rounded-xl px-3 py-2 text-sm leading-5 motion-safe:animate-panel-in",
         tone === "warn" && "bg-amber-500/10 text-foreground",
         tone === "write" && "bg-primary/10 text-foreground",
         tone === "ok" && "bg-muted/60 text-foreground",
@@ -61,18 +63,18 @@ function Row({ icon, tone = "default", children }: { icon: ReactNode; tone?: "de
   );
 }
 
-function EventRow({ event }: { event: TraceEvent }) {
+function EventRow({ event, index }: { event: TraceEvent; index: number }) {
   switch (event.node) {
     case "recall":
       return (
-        <Row icon={<Database className="size-4" />}>
+        <Row index={index} icon={<Database className="size-4" />}>
           <p className="font-medium">Recordó {event.memories.length === 0 ? "nada relevante" : `${event.memories.length} cosa${event.memories.length > 1 ? "s" : ""}`}</p>
           {event.budget_clp ? <p className="text-xs text-muted-foreground">Presupuesto detectado: ${event.budget_clp.toLocaleString("es-CL")}</p> : null}
         </Row>
       );
     case "plan":
       return (
-        <Row icon={event.replan ? <RefreshCcw className="size-4" /> : <ListChecks className="size-4" />} tone={event.replan ? "warn" : "default"}>
+        <Row index={index} icon={event.replan ? <RefreshCcw className="size-4" /> : <ListChecks className="size-4" />} tone={event.replan ? "warn" : "default"}>
           <p className="font-medium">
             {event.replan ? `Replanificó: ${REASON_LABELS[event.replan] ?? event.replan}` : "Armó el plan inicial"}
           </p>
@@ -84,15 +86,15 @@ function EventRow({ event }: { event: TraceEvent }) {
     case "act": {
       if (event.tool_calls.length === 0) {
         return (
-          <Row icon={<Brain className="size-4" />}>
+          <Row index={index} icon={<Brain className="size-4" />}>
             <p className="font-medium">Redactó la respuesta</p>
           </Row>
         );
       }
       return (
         <>
-          {event.tool_calls.map((call, index) => (
-            <Row key={`${event.step}-${index}`} icon={<Wrench className="size-4" />} tone={WRITE_TOOLS.has(call.tool) ? "write" : "default"}>
+          {event.tool_calls.map((call, i) => (
+            <Row key={`${event.step}-${i}`} index={index + i} icon={<Wrench className="size-4" />} tone={WRITE_TOOLS.has(call.tool) ? "write" : "default"}>
               <p className="font-medium">
                 {toolLabel(call.tool)}
                 {WRITE_TOOLS.has(call.tool) ? <span className="ml-2 rounded-full bg-primary px-1.5 py-0.5 text-[10px] font-semibold uppercase text-primary-foreground">escribe</span> : null}
@@ -106,7 +108,7 @@ function EventRow({ event }: { event: TraceEvent }) {
     case "reflect":
       if (!event.diagnosis) return null;
       return (
-        <Row icon={<AlertTriangle className="size-4" />} tone="warn">
+        <Row index={index} icon={<AlertTriangle className="size-4" />} tone="warn">
           <p className="font-medium">{REASON_LABELS[event.diagnosis.reason] ?? event.diagnosis.reason}</p>
           <p className="text-xs text-muted-foreground">{event.diagnosis.detail}</p>
           <p className="mt-0.5 text-xs font-semibold text-amber-700 dark:text-amber-400">
@@ -116,14 +118,14 @@ function EventRow({ event }: { event: TraceEvent }) {
       );
     case "give_up":
       return (
-        <Row icon={<AlertTriangle className="size-4" />} tone="warn">
+        <Row index={index} icon={<AlertTriangle className="size-4" />} tone="warn">
           <p className="font-medium">Llegó al límite de {event.max_steps} pasos</p>
         </Row>
       );
     case "remember":
       if (event.stored.length === 0) return null;
       return (
-        <Row icon={<Database className="size-4" />} tone="ok">
+        <Row index={index} icon={<Database className="size-4" />} tone="ok">
           <p className="font-medium">Guardó en su memoria</p>
           {event.stored.map((text) => (
             <p key={text} className="text-xs text-muted-foreground">
@@ -137,11 +139,34 @@ function EventRow({ event }: { event: TraceEvent }) {
   }
 }
 
-export function AgentReasoning({ run }: { run: AgentRun | null }) {
+export function AgentReasoning({ run, loading = false }: { run: AgentRun | null; loading?: boolean }) {
+  if (loading) {
+    return (
+      <div className="space-y-5 px-4 py-4" aria-busy="true" aria-label="El agente está trabajando">
+        <div className="grid grid-cols-3 gap-2">
+          {[0, 1, 2].map((i) => (
+            <Skeleton key={i} className="h-[62px] rounded-xl" />
+          ))}
+        </div>
+        <div className="space-y-2">
+          <Skeleton className="h-3 w-24" />
+          {[88, 72, 80, 64].map((w, i) => (
+            <Skeleton key={i} className="h-4 rounded-md" style={{ width: `${w}%` }} />
+          ))}
+        </div>
+        <div className="space-y-2">
+          <Skeleton className="h-3 w-32" />
+          {[0, 1, 2, 3].map((i) => (
+            <Skeleton key={i} className="h-12 rounded-xl" />
+          ))}
+        </div>
+      </div>
+    );
+  }
   if (!run) {
     return (
       <div className="flex h-full flex-col items-center justify-center px-6 py-10 text-center text-sm text-muted-foreground">
-        <Cog className="mb-3 size-8 text-primary/50" aria-hidden="true" />
+        <Cog className="mb-3 size-8 text-primary/50 motion-safe:animate-slow-spin" aria-hidden="true" />
         <p className="font-medium text-foreground">Aquí verás cómo piensa el agente</p>
         <p className="mt-1 max-w-xs leading-6">Su plan, cada herramienta que usa, cuándo cambia de estrategia y qué recuerda. Haz una consulta para empezar.</p>
       </div>
@@ -158,7 +183,7 @@ export function AgentReasoning({ run }: { run: AgentRun | null }) {
     <div className="space-y-5 px-4 py-4">
       <div className="grid grid-cols-3 gap-2">
         {stats.map((stat) => (
-          <div key={stat.label} className="rounded-xl bg-muted/60 px-3 py-2 text-center">
+          <div key={stat.label} className="rounded-xl bg-muted/60 px-3 py-2 text-center motion-safe:animate-card-in">
             <p className="text-xl font-semibold tabular-nums text-foreground">{stat.value}</p>
             <p className="text-[11px] uppercase tracking-wide text-muted-foreground">{stat.label}</p>
           </div>
@@ -186,7 +211,7 @@ export function AgentReasoning({ run }: { run: AgentRun | null }) {
         <h3 className="mb-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">Qué hizo, en orden</h3>
         <ul className="space-y-1.5">
           {run.trace.map((event, index) => (
-            <EventRow key={index} event={event} />
+            <EventRow key={index} event={event} index={index} />
           ))}
         </ul>
       </section>

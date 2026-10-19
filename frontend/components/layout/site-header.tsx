@@ -36,7 +36,7 @@ export function SiteHeader() {
   const groups = mainGroups(categoriesQuery.data ?? []);
 
   return (
-    <header className="sticky top-0 z-40 border-b bg-background/80 backdrop-blur">
+    <header className="sticky top-0 z-40 shrink-0 border-b bg-background/80 backdrop-blur">
       <div className="mx-auto flex max-w-7xl items-center gap-3 px-4 py-3 sm:px-6">
         <Link href="/" className="flex shrink-0 items-center gap-2">
           <span className="flex size-8 items-center justify-center rounded-lg bg-primary font-bold text-primary-foreground" aria-hidden="true">
