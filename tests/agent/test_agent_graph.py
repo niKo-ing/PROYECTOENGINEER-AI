@@ -184,6 +184,15 @@ def test_tool_error_is_observed_and_triggers_one_retry_plan(db, catalog):
 
 
 # -- memoria de largo plazo ------------------------------------------------------------------
+def test_repeating_the_same_request_keeps_a_single_episode(db, catalog):
+    pedido = "Busco un notebook Lenovo, presupuesto $400.000. Arma una lista de compra."
+    for i in range(3):
+        svc, _ = service(db, AhorroPolicy(["Lenovo"]))
+        svc.run(pedido, f"repetido-{i}")
+    episodios = db.query(AgentMemory).filter_by(kind="episode").all()
+    assert len(episodios) == 1 and "Lenovo" in episodios[0].content
+
+
 def test_preference_is_learned_in_one_thread_and_recalled_in_another(db, catalog):
     first, _ = service(db, AhorroPolicy(["Samsung"]))
     first.run("Prefiero Samsung y no quiero Huawei. Busco un celular, presupuesto $400.000", "hilo-a")
