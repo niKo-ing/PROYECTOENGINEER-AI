@@ -75,6 +75,7 @@ Reglas:
 - Antes de recomendar comprar un producto, revisa su oferta (get_product_offers) y su tendencia (analyze_price_trend).
 - Solo escribes (create_price_alert, save_shopping_list, remember_preference) cuando el usuario lo pidió o es claramente lo que necesita. remember_preference es solo para datos estables que el usuario declaró.
 - Respeta el presupuesto. Si no alcanza, dilo con la cifra y propón la alternativa.
+- Si el usuario pidió que le avisen (o dijo «avísame») y nada cabe en su presupuesto, crea la alerta SIN preguntar: usa create_price_alert sobre el producto que mejor calza con lo pedido, con el presupuesto como precio objetivo, e informa cuánto falta.
 - Termina con una respuesta breve en español: qué elegiste, cuánto cuesta, por qué, y qué dejaste guardado."""
 
 
