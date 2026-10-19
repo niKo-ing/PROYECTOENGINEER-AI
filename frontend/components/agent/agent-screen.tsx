@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Bot, MessageSquarePlus, RotateCcw, TrendingDown } from "lucide-react";
 
@@ -50,7 +51,11 @@ const REAL_STORIES = [
 export function AgentScreen() {
   const { session, isLoading: isLoadingSession } = useSession();
   const [demoAvailable, setDemoAvailable] = useState<boolean | null>(null);
-  const [mode, setMode] = useState<AgentMode>("demo");
+  const demoRequested = useSearchParams().get("demo") === "1";
+  const [chosenMode, setChosenMode] = useState<AgentMode>("demo");
+  // El modo Demo no se ofrece a los usuarios: solo existe con ?demo=1 y si el backend lo tiene encendido.
+  const showDemo = demoRequested && demoAvailable === true;
+  const mode: AgentMode = showDemo ? chosenMode : "real";
   const [messages, setMessages] = useState<Message[]>([]);
   const [selectedRunId, setSelectedRunId] = useState<string | null>(null);
   const [state, setState] = useState<AgentState>(EMPTY_STATE);
@@ -69,7 +74,6 @@ export function AgentScreen() {
     void isDemoAvailable().then((enabled) => {
       if (cancelled) return;
       setDemoAvailable(enabled);
-      if (!enabled) setMode("real");
     });
     return () => {
       cancelled = true;
@@ -109,7 +113,7 @@ export function AgentScreen() {
 
   function changeMode(next: AgentMode) {
     if (next === mode) return;
-    setMode(next);
+    setChosenMode(next);
     setMessages([]);
     setSelectedRunId(null);
     setError("");
@@ -127,7 +131,7 @@ export function AgentScreen() {
     const trimmed = text.trim();
     if (!trimmed || isLoading) return;
     if (mode === "real" && !accessToken) {
-      setError("Inicia sesión para usar el agente con Gemini real.");
+      setError("Inicia sesión para usar el agente.");
       return;
     }
     setDraft("");
@@ -200,25 +204,26 @@ export function AgentScreen() {
             <p className="truncate text-xs text-muted-foreground">Busca, razona sobre precios y deja alertas y listas guardadas</p>
           </div>
           <div className="ml-auto flex flex-wrap items-center gap-2">
-            <div className="flex rounded-lg border p-0.5 text-xs font-medium" role="group" aria-label="Modo">
-              <button
-                type="button"
-                disabled={demoAvailable === false}
-                onClick={() => changeMode("demo")}
-                aria-pressed={mode === "demo"}
-                className={cn("rounded-md px-2.5 py-1 disabled:opacity-40", mode === "demo" ? "bg-primary text-primary-foreground" : "text-muted-foreground")}
-              >
-                Demo
-              </button>
-              <button
-                type="button"
-                onClick={() => changeMode("real")}
-                aria-pressed={mode === "real"}
-                className={cn("rounded-md px-2.5 py-1", mode === "real" ? "bg-primary text-primary-foreground" : "text-muted-foreground")}
-              >
-                Gemini real
-              </button>
-            </div>
+            {showDemo ? (
+              <div className="flex rounded-lg border p-0.5 text-xs font-medium" role="group" aria-label="Modo">
+                <button
+                  type="button"
+                  onClick={() => changeMode("demo")}
+                  aria-pressed={mode === "demo"}
+                  className={cn("rounded-md px-2.5 py-1", mode === "demo" ? "bg-primary text-primary-foreground" : "text-muted-foreground")}
+                >
+                  Demo
+                </button>
+                <button
+                  type="button"
+                  onClick={() => changeMode("real")}
+                  aria-pressed={mode === "real"}
+                  className={cn("rounded-md px-2.5 py-1", mode === "real" ? "bg-primary text-primary-foreground" : "text-muted-foreground")}
+                >
+                  Gemini real
+                </button>
+              </div>
+            ) : null}
             <Button type="button" variant="ghost" size="sm" onClick={newConversation} className="gap-1.5">
               <MessageSquarePlus className="size-4" aria-hidden="true" />
               <span className="hidden sm:inline">Nueva conversación</span>
@@ -240,7 +245,7 @@ export function AgentScreen() {
           </div>
         ) : !isLoadingSession && !session ? (
           <div className="shrink-0 border-b bg-amber-500/10 px-4 py-2 text-xs sm:px-6">
-            Para usar el agente con Gemini real necesitas{" "}
+            Para usar el agente necesitas{" "}
             <Link href="/login?next=/agente" className="font-semibold text-primary underline underline-offset-2">
               iniciar sesión
             </Link>
