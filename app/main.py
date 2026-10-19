@@ -1,4 +1,5 @@
 import logging
+import threading
 from contextlib import asynccontextmanager
 from typing import AsyncGenerator
 
@@ -145,6 +146,16 @@ def _get_category_mapper(domain: str):
     return mappers.get(domain, CategoryMapper(domain))
 
 
+def _warm_agent_checkpointer() -> None:
+    """Abre el historial del agente al arrancar: la primera petición no paga la conexión (~3 s a Supabase)."""
+    try:
+        from app.agent.service import default_checkpointer
+
+        default_checkpointer()
+    except Exception:
+        log.warning("No se pudo preparar el historial del agente al arrancar", exc_info=True)
+
+
 @asynccontextmanager
 async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     """FastAPI lifespan — start/stop the ingestion scheduler."""
@@ -159,6 +170,7 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     except Exception:
         log.warning("Ingestion scheduler could not start", exc_info=True)
     app.state.ingestion_scheduler = scheduler
+    threading.Thread(target=_warm_agent_checkpointer, name="agent-warmup", daemon=True).start()
     try:
         yield
     finally:

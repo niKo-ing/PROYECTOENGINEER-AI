@@ -75,7 +75,9 @@ async function parse<T>(response: Response): Promise<T> {
     const detail =
       typeof payload === "object" && payload !== null && "detail" in payload && typeof payload.detail === "string"
         ? payload.detail
-        : "No fue posible completar la solicitud. Inténtalo nuevamente.";
+        : response.status >= 500
+          ? "El servidor tardó demasiado o no respondió. Espera unos segundos y vuelve a intentarlo."
+          : "No fue posible completar la solicitud. Inténtalo nuevamente.";
     throw new Error(detail);
   }
   return payload as T;

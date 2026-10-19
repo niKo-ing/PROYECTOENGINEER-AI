@@ -18,6 +18,7 @@ from app.agent.graph import _text, build_agent_graph
 from app.agent.llm import as_llm_error, get_chat_model, is_provider_error
 from app.agent.memory import LongTermMemory
 from app.agent.tools import build_tools
+from app.agent.security import enable_rls_on_connection
 from app.ai.rag.embedding import EmbeddingProvider
 from app.ai.rag.factory import get_embedding_provider
 from app.core.config import settings
@@ -63,6 +64,7 @@ def make_checkpointer(database_url: str | None = None, mode: str | None = None, 
         conn = psycopg.connect(url.replace("postgresql+psycopg://", "postgresql://", 1), autocommit=True, row_factory=dict_row, prepare_threshold=0)
         saver = PostgresSaver(conn)
         saver.setup()
+        enable_rls_on_connection(conn)  # las tablas del historial guardan conversaciones: nunca expuestas por la API pública
         return saver
     return SqliteSaver(sqlite3.connect(sqlite_path or DEFAULT_CHECKPOINT_DB, check_same_thread=False))
 
@@ -107,7 +109,9 @@ class AgentService:
         # El hilo se ata al usuario: dos usuarios con el mismo thread_id nunca comparten historial.
         config = {"configurable": {"thread_id": f"{self.user_id}:{thread}"}, "recursion_limit": 80}
         try:
-            state = self.graph.invoke({"messages": [HumanMessage(message)]}, config)
+            # durability="exit": el historial se guarda UNA vez al terminar la tarea y no en cada paso. Con una base
+            # remota (Supabase, ~150 ms por consulta) escribir en cada paso sumaba segundos a cada respuesta.
+            state = self.graph.invoke({"messages": [HumanMessage(message)]}, config, durability="exit")
         except Exception as error:  # noqa: BLE001 — solo se traducen los fallos del proveedor; un bug propio sigue subiendo
             if is_provider_error(error):
                 raise as_llm_error(error) from error

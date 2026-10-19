@@ -29,3 +29,19 @@ def test_agent_tables_get_rls_and_other_tables_are_left_alone():
     assert all(flags[t] for t in AGENT_TABLES)
     assert not flags["products"] and not flags["user_profiles"]
     Base.metadata.drop_all(engine)
+
+
+@pytest.mark.skipif(not os.getenv("TEST_POSTGRES_URL"), reason="requiere TEST_POSTGRES_URL")
+def test_checkpointer_tables_are_created_with_rls():
+    from app.agent.security import CHECKPOINT_TABLES
+    from app.agent.service import make_checkpointer
+
+    url = os.environ["TEST_POSTGRES_URL"]
+    engine = create_engine(url.replace("postgresql://", "postgresql+psycopg://", 1))
+    with engine.begin() as c:
+        c.execute(text("drop schema public cascade"))
+        c.execute(text("create schema public"))
+    make_checkpointer(url, "postgres")
+    with engine.connect() as c:
+        flags = dict(c.execute(text("select relname, relrowsecurity from pg_class where relnamespace = 'public'::regnamespace and relkind = 'r'")).all())
+    assert all(flags[t] for t in CHECKPOINT_TABLES), flags
