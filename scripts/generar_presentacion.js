@@ -138,7 +138,22 @@ hist.forEach(([n, t, d], i) => {
 s.addShape(pres.ShapeType.roundRect, { x: 0.5, y: 4.0, w: 9.0, h: 0.9, fill: { color: C.text2 }, rectRadius: 0.1, objectName: "Comando de la demo" });
 texto(s, ".venv/bin/python scripts/demo_agente.py --live --embeddings gemini", { x: 0.7, y: 4.0, w: 8.6, h: 0.9, fontSize: 14, color: C.accent2, fontFace: "Courier New", align: "center", valign: "middle" });
 
-// 8 ── evidencia
+// 8 ── pantalla del agente
+s = diapo("CONTENIDO", "Demostración", "Presenta: Ariel. 45 s. Capturas de la pantalla /agente en modo demo. Izquierda: historia 2, el panel «Cómo pensó» muestra el plan, la búsqueda sin resultados y el cambio de estrategia. Derecha: tras simular la baja de precio, la alerta se cumple y queda registrada en «Guardado». Para mostrarla en vivo: backend en el puerto 8000, frontend con pnpm dev y abrir http://localhost:3000/agente.");
+s.addText("La pantalla: se ve cómo piensa", { placeholder: "title" });
+const capturas = [
+  ["pantalla_razonamiento.png", "Plan, herramientas y replanes en vivo"],
+  ["pantalla_alerta_cumplida.png", "La alerta se cumple y queda guardada"],
+];
+capturas.forEach(([archivo, pie], i) => {
+  const x = 0.5 + i * 4.6;
+  s.addShape(pres.ShapeType.roundRect, { x, y: 1.2, w: 4.4, h: 2.95, fill: { color: C.background2 }, rectRadius: 0.1, shadow: sombra(), objectName: `Marco captura ${i + 1}` });
+  s.addImage({ path: path.join(RAIZ, "docs", "agente", "evidencia", archivo), x: x + 0.1, y: 1.3, w: 4.2, h: 2.625, altText: pie });
+  texto(s, pie, { x, y: 4.3, w: 4.4, h: 0.4, fontSize: 14, bold: true, color: C.text2, align: "center", valign: "middle" });
+});
+texto(s, "Modo demo en http://localhost:3000/agente: sin login y sin gastar cuota", { x: 0.5, y: 4.8, w: 9.0, h: 0.35, fontSize: 14, color: C.text1, align: "center" });
+
+// 9 ── evidencia
 pres.addSection({ title: "Cierre" });
 s = diapo("CONTENIDO", "Cierre", "Presenta: Ariel. 45 s. Cifras reales del repositorio. La demo con Gemini completó las historias 1 a 3; la cuota gratuita se agotó en la 4 y el agente lo informó sin caerse. Pruebas en vivo con Gemini y contra Postgres real: pasaron.");
 s.addText("Evidencia", { placeholder: "title" });
@@ -164,7 +179,7 @@ s.addText(
   { isTextBox: true, x: 0.5, y: 4.35, w: 9.0, h: 0.4, fontSize: 16, margin: 0 },
 );
 
-// 9 ── justificación
+// 10 ── justificación
 s = diapo("OSCURA", "Cierre", "Presentan ambos. 60 s. Cada fila: decisión y razón medida. Preparar la ronda de preguntas (10 min): por qué LangGraph y no el orquestador propio, por qué reglas deterministas, qué falló con los embeddings locales, qué no se probó (pooler real de Supabase).");
 s.addText("Por qué estas decisiones", { placeholder: "title" });
 const razones = [
