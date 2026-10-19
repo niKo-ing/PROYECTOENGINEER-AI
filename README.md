@@ -11,7 +11,7 @@ Requisitos: Python 3.12 y [uv](https://docs.astral.sh/uv/). Para la demo en vivo
 uv venv --python 3.12 .venv
 uv pip install -e '.[dev]'
 
-# 2. Pruebas (sin red, ~10 s): deben dar 88 passed, 3 skipped
+# 2. Pruebas (sin red, ~10 s): deben dar 124 passed, 5 skipped
 #    (si su .env trae un DATABASE_URL de Supabase, anteponga DATABASE_URL=sqlite:///./dev_local.db)
 .venv/bin/python -m pytest tests/agent -q
 
