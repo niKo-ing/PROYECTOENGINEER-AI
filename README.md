@@ -43,7 +43,7 @@ cd frontend && pnpm install && pnpm dev
 Abra **http://localhost:3000/agente** (también está el botón «Agente» en la barra superior).
 
 - **Modo Demo** (por defecto, sin login, sin red, sin gastar cuota): catálogo de ejemplo y modelo guionado. Pruebe las 5 historias de la pantalla. A la derecha, «Cómo pensó» muestra el plan, cada herramienta y los replanes; «Guardado» muestra alertas, listas y memoria. Tras la historia 2 pulse **Simular baja de precio** y pida «Revisa mis alertas de precio». **Reiniciar demo** deja todo de cero.
-- **Modo Gemini real**: requiere iniciar sesión (Supabase) y `GEMINI_API_KEY`; usa el endpoint autenticado `/api/v1/agent/run`.
+- **Modo Gemini real**: requiere iniciar sesión (Supabase) y `GEMINI_API_KEY`; usa el endpoint autenticado `/api/v1/agent/run`. Con una base SQLite vacía no hay productos que buscar: siembre el catálogo de ejemplo con `.venv/bin/python scripts/sembrar_catalogo_demo.py` (solo SQLite local; no hace nada si ya hay productos).
 - El modo demo se apaga solo con `APP_ENV=production`, o con `AGENT_DEMO_ENABLED=false`.
 
 Scripts asociados: `scripts/demo_agente.py` (demo), `scripts/generar_diagramas.py` (diagramas PNG), `scripts/generar_informe.py` (informe .docx). Un `.env` con `DATABASE_URL` hace que las pruebas intenten conectarse a esa base: para probar, no lo defina. Detalle de arquitectura en [`docs/agente/ARQUITECTURA.md`](docs/agente/ARQUITECTURA.md) y de contratos en [`docs/agente/DISENO.md`](docs/agente/DISENO.md).
