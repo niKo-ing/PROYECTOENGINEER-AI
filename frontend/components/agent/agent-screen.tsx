@@ -29,11 +29,21 @@ import { cn } from "@/lib/utils";
 
 type Message = { id: string; role: "user" | "assistant" | "notice"; text: string; run?: AgentRun };
 
-const STORIES = [
+// Modo demo: catálogo de ejemplo (notebooks, un celular Samsung y uno Huawei).
+const DEMO_STORIES = [
   { title: "Compra con lista", prompt: "Quiero un notebook Lenovo para la universidad, presupuesto $400.000. Arma una lista de compra." },
   { title: "Sin resultados → cambia de plan", prompt: "Quiero un notebook gamer, presupuesto $300.000. Avísame cuando baje." },
   { title: "El historial dice «esperar»", prompt: "Necesito el notebook ASUS TUF, presupuesto $900.000. Guarda la lista si conviene." },
   { title: "Memoria entre conversaciones", prompt: "Prefiero Samsung y no quiero Huawei. Busco un celular, presupuesto $400.000." },
+  { title: "Revisar alertas", prompt: "Revisa mis alertas de precio." },
+] as const;
+
+// Modo real: pensadas para el catálogo ingestado (celulares, notebooks, tarjetas de video, procesadores y placas madre).
+const REAL_STORIES = [
+  { title: "Compra con lista", prompt: "Quiero un celular Samsung o Xiaomi, presupuesto $320.000. Arma una lista de compra." },
+  { title: "Sobre el presupuesto → alerta", prompt: "Quiero el notebook HP Victus 15 con RTX 2050, mi presupuesto es $1.000.000. Avísame cuando baje a ese precio." },
+  { title: "Dónde comprar más barato", prompt: "Compara el Xiaomi Redmi Note 15 Pro entre las tiendas y dime dónde conviene comprarlo." },
+  { title: "Memoria entre conversaciones", prompt: "Prefiero Samsung y no quiero Xiaomi. Busco un celular, presupuesto $350.000." },
   { title: "Revisar alertas", prompt: "Revisa mis alertas de precio." },
 ] as const;
 
@@ -247,7 +257,7 @@ export function AgentScreen() {
                   El agente planifica, consulta el catálogo, juzga si el precio está inflado y puede dejar una alerta o una lista guardada. Prueba una de estas historias:
                 </p>
                 <div className="mt-5 grid gap-2 text-left sm:grid-cols-2">
-                  {STORIES.map((story, index) => (
+                  {(mode === "demo" ? DEMO_STORIES : REAL_STORIES).map((story, index) => (
                     <button
                       key={story.title}
                       type="button"
@@ -260,6 +270,11 @@ export function AgentScreen() {
                     </button>
                   ))}
                 </div>
+                {mode === "real" ? (
+                  <p className="mt-3 text-xs leading-5 text-muted-foreground">
+                    Con tu catálogo real: si un producto tiene menos de 3 observaciones de precio, el agente te dirá que no alcanza para juzgar su tendencia. Lo que guarde (alertas, listas, memoria) queda en tu cuenta.
+                  </p>
+                ) : null}
               </div>
             ) : null}
 
