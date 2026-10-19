@@ -90,101 +90,96 @@
   }
 }
 
-.chat-markdown pre code {
-  background: transparent;
-  padding: 0;
-  font-size: inherit;
-}
+/* Animaciones del sistema. En Tailwind v4 se declaran en @theme y se usan como utilidades `animate-*`;
+   las variantes `motion-safe:` y `motion-reduce:` respetan «reducir movimiento» del sistema. */
+@theme {
+  --ease-out-soft: cubic-bezier(0.21, 0.47, 0.32, 0.98);
 
-@keyframes message-in {
-  from {
-    opacity: 0;
-    transform: translateY(8px) scale(0.99);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0) scale(1);
-  }
-}
+  /* Para escalonar entradas, el retardo va en el elemento (style={{ animationDelay }}): una variable dentro de
+     estas definiciones se resolvería en :root, donde no existe. */
+  --animate-message-in: message-in 0.32s var(--ease-out-soft) both;
+  --animate-card-in: card-in 0.4s var(--ease-out-soft) both;
+  --animate-panel-in: panel-in 0.35s var(--ease-out-soft) both;
+  --animate-fade-in: fade-in 0.25s ease-out both;
+  --animate-thinking: thinking-dot 1.2s ease-in-out infinite;
+  --animate-thinking-calm: thinking-calm 2.2s ease-in-out infinite;
+  --animate-slow-spin: slow-spin 10s linear infinite;
 
-@keyframes card-in {
-  from {
-    opacity: 0;
-    transform: translateY(10px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-@keyframes chat-fade-in {
-  from {
-    opacity: 0;
-  }
-  to {
-    opacity: 1;
-  }
-}
-
-@keyframes thinking-dot {
-  0%,
-  60%,
-  100% {
-    opacity: 0.25;
-    background-color: hsl(var(--muted-foreground));
-  }
-  30% {
-    opacity: 1;
-    background-color: hsl(var(--primary));
-  }
-}
-
-.animate-message-in {
-  animation: message-in 0.28s cubic-bezier(0.21, 0.47, 0.32, 0.98) both;
-}
-
-.animate-card-in {
-  animation: card-in 0.35s cubic-bezier(0.21, 0.47, 0.32, 0.98) both;
-}
-
-.animate-fade-in {
-  animation: chat-fade-in 0.25s ease-out both;
-}
-
-.thinking-dot {
-  animation: thinking-dot 1.1s ease-in-out infinite;
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .animate-message-in,
-  .animate-card-in,
-  .animate-fade-in {
-    animation: none !important;
+  @keyframes message-in {
+    from {
+      opacity: 0;
+      translate: 0 8px;
+      scale: 0.985;
+    }
+    to {
+      opacity: 1;
+      translate: 0 0;
+      scale: 1;
+    }
   }
 
-  .thinking-dot {
-    animation: thinking-dot 1.4s ease-in-out infinite;
+  @keyframes card-in {
+    from {
+      opacity: 0;
+      translate: 0 12px;
+    }
+    to {
+      opacity: 1;
+      translate: 0 0;
+    }
   }
-}
 
-/* Let the chat fill the viewport below the actual site header height. */
-.site-shell:has(.chat-page) {
-  height: 100dvh;
-  min-height: 0;
-  overflow: hidden;
-}
+  @keyframes panel-in {
+    from {
+      opacity: 0;
+      translate: 10px 0;
+    }
+    to {
+      opacity: 1;
+      translate: 0 0;
+    }
+  }
 
-.site-shell:has(.chat-page) > header {
-  flex-shrink: 0;
-}
+  @keyframes fade-in {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
 
-.site-shell:has(.chat-page) > main {
-  flex: 1;
-  min-height: 0;
-  min-width: 0;
-}
+  /* El color de los puntos lo pone la clase `bg-*`; aquí solo se anima opacidad, posición y escala.
+     (Antes usaba hsl(var(--token)) con tokens en oklch: el valor era inválido y los puntos quedaban transparentes.) */
+  @keyframes thinking-dot {
+    0%,
+    60%,
+    100% {
+      opacity: 0.35;
+      translate: 0 0;
+      scale: 0.85;
+    }
+    30% {
+      opacity: 1;
+      translate: 0 -3px;
+      scale: 1;
+      background-color: var(--primary);
+    }
+  }
 
-.site-shell:has(.chat-page) > footer {
-  display: none;
+  @keyframes thinking-calm {
+    0%,
+    100% {
+      opacity: 0.35;
+    }
+    50% {
+      opacity: 1;
+    }
+  }
+
+  @keyframes slow-spin {
+    to {
+      rotate: 360deg;
+    }
+  }
 }

@@ -126,7 +126,7 @@ const components = {
     </code>
   ),
   pre: ({ children }) => (
-    <pre className="my-2 overflow-x-auto rounded-xl bg-muted p-3.5 font-mono text-[13px] leading-relaxed first:mt-0 last:mb-0">
+    <pre className="my-2 overflow-x-auto rounded-xl bg-muted p-3.5 font-mono text-[13px] leading-relaxed first:mt-0 last:mb-0 [&_code]:bg-transparent [&_code]:p-0 [&_code]:text-[length:inherit]">
       {children}
     </pre>
   ),

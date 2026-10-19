@@ -18,9 +18,9 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
       <body className="min-h-screen antialiased">
         <CompareProvider>
           <Providers>
-            <div className="site-shell flex min-h-screen flex-col">
+            <div className="group/shell flex min-h-screen flex-col has-[.chat-page]:h-dvh has-[.chat-page]:min-h-0 has-[.chat-page]:overflow-hidden">
               <SiteHeader />
-              <main className="flex-1">{children}</main>
+              <main className="min-h-0 min-w-0 flex-1">{children}</main>
               <SiteFooter />
               <CompareBar />
             </div>

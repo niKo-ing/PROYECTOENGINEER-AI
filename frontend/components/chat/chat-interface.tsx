@@ -231,14 +231,14 @@ export function ChatInterface({ accessToken, productId, productName }: ChatInter
               message.role === "user" ? (
                 <article
                   key={message.id}
-                  className="animate-message-in flex justify-end"
+                  className="motion-safe:animate-message-in flex justify-end"
                 >
                   <div className="max-w-[92%] [overflow-wrap:anywhere] rounded-2xl rounded-br-md bg-primary px-4 py-2.5 text-sm leading-6 text-primary-foreground shadow-sm sm:max-w-[78%]">
                     <p className="whitespace-pre-wrap">{message.text}</p>
                   </div>
                 </article>
               ) : (
-                <article key={message.id} className="animate-message-in flex items-start gap-2.5">
+                <article key={message.id} className="motion-safe:animate-message-in flex items-start gap-2.5">
                   <div
                     className="mt-1 flex size-7 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary"
                     aria-hidden="true"
@@ -255,14 +255,14 @@ export function ChatInterface({ accessToken, productId, productName }: ChatInter
             {isLoading ? <TypingIndicator label={thinkingLabel} /> : null}
 
             {contextLoading ? (
-              <div className="animate-message-in flex items-center gap-2 text-sm text-muted-foreground">
+              <div className="motion-safe:animate-message-in flex items-center gap-2 text-sm text-muted-foreground">
                 <Info className="size-4 text-primary/70" aria-hidden="true" />
                 Cargando el contexto real del producto desde el catálogo…
               </div>
             ) : null}
 
             {error ? (
-              <div className="animate-message-in rounded-xl border border-destructive/40 bg-destructive/10 px-4 py-2.5 text-sm text-destructive" role="alert">
+              <div className="motion-safe:animate-message-in rounded-xl border border-destructive/40 bg-destructive/10 px-4 py-2.5 text-sm text-destructive" role="alert">
                 {error}
               </div>
             ) : null}

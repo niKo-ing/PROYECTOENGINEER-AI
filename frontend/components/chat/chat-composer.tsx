@@ -1,7 +1,7 @@
 "use client";
 
 import { KeyboardEvent } from "react";
-import { ArrowUp } from "lucide-react";
+import { ArrowUp, Loader2 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 
@@ -41,9 +41,9 @@ export function ChatComposer({ draft, isLoading, onChange, onSend }: ChatCompose
           onClick={onSend}
           disabled={!canSend}
           aria-label="Enviar mensaje"
-          className="size-11 shrink-0 rounded-2xl transition-transform active:scale-90"
+          className="size-11 shrink-0 rounded-2xl transition duration-200 hover:scale-105 active:scale-90 disabled:hover:scale-100"
         >
-          <ArrowUp className="size-5" aria-hidden="true" />
+          {isLoading ? <Loader2 className="size-5 animate-spin" aria-hidden="true" /> : <ArrowUp className="size-5" aria-hidden="true" />}
         </Button>
       </div>
       <p className="mt-2 hidden sm:block text-center text-[11px] leading-4 text-muted-foreground">

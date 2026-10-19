@@ -83,7 +83,7 @@ function ProductCard({ product, index }: { product: ProductRead; index: number }
   return (
     <Link
       href={`/product/${product.id}`}
-      className="animate-card-in group flex min-w-[18rem] max-w-[18rem] snap-start flex-col overflow-hidden rounded-2xl border bg-card shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:border-primary/40 hover:shadow-md sm:min-w-[22rem] sm:max-w-[22rem] lg:min-w-0 lg:max-w-none lg:flex-row"
+      className="motion-safe:animate-card-in group flex min-w-[18rem] max-w-[18rem] snap-start flex-col overflow-hidden rounded-2xl border bg-card shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:border-primary/40 hover:shadow-md sm:min-w-[22rem] sm:max-w-[22rem] lg:min-w-0 lg:max-w-none lg:flex-row"
       style={{ animationDelay: `${index * 55}ms` }}
     >
       <ProductImage
