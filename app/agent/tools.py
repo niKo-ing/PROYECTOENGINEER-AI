@@ -15,6 +15,7 @@ negocio, así el agente lo ve como observación y puede replanificar.
 from __future__ import annotations
 
 import json
+import threading
 from datetime import datetime, timezone
 from statistics import mean
 from typing import Any
@@ -101,10 +102,16 @@ def build_tools(db: Session, user_id: str, memory: LongTermMemory) -> list[Struc
     """Construye las herramientas ligadas a una sesión de base de datos y a un usuario."""
     products = ProductService(db)
 
+    # Todas las herramientas comparten UNA sesión de base de datos, que no admite uso simultáneo. Gemini suele
+    # pedir varias herramientas en un mismo paso y LangGraph las ejecuta en paralelo (hilos): sin este candado,
+    # dos búsquedas a la vez fallaban con «concurrent operations are not permitted». Se ejecutan de a una.
+    db_lock = threading.RLock()
+
     def guarded(fn):
         def run(**kwargs):
             try:
-                return _dump(fn(**kwargs))
+                with db_lock:
+                    return _dump(fn(**kwargs))
             except HTTPException as error:
                 raise ToolException(str(error.detail)) from error
             except ValueError as error:

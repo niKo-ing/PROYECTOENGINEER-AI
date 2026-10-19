@@ -27,6 +27,29 @@ def events(result, node):
     return [e for e in result.trace if e["node"] == node]
 
 
+def test_parallel_tool_calls_in_one_step_all_succeed(db, catalog):
+    """Gemini pidió «Samsung» y «Xiaomi» en un mismo paso: las dos búsquedas corren y ninguna falla."""
+
+    def policy(messages, tool_names):
+        if "PLANIFICADOR" in str(messages[0].content)[:80]:
+            return AIMessage(content='{"steps": [{"action": "Buscar con search_products", "priority": 1}]}')
+        if not any(isinstance(m, ToolMessage) for m in messages):
+            return AIMessage(
+                content="",
+                tool_calls=[
+                    {"name": "search_products", "args": {"brand": "Samsung"}, "id": "p1"},
+                    {"name": "search_products", "args": {"brand": "Lenovo"}, "id": "p2"},
+                ],
+            )
+        return AIMessage(content="Listo: busqué en las dos marcas.")
+
+    svc, _ = service(db, policy)
+    result = svc.run("Quiero un celular Samsung o un notebook Lenovo", "paralelo")
+    assert result.tools_used == ["search_products", "search_products"]
+    assert [e for e in events(result, "reflect") if e["diagnosis"]] == []  # ninguna falló
+    assert result.answer.startswith("Listo")
+
+
 # -- orquestación: consulta → razonamiento → escritura --------------------------------------
 def test_happy_path_searches_reasons_and_writes_a_shopping_list(db, catalog):
     svc, _ = service(db, AhorroPolicy(["Lenovo"]))
