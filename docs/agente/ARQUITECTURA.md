@@ -151,7 +151,7 @@ puntaje = 0,75 · similitud_coseno(consulta, recuerdo)
 
 ```bash
 uv venv --python 3.12 .venv && uv pip install -e '.[dev]'
-.venv/bin/python -m pytest tests/agent -q                      # 88 pruebas, sin red
+.venv/bin/python -m pytest tests/agent -q                      # 124 pruebas, sin red (5 opt-in omitidas)
 .venv/bin/python scripts/demo_agente.py                        # 5 historias, modelo guionado
 .venv/bin/python scripts/demo_agente.py --live --embeddings gemini   # con Gemini real (.env: GEMINI_API_KEY, GEMINI_MODEL)
 RUN_LIVE=1 .venv/bin/python -m pytest tests/agent/test_live_gemini.py -q   # pruebas contra Gemini
@@ -173,11 +173,11 @@ Migración: `alembic upgrade head` (agrega `agent_memories`, `price_alerts`, `sh
 
 | Evidencia | Dónde |
 |---|---|
-| Resultado de las pruebas (88 del agente; 873 en la suite completa) | `docs/agente/evidencia/pytest_agente.txt`, `pytest_suite_completa.txt` |
+| Resultado de las pruebas (129 del agente; 909 en la suite completa) | `docs/agente/evidencia/pytest_agente.txt`, `pytest_suite_completa.txt` |
 | Bocetos de diseño (estado, contratos, prompt, esquema de datos) | `docs/agente/DISENO.md` |
 | Capturas de la pantalla del agente (`/agente`): plan y replanes; alerta cumplida | `docs/agente/evidencia/pantalla_razonamiento.png`, `pantalla_alerta_cumplida.png` |
 | Informe (≤ 5 páginas) y presentación de la exposición (10 diapositivas con notas de apoyo) | `docs/agente/Informe_EP2_Agente_TodoBarato.docx`, `docs/agente/Presentacion_EP2_Agente_TodoBarato.pptx` |
-| Pruebas unitarias y de escenarios | `tests/agent/` — 88 pruebas + 3 opt-in (2 Gemini, 1 Postgres) |
+| Pruebas unitarias y de escenarios | `tests/agent/` — 124 pruebas + 5 opt-in (2 Gemini, 3 Postgres) |
 | Traza de las 5 historias con modelo guionado | `docs/agente/evidencia/demo_guionada.txt` |
 | Traza con Gemini real (historias 1–3 completas; cortó la cuota gratuita en la 4) | `docs/agente/evidencia/demo_gemini.txt` |
 | Pruebas en vivo (embeddings semánticos reales y tarea completa con Gemini) | `tests/agent/test_live_gemini.py` — pasaron |
@@ -199,7 +199,7 @@ Qué demuestra cada grupo de pruebas:
 * **El modelo guionado no es una lista fija:** su política lee las observaciones y decide (por eso reacciona al replan), pero sigue siendo un doble de prueba. Lo que prueba es el grafo, no la calidad de Gemini; para eso están las pruebas y la demo en vivo.
 * **Los embeddings locales no son semánticos** (hash de palabras). Con ellos la memoria funciona por coincidencia de palabras más la memoria núcleo; la recuperación por significado real requiere `EMBEDDING_PROVIDER=gemini`. Las pruebas del ranking semántico usan un embedder de prueba por conceptos y, aparte, hay una prueba opt-in con Gemini real.
 * **El progreso del plan es aproximado:** un paso se marca como hecho si nombra una herramienta que se ejecutó. Si el LLM redacta pasos sin nombrar herramientas, quedan pendientes (se prefiere no marcar de más).
-* **Escalabilidad del checkpointer.** `AGENT_CHECKPOINT=auto` elige `PostgresSaver` cuando la app usa Postgres/Supabase (varias réplicas comparten los hilos; probado con dos conexiones contra un Postgres 16 real) y `SqliteSaver` en desarrollo local. Postgres usa `prepare_threshold=0` por compatibilidad con el pooler de Supabase; esa configuración con el pooler real de Supabase no se probó.
+* **Escalabilidad del checkpointer.** `AGENT_CHECKPOINT=auto` elige `PostgresSaver` cuando la app usa Postgres/Supabase (varias réplicas comparten los hilos; probado con dos conexiones contra un Postgres 16 real) y `SqliteSaver` en desarrollo local. Postgres usa `prepare_threshold=0` por compatibilidad con el pooler de Supabase; esa configuración funciona con el pooler real de Supabase (verificada en uso real con la pantalla `/agente`).
 * **Las alertas se evalúan cuando el usuario las revisa**, no en segundo plano. Un cron que corra `check_price_alerts` tras cada ingesta sería el siguiente paso.
 * **Cuota gratuita de Gemini:** la demo completa en vivo supera el límite del plan gratuito; por eso la evidencia en vivo es parcial.
 
