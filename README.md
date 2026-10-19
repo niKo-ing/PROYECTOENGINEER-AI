@@ -1,5 +1,7 @@
 # SoloTodo AI
 
+> **Evaluación Parcial 2 (ISY0101) — Agente de ahorro con LangGraph.** Un agente que busca, compara, razona sobre el historial de precios y **escribe** alertas y listas de compra, con memoria de corto y largo plazo y replanificación adaptativa. Arquitectura, diagramas, cómo ejecutarlo y evidencia: [`docs/agente/ARQUITECTURA.md`](docs/agente/ARQUITECTURA.md). Código en `app/agent/`, pruebas en `tests/agent/`, demo con `python scripts/demo_agente.py`.
+
 Base de infraestructura para un monolito modular. El backend usa FastAPI y SQLAlchemy; el frontend usa Next.js, React, TypeScript y Tailwind CSS. PostgreSQL en Supabase es la base de datos objetivo.
 
 ## Inicio rápido con Docker

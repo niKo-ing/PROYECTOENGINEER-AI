@@ -1,0 +1,187 @@
+Agente de ahorro TodoBarato — modelo guionado (sin red), embeddings: local
+
+==============================================================================
+Historia 1: Compra simple: consulta → razonamiento → escritura
+  Usuario (compra): Quiero un notebook Lenovo para la universidad, presupuesto $400.000. Arma una lista de compra.
+==============================================================================
+  [recall]  presupuesto detectado: 400000  |  memoria: (nada relevante)
+  [plan]    plan inicial (fuente: llm)
+              · 1: Consultar las preferencias guardadas del usuario (get_user_profile / recall_memory)
+              · 1: Buscar candidatos en el catálogo con tope de $400.000 (search_products)
+              · 2: Revisar ofertas y stock de los mejores candidatos (get_product_offers)
+              · 2: Juzgar si es buen momento de compra con analyze_price_trend
+              · 3: Guardar la lista de compra con la mejor oferta de cada ítem (save_shopping_list)
+              · 3: Si el usuario reveló una preferencia estable, guardarla con remember_preference
+              · 3: Responder con la recomendación, el total frente al presupuesto y los datos que la respaldan
+  [act 1]   search_products(query=Lenovo, max_price_clp=400000)
+  [act 2]   get_product_offers(product_id=1)
+  [act 3]   analyze_price_trend(product_id=1)
+  [act 4]   save_shopping_list(name=Compra: Notebook Lenovo IdeaPad 3, product_ids=[1], budget_clp=400000)
+  [act 5]   responde al usuario
+  [memoria] guardó: Tarea: Quiero un notebook Lenovo para la universidad, presupuesto $400.000. Arma una lista de compra. → Result
+
+  RESPUESTA:
+    Te recomiendo Notebook Lenovo IdeaPad 3 a $349.990 en Paris. El precio
+    actual está a menos de 3% del mínimo histórico ($349.990). Lo dejé
+    guardado en tu lista.
+
+  herramientas: search_products, get_product_offers, analyze_price_trend, save_shopping_list | escrituras: ['save_shopping_list'] | replanificaciones: 0 | pasos: 5
+
+==============================================================================
+Historia 2: Planificación adaptativa: sin resultados y sobre presupuesto
+  Usuario (gamer): Quiero un notebook gamer, presupuesto $300.000. Avísame cuando baje.
+==============================================================================
+  [recall]  presupuesto detectado: 300000  |  memoria: «Tarea: Quiero un notebook Lenovo para la universidad, presupuesto $400.000. Arma una lista de compra. → Resultado: Te recomiendo Notebook Lenovo IdeaPad 3 a $349.990 en Paris. El precio actual está a menos de 3% del mínimo histórico ($349.990). Lo dejé guardado en tu lista.» (relevancia 0.327)
+  [plan]    plan inicial (fuente: llm)
+              · 1: Buscar candidatos en el catálogo con tope de $300.000 (search_products)
+              · 2: Revisar ofertas y stock de los mejores candidatos (get_product_offers)
+              · 2: Juzgar si es buen momento de compra con analyze_price_trend
+              · 2: Crear una alerta de precio para lo que no conviene comprar hoy (create_price_alert)
+              · 3: Si el usuario reveló una preferencia estable, guardarla con remember_preference
+              · 3: Responder con la recomendación, el total frente al presupuesto y los datos que la respaldan
+  [act 1]   search_products(query=notebook gamer, max_price_clp=300000)
+  [reflect] ⚠ sin_resultados: search_products devolvió 0 productos  →  replanificar
+  [plan]    REPLAN por sin_resultados (fuente: llm)
+              · 1: Buscar candidatos en el catálogo con tope de $300.000 (search_products)
+              · 1: Adaptación por 'sin_resultados': La búsqueda no devolvió productos. Repetir con términos más generales, sin filtro de marca ni de precio mínimo, y avisar al usuario si se relajó algún criterio.
+              · 2: Revisar ofertas y stock de los mejores candidatos (get_product_offers)
+              · 2: Juzgar si es buen momento de compra con analyze_price_trend
+              · 2: Crear una alerta de precio para lo que no conviene comprar hoy (create_price_alert)
+              · 3: Si el usuario reveló una preferencia estable, guardarla con remember_preference
+              · 3: Responder con la recomendación, el total frente al presupuesto y los datos que la respaldan
+  [act 2]   search_products(query=notebook gamer)
+  [reflect] ⚠ sin_resultados: search_products devolvió 0 productos  →  continuar_sin_replan
+  [act 3]   search_products(query=notebook)
+  [reflect] ⚠ sobre_presupuesto: El más barato cuesta $349.990 y el presupuesto es $300.000  →  replanificar
+  [plan]    REPLAN por sobre_presupuesto (fuente: llm)
+              · 1: Buscar candidatos en el catálogo con tope de $300.000 (search_products)
+              · 1: Adaptación por 'sobre_presupuesto': Todo lo encontrado supera el presupuesto. Buscar alternativas de gama inferior dentro del presupuesto; si no existen, crear una alerta de precio por el mejor candidato e informar cuánto falta.
+              · 2: Revisar ofertas y stock de los mejores candidatos (get_product_offers)
+              · 2: Juzgar si es buen momento de compra con analyze_price_trend
+              · 2: Crear una alerta de precio para lo que no conviene comprar hoy (create_price_alert)
+              · 3: Si el usuario reveló una preferencia estable, guardarla con remember_preference
+              · 3: Responder con la recomendación, el total frente al presupuesto y los datos que la respaldan
+  [act 4]   get_product_offers(product_id=1)
+  [act 5]   analyze_price_trend(product_id=1)
+  [act 6]   create_price_alert(product_id=1, target_price_clp=300000)
+  [act 7]   responde al usuario
+  [memoria] guardó: Tarea: Quiero un notebook gamer, presupuesto $300.000. Avísame cuando baje. → Resultado: Notebook Lenovo IdeaP
+
+  RESPUESTA:
+    Notebook Lenovo IdeaPad 3 cuesta $349.990 y tu presupuesto es $300.000:
+    faltan $49.990. Dejé una alerta para avisarte cuando baje a $300.000.
+
+  herramientas: search_products, search_products, search_products, get_product_offers, analyze_price_trend, create_price_alert | escrituras: ['create_price_alert'] | replanificaciones: 2 | pasos: 7
+
+==============================================================================
+Historia 3: Razonamiento sobre precios: el historial dice «esperar»
+  Usuario (asus): Necesito el notebook ASUS TUF, presupuesto $900.000. Guarda la lista si conviene.
+==============================================================================
+  [recall]  presupuesto detectado: 900000  |  memoria: «Tarea: Quiero un notebook Lenovo para la universidad, presupuesto $400.000. Arma una lista de compra. → Resultado: Te recomiendo Notebook Lenovo IdeaPad 3 a $349.990 en Paris. El precio actual está a menos de 3% del mínimo histórico ($349.990). Lo dejé guardado en tu lista.» (relevancia 0.3526); «Tarea: Quiero un notebook gamer, presupuesto $300.000. Avísame cuando baje. → Resultado: Notebook Lenovo IdeaPad 3 cuesta $349.990 y tu presupuesto es $300.000: faltan $49.990. Dejé una alerta para avisarte cuando baje a $300.000.» (relevancia 0.3006)
+  [plan]    plan inicial (fuente: llm)
+              · 1: Buscar candidatos en el catálogo con tope de $900.000 (search_products)
+              · 2: Revisar ofertas y stock de los mejores candidatos (get_product_offers)
+              · 2: Juzgar si es buen momento de compra con analyze_price_trend
+              · 3: Guardar la lista de compra con la mejor oferta de cada ítem (save_shopping_list)
+              · 3: Si el usuario reveló una preferencia estable, guardarla con remember_preference
+              · 3: Responder con la recomendación, el total frente al presupuesto y los datos que la respaldan
+  [act 1]   search_products(query=ASUS TUF, max_price_clp=900000)
+  [act 2]   get_product_offers(product_id=2)
+  [act 3]   analyze_price_trend(product_id=2)
+  [reflect] ⚠ precio_alto: El precio actual está 9.3% sobre el promedio histórico ($731.990).  →  replanificar
+  [plan]    REPLAN por precio_alto (fuente: llm)
+              · 1: Buscar candidatos en el catálogo con tope de $900.000 (search_products)
+              · 2: Revisar ofertas y stock de los mejores candidatos (get_product_offers)
+              · 2: Juzgar si es buen momento de compra con analyze_price_trend
+              · 1: Adaptación por 'precio_alto': El análisis histórico dice 'esperar': el precio está alto. No recomendar comprar ahora; crear una alerta de precio con un objetivo cercano al promedio histórico.
+              · 2: Crear una alerta de precio para lo que no conviene comprar hoy (create_price_alert)
+              · 3: Guardar la lista de compra con la mejor oferta de cada ítem (save_shopping_list)
+              · 3: Si el usuario reveló una preferencia estable, guardarla con remember_preference
+              · 3: Responder con la recomendación, el total frente al presupuesto y los datos que la respaldan
+  [act 4]   create_price_alert(product_id=2, target_price_clp=731990)
+  [act 5]   responde al usuario
+  [memoria] guardó: Tarea: Necesito el notebook ASUS TUF, presupuesto $900.000. Guarda la lista si conviene. → Resultado: Notebook
+
+  RESPUESTA:
+    Notebook ASUS TUF Gaming F15 está en $799.990. El precio actual está 9.3%
+    sobre el promedio histórico ($731.990). Te recomiendo esperar: dejé una
+    alerta de precio.
+
+  herramientas: search_products, get_product_offers, analyze_price_trend, create_price_alert | escrituras: ['create_price_alert'] | replanificaciones: 1 | pasos: 5
+
+==============================================================================
+Historia 4: Memoria de largo plazo entre hilos distintos
+  Usuario (memoria-a): Prefiero Samsung y no quiero Huawei. Busco un celular, presupuesto $400.000.
+==============================================================================
+  [recall]  presupuesto detectado: 400000  |  memoria: «Tarea: Quiero un notebook gamer, presupuesto $300.000. Avísame cuando baje. → Resultado: Notebook Lenovo IdeaPad 3 cuesta $349.990 y tu presupuesto es $300.000: faltan $49.990. Dejé una alerta para avisarte cuando baje a $300.000.» (relevancia 0.4162); «Tarea: Quiero un notebook Lenovo para la universidad, presupuesto $400.000. Arma una lista de compra. → Resultado: Te recomiendo Notebook Lenovo IdeaPad 3 a $349.990 en Paris. El precio actual está a menos de 3% del mínimo histórico ($349.990). Lo dejé guardado en tu lista.» (relevancia 0.3604)
+  [plan]    plan inicial (fuente: llm)
+              · 1: Buscar candidatos en el catálogo con tope de $400.000 (search_products)
+              · 2: Revisar ofertas y stock de los mejores candidatos (get_product_offers)
+              · 2: Juzgar si es buen momento de compra con analyze_price_trend
+              · 3: Si el usuario reveló una preferencia estable, guardarla con remember_preference
+              · 3: Responder con la recomendación, el total frente al presupuesto y los datos que la respaldan
+  [act 1]   search_products(query=Samsung, max_price_clp=400000)
+  [act 2]   get_product_offers(product_id=4)
+  [act 3]   analyze_price_trend(product_id=4)
+  [act 4]   responde al usuario
+  [memoria] guardó: Prefiero Samsung y no quiero Huawei
+  [memoria] guardó: Tarea: Prefiero Samsung y no quiero Huawei. Busco un celular, presupuesto $400.000. → Resultado: Te recomiendo
+
+  RESPUESTA:
+    Te recomiendo Samsung Galaxy A55 a $329.990 en Paris. El precio actual
+    está a menos de 3% del mínimo histórico ($329.990).
+
+  herramientas: search_products, get_product_offers, analyze_price_trend | escrituras: — | replanificaciones: 0 | pasos: 4
+
+  ··· otro día, conversación NUEVA (hilo distinto) ···
+  Usuario (memoria-b): Recomiéndame un celular.
+  [recall]  presupuesto detectado: None  |  memoria: «Prefiero Samsung y no quiero Huawei» (relevancia 1.0); «Tarea: Prefiero Samsung y no quiero Huawei. Busco un celular, presupuesto $400.000. → Resultado: Te recomiendo Samsung Galaxy A55 a $329.990 en Paris. El precio actual está a menos de 3% del mínimo histórico ($329.990).» (relevancia 0.3024)
+  [plan]    plan inicial (fuente: llm)
+              · 1: Buscar candidatos en el catálogo (search_products)
+              · 2: Revisar ofertas y stock de los mejores candidatos (get_product_offers)
+              · 2: Juzgar si es buen momento de compra con analyze_price_trend
+              · 3: Si el usuario reveló una preferencia estable, guardarla con remember_preference
+              · 3: Responder con la recomendación, el total frente al presupuesto y los datos que la respaldan
+  [act 1]   search_products(query=Samsung)
+  [act 2]   get_product_offers(product_id=4)
+  [act 3]   analyze_price_trend(product_id=4)
+  [act 4]   responde al usuario
+  [memoria] guardó: Tarea: Recomiéndame un celular. → Resultado: Te recomiendo Samsung Galaxy A55 a $329.990 en Paris. El precio a
+
+  RESPUESTA:
+    Te recomiendo Samsung Galaxy A55 a $329.990 en Paris. El precio actual
+    está a menos de 3% del mínimo histórico ($329.990).
+
+  herramientas: search_products, get_product_offers, analyze_price_trend | escrituras: — | replanificaciones: 0 | pasos: 4
+
+==============================================================================
+Historia 5: Condiciones cambiantes: bajó el precio y se cumple la alerta
+  Usuario (gamer): Revisa mis alertas de precio.
+==============================================================================
+  ··· pasan los días: Paris baja el Lenovo IdeaPad 3 de $349.990 a $289.990 ···
+  [recall]  presupuesto detectado: None  |  memoria: «Prefiero Samsung y no quiero Huawei» (relevancia 1.0); «Tarea: Necesito el notebook ASUS TUF, presupuesto $900.000. Guarda la lista si conviene. → Resultado: Notebook ASUS TUF Gaming F15 está en $799.990. El precio actual está 9.3% sobre el promedio histórico ($731.990). Te recomiendo esperar: dejé una alerta de precio.» (relevancia 0.3277); «Tarea: Recomiéndame un celular. → Resultado: Te recomiendo Samsung Galaxy A55 a $329.990 en Paris. El precio actual está a menos de 3% del mínimo histórico ($329.990).» (relevancia 0.2891); «Tarea: Prefiero Samsung y no quiero Huawei. Busco un celular, presupuesto $400.000. → Resultado: Te recomiendo Samsung Galaxy A55 a $329.990 en Paris. El precio actual está a menos de 3% del mínimo histórico ($329.990).» (relevancia 0.2703); «Tarea: Quiero un notebook Lenovo para la universidad, presupuesto $400.000. Arma una lista de compra. → Resultado: Te recomiendo Notebook Lenovo IdeaPad 3 a $349.990 en Paris. El precio actual está a menos de 3% del mínimo histórico ($349.990). Lo dejé guardado en tu lista.» (relevancia 0.2635)
+  [plan]    plan inicial (fuente: llm)
+              · 1: Revisar las alertas de precio activas con check_price_alerts
+              · 2: Si alguna se cumplió, decir cuál producto, en qué tienda y a qué precio bajó
+              · 3: Responder con el resultado de la revisión
+  [act 1]   check_price_alerts()
+  [act 2]   responde al usuario
+  [memoria] guardó: Tarea: Revisa mis alertas de precio. → Resultado: ¡Se cumplió una alerta! Notebook Lenovo IdeaPad 3 bajó a $28
+
+  RESPUESTA:
+    ¡Se cumplió una alerta! Notebook Lenovo IdeaPad 3 bajó a $289.990 en Paris
+    (tu objetivo era $300.000). Es buen momento para comprar.
+
+  herramientas: check_price_alerts | escrituras: — | replanificaciones: 0 | pasos: 2
+
+  ── Estado en la base de datos ──
+  alerta #1: producto 1. objetivo $300.000. CUMPLIDA a $289.990
+  alerta #2: producto 2. objetivo $731.990. ACTIVA
+  lista #1 «Compra: Notebook Lenovo IdeaPad 3»: total $349.990
+  memoria [episode] Tarea: Quiero un notebook Lenovo para la universidad, presupuesto $400.000. Arma una lista de compra
+  memoria [episode] Tarea: Quiero un notebook gamer, presupuesto $300.000. Avísame cuando baje. → Resultado: Notebook Le
+  memoria [episode] Tarea: Necesito el notebook ASUS TUF, presupuesto $900.000. Guarda la lista si conviene. → Resultado
+  memoria [preference] Prefiero Samsung y no quiero Huawei
+  memoria [episode] Tarea: Prefiero Samsung y no quiero Huawei. Busco un celular, presupuesto $400.000. → Resultado: Te 
+  memoria [episode] Tarea: Recomiéndame un celular. → Resultado: Te recomiendo Samsung Galaxy A55 a $329.990 en Paris. E
+  memoria [episode] Tarea: Revisa mis alertas de precio. → Resultado: ¡Se cumplió una alerta! Notebook Lenovo IdeaPad 3 
