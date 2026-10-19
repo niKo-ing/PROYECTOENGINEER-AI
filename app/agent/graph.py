@@ -224,7 +224,7 @@ def build_agent_graph(
                     stored.append(sentence)
         if state.get("steps", 0) > 1 and final:
             episode = f"Tarea: {goal[:160]} → Resultado: {final[:240]}"
-            _, created = memory.add(episode, kind="episode", importance=2)
+            _, created = memory.upsert_episode(goal, episode)
             if created:
                 stored.append(episode)
         return {"trace": [{"turn": state.get("turn", 1), "node": "remember", "stored": stored}]}

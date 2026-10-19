@@ -140,6 +140,22 @@ class LongTermMemory:
             self.db.commit()
         return top
 
+    def upsert_episode(self, goal: str, content: str, *, importance: int = 2) -> tuple[AgentMemory, bool]:
+        """Un episodio por tarea: si el usuario repite el mismo pedido se actualiza el resultado en vez de
+        acumular copias (que llenaban los cupos de recuerdo y desplazaban información útil)."""
+        prefix = _normalize(f"Tarea: {goal[:160]} →")
+        for row in self._rows("episode"):
+            if row.content.startswith(prefix):
+                text_ = _normalize(content)[:600]
+                vector, provider = self._embed(text_)
+                row.content, row.content_hash = text_, _hash(text_)
+                row.embedding, row.embedding_provider = vector, provider
+                row.importance = max(row.importance or 1, importance)
+                row.last_used_at = datetime.now(timezone.utc)
+                self.db.commit()
+                return row, False
+        return self.add(content, kind="episode", importance=importance)
+
     def core(self, *, k: int = 3, min_importance: int = 4) -> list[MemoryHit]:
         """Memoria núcleo: las preferencias más importantes se cargan SIEMPRE, sin depender de que la
         consulta se parezca a ellas ("recomiéndame un celular" no comparte palabras con "prefiero Samsung")."""

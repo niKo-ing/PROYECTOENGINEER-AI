@@ -40,6 +40,27 @@ def test_exact_duplicate_is_not_stored_twice_but_refreshes_importance(db):
     assert len(memory.all()) == 1
 
 
+def test_repeating_a_task_updates_its_episode_instead_of_piling_up_copies(db):
+    memory = LongTermMemory(db, "u1", LocalHashEmbeddingProvider())
+    goal = "Quiero un celular Samsung o Xiaomi, presupuesto $320.000"
+    first, created = memory.upsert_episode(goal, f"Tarea: {goal} → Resultado: Galaxy A57 a $299.990")
+    second, created_again = memory.upsert_episode(goal, f"Tarea: {goal} → Resultado: Redmi Note 15 Pro a $309.990")
+    assert created and not created_again
+    assert first.id == second.id
+    assert len(memory.all()) == 1
+    assert "Redmi Note 15 Pro" in memory.all()[0].content  # quedó el resultado más reciente
+    memory.upsert_episode("Revisa mis alertas", "Tarea: Revisa mis alertas → Resultado: sin alertas")
+    assert len(memory.all()) == 2  # otra tarea sí es otro episodio
+
+
+def test_episodes_of_different_users_are_not_merged(db):
+    goal = "Quiero un celular"
+    LongTermMemory(db, "alice", LocalHashEmbeddingProvider()).upsert_episode(goal, f"Tarea: {goal} → Resultado: A")
+    LongTermMemory(db, "bob", LocalHashEmbeddingProvider()).upsert_episode(goal, f"Tarea: {goal} → Resultado: B")
+    assert len(LongTermMemory(db, "alice", LocalHashEmbeddingProvider()).all()) == 1
+    assert len(LongTermMemory(db, "bob", LocalHashEmbeddingProvider()).all()) == 1
+
+
 def test_near_duplicate_is_merged_by_embedding_similarity(db):
     memory = LongTermMemory(db, "u1", ConceptEmbedder())
     memory.add("Prefiero notebooks baratos")
