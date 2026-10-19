@@ -139,7 +139,7 @@ s.addShape(pres.ShapeType.roundRect, { x: 0.5, y: 4.0, w: 9.0, h: 0.9, fill: { c
 texto(s, ".venv/bin/python scripts/demo_agente.py --live --embeddings gemini", { x: 0.7, y: 4.0, w: 8.6, h: 0.9, fontSize: 14, color: C.accent2, fontFace: "Courier New", align: "center", valign: "middle" });
 
 // 8 ── pantalla del agente
-s = diapo("CONTENIDO", "Demostración", "Presenta: Ariel. 45 s. Capturas de la pantalla /agente en modo demo. Izquierda: historia 2, el panel «Cómo pensó» muestra el plan, la búsqueda sin resultados y el cambio de estrategia. Derecha: tras simular la baja de precio, la alerta se cumple y queda registrada en «Guardado». Para mostrarla en vivo: backend en el puerto 8000, frontend con pnpm dev y abrir http://localhost:3000/agente.");
+s = diapo("CONTENIDO", "Demostración", "Presenta: Ariel. 45 s. Capturas de la pantalla /agente en modo demo (se abre con /agente?demo=1; sin ese parámetro la pantalla usa Gemini real). Izquierda: historia 2, el panel «Cómo pensó» muestra el plan, la búsqueda sin resultados y el cambio de estrategia. Derecha: tras simular la baja de precio, la alerta se cumple y queda registrada en «Guardado». Para mostrarla en vivo: backend en el puerto 8000, frontend con pnpm dev y abrir http://localhost:3000/agente?demo=1.");
 s.addText("La pantalla: se ve cómo piensa", { placeholder: "title" });
 const capturas = [
   ["pantalla_razonamiento.png", "Plan, herramientas y replanes en vivo"],
@@ -151,7 +151,7 @@ capturas.forEach(([archivo, pie], i) => {
   s.addImage({ path: path.join(RAIZ, "docs", "agente", "evidencia", archivo), x: x + 0.1, y: 1.3, w: 4.2, h: 2.625, altText: pie });
   texto(s, pie, { x, y: 4.3, w: 4.4, h: 0.4, fontSize: 14, bold: true, color: C.text2, align: "center", valign: "middle" });
 });
-texto(s, "Modo demo en http://localhost:3000/agente: sin login y sin gastar cuota", { x: 0.5, y: 4.8, w: 9.0, h: 0.35, fontSize: 14, color: C.text1, align: "center" });
+texto(s, "Modo demo en http://localhost:3000/agente?demo=1: sin login y sin gastar cuota", { x: 0.5, y: 4.8, w: 9.0, h: 0.35, fontSize: 14, color: C.text1, align: "center" });
 
 // 9 ── evidencia
 pres.addSection({ title: "Cierre" });
