@@ -26,7 +26,7 @@ const pres = new pptxgen();
 pres.layout = "LAYOUT_16x9"; // 10 x 5.625 pulgadas
 pres.theme = { headFontFace: THEME.headFontFace, bodyFontFace: THEME.bodyFontFace };
 pres.title = "Agente de ahorro de TodoBarato";
-pres.author = "[Integrantes]";
+pres.author = "Nicolas Estefania, Ariel Espinoza";
 const C = pres.SchemeColor;
 
 pres.defineSlideMaster({
@@ -52,15 +52,15 @@ const texto = (s, t, o) => s.addText(t, { isTextBox: true, margin: 0, fontFace: 
 
 // 1 ── portada
 pres.addSection({ title: "Apertura" });
-let s = diapo("OSCURA", "Apertura", "Presenta: [Integrante 1]. 20 s. Qué problema resuelve y qué verán: arquitectura, planificación, memoria y demo en vivo.");
+let s = diapo("OSCURA", "Apertura", "Presenta: Nicolas. 20 s. Qué problema resuelve y qué verán: arquitectura, planificación, memoria y demo en vivo.");
 s.addText("Agente de ahorro de TodoBarato", { placeholder: "title" });
 texto(s, "Consulta, escritura y razonamiento, con memoria y replanificación", { x: 0.6, y: 3.0, w: 8.8, h: 0.5, fontSize: 20, color: C.accent2 });
 texto(s, "ISY0101 Ingeniería de Soluciones con IA · Evaluación Parcial 2", { x: 0.6, y: 4.5, w: 8.8, h: 0.3, fontSize: 14, color: C.background1 });
-texto(s, "[Integrante 1] · [Integrante 2]", { x: 0.6, y: 4.85, w: 8.8, h: 0.3, fontSize: 14, color: C.background1 });
+texto(s, "Nicolas Estefania · Ariel Espinoza", { x: 0.6, y: 4.85, w: 8.8, h: 0.3, fontSize: 14, color: C.background1 });
 
 // 2 ── el caso
 pres.addSection({ title: "Diseño" });
-s = diapo("CONTENIDO", "Diseño", "Presenta: [Integrante 1]. 60 s. Caso: asesor de compras de un comparador de precios. El agente deja registro en la base: alertas y listas.");
+s = diapo("CONTENIDO", "Diseño", "Presenta: Nicolas. 60 s. Caso: asesor de compras de un comparador de precios. El agente deja registro en la base: alertas y listas.");
 s.addText("Un asesor de compras que deja registro", { placeholder: "title" });
 const casos = [
   ["1", "«Notebook para la universidad, hasta $400.000»", "Busca, compara tiendas, juzga el precio y guarda la lista"],
@@ -78,18 +78,18 @@ casos.forEach(([n, pide, hace], i) => {
 });
 
 // 3 ── arquitectura
-s = diapo("CONTENIDO", "Diseño", "Presenta: [Integrante 1]. 60 s. Recorrer de izquierda a derecha: API → AgentService → grafo LangGraph. A la derecha: Gemini, checkpointer (memoria de corto plazo), 11 herramientas y memoria de largo plazo con embeddings.");
+s = diapo("CONTENIDO", "Diseño", "Presenta: Nicolas. 60 s. Recorrer de izquierda a derecha: API → AgentService → grafo LangGraph. A la derecha: Gemini, checkpointer (memoria de corto plazo), 11 herramientas y memoria de largo plazo con embeddings.");
 s.addText("Orquestación de componentes", { placeholder: "title" });
 s.addImage({ path: path.join(IMG, "arquitectura.png"), x: 0.5, y: 1.15, w: 9.0, h: 4.05, altText: "Diagrama de componentes: cliente, FastAPI, AgentService, grafo LangGraph, Gemini, SqliteSaver, herramientas, memoria de largo plazo, catálogo y tablas del agente" });
 
 // 4 ── flujo
-s = diapo("CONTENIDO", "Diseño", "Presenta: [Integrante 2]. 60 s. Nodos: recall → plan → act ⇄ tools → reflect. El ciclo rojo es la replanificación (máx. 2). give_up cierra las llamadas pendientes si se pasa de 10 pasos.");
+s = diapo("CONTENIDO", "Diseño", "Presenta: Ariel. 60 s. Nodos: recall → plan → act ⇄ tools → reflect. El ciclo rojo es la replanificación (máx. 2). give_up cierra las llamadas pendientes si se pasa de 10 pasos.");
 s.addText("Flujo del grafo y replanificación", { placeholder: "title" });
 s.addImage({ path: path.join(IMG, "flujo.png"), x: 1.1, y: 1.15, w: 7.8, h: 3.99, altText: "Flujo del grafo: recall, plan, act, tools, reflect, con ciclo de replanificación, remember y give_up" });
 
 // 5 ── decisiones adaptativas
 pres.addSection({ title: "Comportamiento" });
-s = diapo("CONTENIDO", "Comportamiento", "Presenta: [Integrante 2]. 60 s. Las reglas de diagnóstico son código determinista (se prueban sin LLM). Frenos anti-bucle: máx. 2 replanificaciones y cada motivo replanifica una sola vez.");
+s = diapo("CONTENIDO", "Comportamiento", "Presenta: Ariel. 60 s. Las reglas de diagnóstico son código determinista (se prueban sin LLM). Frenos anti-bucle: máx. 2 replanificaciones y cada motivo replanifica una sola vez.");
 s.addText("Cinco diagnósticos cambian el plan", { placeholder: "title" });
 const cab = (t) => ({ text: t, options: { bold: true, color: C.background1, fill: { color: C.accent1 }, fontSize: 14 } });
 const fila = (a, b, c) => [a, b, c].map((t, j) => ({ text: t, options: { fontSize: 13, bold: j === 1, color: j === 1 ? C.accent3 : C.text1 } }));
@@ -106,7 +106,7 @@ s.addTable(
 );
 
 // 6 ── memoria
-s = diapo("CONTENIDO", "Comportamiento", "Presenta: [Integrante 1]. 60 s. Corto plazo = checkpointer del hilo (sobrevive a reinicios; Postgres con varias réplicas). Largo plazo = tabla agent_memories con embeddings. El caso clave: «Recomiéndame un celular» no comparte palabras con «Prefiero Samsung»: por eso existe la memoria núcleo.");
+s = diapo("CONTENIDO", "Comportamiento", "Presenta: Nicolas. 60 s. Corto plazo = checkpointer del hilo (sobrevive a reinicios; Postgres con varias réplicas). Largo plazo = tabla agent_memories con embeddings. El caso clave: «Recomiéndame un celular» no comparte palabras con «Prefiero Samsung»: por eso existe la memoria núcleo.");
 s.addText("Memoria de corto y largo plazo", { placeholder: "title" });
 const columnas = [
   ["Corto plazo", "Continuidad dentro de una tarea", ["Historial del hilo en el checkpointer de LangGraph", "SQLite en local, Postgres con varias réplicas", "Ventana de 24 mensajes + resumen de lo recortado", "Cada hilo atado a su usuario"], C.accent1],
@@ -140,7 +140,7 @@ texto(s, ".venv/bin/python scripts/demo_agente.py --live --embeddings gemini", {
 
 // 8 ── evidencia
 pres.addSection({ title: "Cierre" });
-s = diapo("CONTENIDO", "Cierre", "Presenta: [Integrante 2]. 45 s. Cifras reales del repositorio. La demo con Gemini completó las historias 1 a 3; la cuota gratuita se agotó en la 4 y el agente lo informó sin caerse. Pruebas en vivo con Gemini y contra Postgres real: pasaron.");
+s = diapo("CONTENIDO", "Cierre", "Presenta: Ariel. 45 s. Cifras reales del repositorio. La demo con Gemini completó las historias 1 a 3; la cuota gratuita se agotó en la 4 y el agente lo informó sin caerse. Pruebas en vivo con Gemini y contra Postgres real: pasaron.");
 s.addText("Evidencia", { placeholder: "title" });
 const cifras = [["88", "pruebas del agente"], ["873", "pruebas en todo el repositorio"], ["11", "herramientas: consulta, razonamiento y escritura"], ["5", "diagnósticos que replanifican"]];
 cifras.forEach(([n, t], i) => {
@@ -164,14 +164,20 @@ s.addText(
   { isTextBox: true, x: 0.5, y: 4.35, w: 9.0, h: 0.4, fontSize: 16, margin: 0 },
 );
 
-// 9 ── justificación (la completa el equipo)
-s = diapo("OSCURA", "Cierre", "A completar por el equipo: justificación técnica con sus propias palabras (la pauta no permite redactarla con IA). Presentan ambos. Preparar respuestas para la ronda de preguntas (10 min).");
+// 9 ── justificación
+s = diapo("OSCURA", "Cierre", "Presentan ambos. 60 s. Cada fila: decisión y razón medida. Preparar la ronda de preguntas (10 min): por qué LangGraph y no el orquestador propio, por qué reglas deterministas, qué falló con los embeddings locales, qué no se probó (pooler real de Supabase).");
 s.addText("Por qué estas decisiones", { placeholder: "title" });
-texto(s, "A completar por el equipo, con sus propias palabras", { x: 0.6, y: 3.0, w: 8.8, h: 0.4, fontSize: 18, bold: true, color: C.accent2 });
-s.addText(
-  ["LangGraph y el ciclo reflect → plan", "Reglas deterministas frente al LLM", "Checkpointer Postgres y embeddings semánticos", "Límites conocidos y siguientes pasos"].map((t, k, a) => ({ text: t, options: { bullet: true, breakLine: k < a.length - 1 } })),
-  { isTextBox: true, x: 0.6, y: 3.45, w: 8.8, h: 1.6, fontSize: 16, color: C.background1, paraSpaceAfter: 4, margin: 0, valign: "top" },
-);
+const razones = [
+  ["LangGraph", "el flujo tiene ciclo (reflect → plan), estado y checkpointer; el orquestador previo no guardaba estado"],
+  ["Reglas en código", "diagnóstico, tendencia y presupuesto se prueban sin red: 88 pruebas"],
+  ["Memoria núcleo", "con embeddings locales «Recomiéndame un celular» no recuperaba «Prefiero Samsung»"],
+  ["Checkpointer Postgres", "varias réplicas comparten los hilos (probado con Postgres 16 real)"],
+];
+razones.forEach(([t, d], i) => {
+  const y = 2.75 + i * 0.62;
+  texto(s, t, { x: 0.6, y, w: 2.6, h: 0.55, fontSize: 16, bold: true, color: C.accent2, valign: "middle" });
+  texto(s, d, { x: 3.3, y, w: 6.1, h: 0.55, fontSize: 14, color: C.background1, valign: "middle" });
+});
 
 (async () => {
   await pres.writeFile({ fileName: SALIDA });

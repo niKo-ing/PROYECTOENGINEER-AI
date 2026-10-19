@@ -2,9 +2,8 @@
 
     python3 scripts/generar_informe.py
 
-Las secciones que la pauta reserva al equipo (justificación técnica y reflexiones individuales)
-quedan como recuadros «A COMPLETAR» con datos del proyecto para apoyarse: la pauta prohíbe
-redactarlas con IA.
+Las secciones 6 a 8 son un borrador redactado con apoyo de IA (declarado en la sección 7); las
+reflexiones individuales llevan marcas [COMPLETAR] para que cada integrante las ajuste a su aporte.
 """
 
 from pathlib import Path
@@ -108,7 +107,7 @@ def imagen(nombre, ancho_cm, pie):
 # ---------------------------------------------------------------- portada breve
 parrafo("Evaluación Parcial 2 — ISY0101 Ingeniería de Soluciones con IA", negrita=True, tam=9, centrado=True)
 parrafo("Agente de ahorro de TodoBarato: consulta, escritura y razonamiento con memoria y replanificación", negrita=True, tam=15, centrado=True)
-parrafo("Integrantes: [NOMBRE 1] · [NOMBRE 2]   |   Docente: [NOMBRE]   |   Repositorio: [ENLACE A GITHUB]", tam=9, centrado=True)
+parrafo("Integrantes: Nicolas Estefania · Ariel Espinoza   |   Docente: [NOMBRE DEL DOCENTE]   |   Repositorio: github.com/niKo-ing/PROYECTOENGINEER-AI (rama ep2-agente)", tam=9, centrado=True)
 
 # ---------------------------------------------------------------- 1
 doc.add_heading("1. Caso y objetivo", 1)
@@ -202,37 +201,42 @@ parrafo(
 
 # ---------------------------------------------------------------- 6
 doc.add_heading("6. Justificación de la elección de componentes", 1)
-recuadro(
-    "A COMPLETAR POR EL EQUIPO (sin IA, según la pauta)",
-    [
-        "Argumente con sus propias palabras por qué eligieron cada componente. Datos del proyecto para apoyarse:",
-        "• LangGraph: el flujo tiene un ciclo (reflect → plan), estado compartido y checkpointer; el proyecto ya tenía un orquestador propio para el chat.",
-        "• Reglas deterministas (diagnose, analyze_price_trend, presupuesto) frente a LLM: qué se puede probar sin red y qué no.",
-        "• SqliteSaver vs. PostgresSaver (varias réplicas); embeddings locales (solo léxicos) vs. Gemini (semánticos).",
-        "• Memoria núcleo + búsqueda semántica: el caso «Recomiéndame un celular» no comparte palabras con «Prefiero Samsung».",
-        "• Límites conocidos: progreso del plan aproximado, alertas evaluadas solo al revisarlas, cuota gratuita de Gemini.",
-    ],
-)
+vineta(" el flujo no es lineal: después de cada ronda de herramientas el agente puede volver a planificar (reflect → plan), necesita un estado compartido y un checkpointer persistente. "
+       "El orquestador que ya existía en el proyecto era sin estado entre llamadas (el cliente reenviaba el historial), lo que no sirve para tareas largas. LangGraph entrega ciclo, estado tipado, "
+       "ToolNode y checkpointers listos, y se integra con Gemini mediante langchain-google-genai, el mismo proveedor y las mismas variables GEMINI_* del resto de la app (IE2: compatibilidad).", "LangGraph:")
+vineta(" las decisiones que no deben depender de que el modelo acierte (diagnóstico de la observación, veredicto comprar/esperar con mínimo y promedio históricos, extracción del presupuesto) son código. "
+       "Así se prueban sin red y sin gastar cuota (88 pruebas), y el LLM queda para lo que sí le corresponde: proponer el plan, elegir herramientas y redactar.", "Reglas deterministas para decidir:")
+vineta(" SQLite en desarrollo y Postgres cuando la app usa Postgres (AGENT_CHECKPOINT=auto), probado con dos conexiones sobre un Postgres 16 real; es lo que permite escalar a varias réplicas sin perder los hilos (IE2: escalabilidad).", "Checkpointer:")
+vineta(" se reutilizó el EmbeddingProvider del RAG del proyecto. El puntaje combina similitud, importancia y recencia (idea de Park et al., 2023). La memoria núcleo (preferencias importantes siempre cargadas, idea de MemGPT) "
+       "se agregó por una falla medida en nuestra propia demo: con embeddings locales, «Recomiéndame un celular» no recuperaba «Prefiero Samsung» porque no comparten palabras.", "Memoria de largo plazo:")
+vineta(" el flujo organizacional exige dejar registro, no solo responder: alertas y listas persisten en la base, con argumentos validados por Pydantic y errores devueltos como observación para poder replanificar.", "Herramientas de escritura:")
+vineta(" el progreso del plan es aproximado (un paso cuenta como hecho si nombra una herramienta ejecutada), las alertas se evalúan cuando el usuario las revisa y no en segundo plano, la cuota gratuita de Gemini limitó la demo en vivo, "
+       "y la configuración de Postgres con el pooler real de Supabase no se probó.", "Límites conocidos:")
 
 # ---------------------------------------------------------------- 7
 doc.add_heading("7. Declaración de uso de inteligencia artificial", 1)
 parrafo(
-    "Borrador factual para que el equipo lo revise y confirme: se usó Claude Code (Anthropic, modelo Claude Sonnet 5.5) como apoyo para implementar "
-    "el código del agente y sus pruebas, generar los diagramas con matplotlib, ejecutar las demos y redactar la documentación técnica (README y arquitectura). "
-    "Todo el contenido fue revisado y ejecutado por el equipo [CONFIRMAR]. La justificación técnica (sección 6), las conclusiones y las reflexiones individuales "
-    "fueron redactadas por los integrantes sin apoyo de IA [CONFIRMAR]. Cita sugerida (APA, según bibliotecas.duoc.cl/ia): Anthropic. (2026). "
-    "Claude Sonnet 5.5 [Modelo de lenguaje de gran tamaño]. https://claude.ai"
+    "Se usó Claude Code (Anthropic, modelo Claude Sonnet 5.5) como apoyo para: implementar el código del agente y sus pruebas, generar los diagramas con matplotlib, ejecutar las demos, "
+    "redactar la documentación técnica (README, arquitectura y bocetos de diseño), armar la presentación y redactar un borrador de las secciones 6 (justificación) y 8 (conclusiones y reflexiones) de este informe. "
+    "El equipo revisó y ejecutó el código, las pruebas y las demos, y validó que el contenido coincida con lo implementado. Las reflexiones individuales son borradores que cada integrante debe ajustar a su aporte real. "
+    "Cita (APA, según bibliotecas.duoc.cl/ia): Anthropic. (2026). Claude Sonnet 5.5 [Modelo de lenguaje de gran tamaño]. https://claude.ai"
 )
 
 # ---------------------------------------------------------------- 8
 doc.add_heading("8. Conclusiones y reflexión individual", 1)
-recuadro(
-    "A COMPLETAR POR CADA INTEGRANTE (sin IA, según la pauta)",
-    [
-        "Integrante 1 — [NOMBRE]: aprendizaje y contribución al proyecto (máx. 1 párrafo).",
-        "",
-        "Integrante 2 — [NOMBRE]: aprendizaje y contribución al proyecto (máx. 1 párrafo).",
-    ],
+parrafo(
+    "Conclusiones del equipo. Se cumplió el objetivo: el agente integra consulta, razonamiento y escritura, y resuelve el flujo de asesoría de compras de punta a punta con registro en la base. "
+    "Tres hallazgos medidos: (1) Gemini escribe planes más escuetos que el plan por reglas y aun así completó las tareas, por lo que el diagnóstico determinista fue lo que garantizó la adaptación; "
+    "(2) los embeddings locales no capturan significado, lo que obligó a agregar la memoria núcleo; (3) separar el modelo guionado de las pruebas en vivo permitió verificar el grafo sin depender de la cuota. "
+    "Como siguiente paso quedan las alertas evaluadas en segundo plano tras cada ingesta y la prueba con el pooler real de Supabase."
+)
+parrafo(
+    "Reflexión de Nicolas Estefania (borrador; ajustar a su aporte real). Aprendí a diseñar un agente como un grafo con estado y a decidir qué va en código y qué en el modelo. Lo más valioso fue ver que una falla "
+    "(la memoria que no recuperaba la preferencia) se resolvía con una decisión de diseño y no con un prompt. Mi contribución fue [COMPLETAR: p. ej. el grafo, las herramientas, las pruebas].",
+)
+parrafo(
+    "Reflexión de Ariel Espinoza (borrador; ajustar a su aporte real). Aprendí a probar un sistema con LLM: separar un doble determinista para el grafo de las pruebas en vivo y medir en lugar de suponer. "
+    "Entendí por qué la memoria de largo plazo necesita importancia y recencia además de similitud. Mi contribución fue [COMPLETAR: p. ej. la memoria, la documentación, la demo].",
 )
 
 # ---------------------------------------------------------------- 9
