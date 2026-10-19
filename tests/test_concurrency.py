@@ -19,6 +19,8 @@ N) Transaction: pipeline continues after individual offer failure
 
 from __future__ import annotations
 
+import os
+import tempfile
 import threading
 from datetime import datetime, timezone
 from decimal import Decimal
@@ -26,7 +28,6 @@ from decimal import Decimal
 import pytest
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
-from sqlalchemy.pool import StaticPool
 
 from app.catalog.identity import normalize_mpn
 from app.catalog.matching import ProductMatcher, MatchStatus
@@ -48,8 +49,13 @@ from app.models.catalog import (
 
 # ── Test DB setup ──────────────────────────────────────────────────
 
+# Base SQLite en un archivo temporal con un pool normal: cada hilo usa SU PROPIA conexión.
+# (Con StaticPool todos los hilos compartían una única conexión de sqlite3, que no es segura entre
+# hilos: las pruebas de carrera daban conteos erróneos de forma intermitente y a veces un segfault.)
+_DB_DIR = tempfile.mkdtemp(prefix="solotodo-concurrency-")
 engine = create_engine(
-    "sqlite://", connect_args={"check_same_thread": False}, poolclass=StaticPool
+    f"sqlite:///{os.path.join(_DB_DIR, 'concurrency.db')}",
+    connect_args={"check_same_thread": False, "timeout": 30},
 )
 TestSession = sessionmaker(bind=engine)
 Base.metadata.create_all(engine)
@@ -114,9 +120,9 @@ class TestRaceCreateProduct:
     def test_concurrent_same_mpn_one_product(self):
         """Two threads ingesting same MPN → UNIQUE(mpn) catches duplicates.
 
-        Note: SQLite with StaticPool shares one connection, so concurrent
-        transactions may both fail. With a real DB (PostgreSQL), exactly one
-        would succeed and the other would get IntegrityError.
+        Note: SQLite serializes writers, so one of the two concurrent transactions
+        may lose the race and fail (with PostgreSQL the loser gets IntegrityError).
+        Either way the guarantee is that no duplicate is created.
         """
         records = [
             {"url": "https://a.mock/p1", "external_id": "A001", "name": "HP Laptop", "brand": "HP", "mpn": "HP-001", "price": 500000},
@@ -239,8 +245,8 @@ class TestRaceFindOfferNone:
 
         with TestSession() as db:
             offer_count = db.query(StoreOffer).count()
-            # SQLite + StaticPool can abort both concurrent transactions; the
-            # constraint guarantee under race is that duplicates are not created.
+            # Under a race one transaction may fail on SQLite's writer lock; the
+            # constraint guarantee is that duplicates are not created.
             assert offer_count <= 1
 
 
@@ -283,8 +289,8 @@ class TestRaceMatchNoMatch:
 
         with TestSession() as db:
             product_count = db.query(Product).count()
-            # SQLite + StaticPool can abort both concurrent transactions; a real
-            # DB should keep one row and UNIQUE(mpn) catches the duplicate.
+            # Under a race one transaction may fail on SQLite's writer lock; UNIQUE(mpn)
+            # catches the duplicate.
             assert product_count <= 1
 
 
