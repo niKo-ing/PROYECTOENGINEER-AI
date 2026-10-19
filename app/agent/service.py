@@ -20,6 +20,7 @@ from app.agent.memory import LongTermMemory
 from app.agent.tools import build_tools
 from app.ai.rag.embedding import EmbeddingProvider
 from app.ai.rag.factory import get_embedding_provider
+from app.core.config import settings
 
 DEFAULT_CHECKPOINT_DB = os.getenv("AGENT_CHECKPOINT_DB", "agent_checkpoints.db")
 
@@ -41,10 +42,34 @@ class AgentRunResult:
         return asdict(self)
 
 
-@lru_cache(maxsize=4)
-def default_checkpointer(path: str = DEFAULT_CHECKPOINT_DB) -> SqliteSaver:
+def checkpointer_kind(database_url: str, mode: str = "auto") -> str:
+    """``postgres`` o ``sqlite``. ``AGENT_CHECKPOINT=auto`` sigue a la base de la app: con Postgres
+    (Supabase) varias réplicas comparten los hilos; con SQLite local, un archivo."""
+    mode = (mode or "auto").lower()
+    if mode in ("postgres", "sqlite"):
+        return mode
+    return "postgres" if database_url.startswith("postgresql") else "sqlite"
+
+
+def make_checkpointer(database_url: str | None = None, mode: str | None = None, sqlite_path: str | None = None) -> Any:
     """Memoria de corto plazo persistente: el hilo sobrevive a reinicios del proceso."""
-    return SqliteSaver(sqlite3.connect(path, check_same_thread=False))
+    url = database_url if database_url is not None else settings.sqlalchemy_database_url
+    if checkpointer_kind(url, mode or os.getenv("AGENT_CHECKPOINT", "auto")) == "postgres":
+        import psycopg
+        from langgraph.checkpoint.postgres import PostgresSaver
+        from psycopg.rows import dict_row
+
+        # prepare_threshold=0: compatible con el pooler de Supabase (modo transacción).
+        conn = psycopg.connect(url.replace("postgresql+psycopg://", "postgresql://", 1), autocommit=True, row_factory=dict_row, prepare_threshold=0)
+        saver = PostgresSaver(conn)
+        saver.setup()
+        return saver
+    return SqliteSaver(sqlite3.connect(sqlite_path or DEFAULT_CHECKPOINT_DB, check_same_thread=False))
+
+
+@lru_cache(maxsize=1)
+def default_checkpointer() -> Any:
+    return make_checkpointer()
 
 
 class AgentService:

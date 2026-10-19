@@ -146,7 +146,7 @@ parrafo(
 
 # ---------------------------------------------------------------- 3
 doc.add_heading("3. Memoria y recuperación de contexto", 1)
-vineta(" el historial de cada hilo vive en un checkpointer SqliteSaver de LangGraph: sobrevive a reinicios del proceso y permite retomar una tarea. "
+vineta(" el historial de cada hilo vive en un checkpointer de LangGraph (SqliteSaver en local; PostgresSaver cuando la app usa Postgres, probado con dos conexiones sobre un Postgres 16 real): sobrevive a reinicios del proceso y permite retomar una tarea. "
        "Al modelo solo se le envía una ventana de los últimos 24 mensajes (sin dejar un ToolMessage huérfano) más un resumen determinista de lo recortado.", "Corto plazo:")
 vineta(" tabla agent_memories (preferencias, hechos y episodios de cada tarea) con embedding. La recuperación combina memoria núcleo "
        "(las preferencias de importancia ≥ 4 se cargan siempre) y búsqueda semántica con puntaje 0,75·similitud + 0,15·importancia + 0,10·recencia "
@@ -185,7 +185,7 @@ doc.add_heading("5. Pruebas y evidencia", 1)
 tabla(
     [
         ["Evidencia", "Resultado"],
-        ["Suite de pruebas del agente (tests/agent)", "81 pruebas pasan (planificación, memoria, herramientas, grafo, API); suite completa del repositorio: 866 pasan, 2 opt-in omitidas"],
+        ["Suite de pruebas del agente (tests/agent)", "88 pruebas pasan (planificación, memoria, herramientas, grafo, API); suite completa del repositorio: 873 pasan, 3 opt-in omitidas"],
         ["Escenarios de extremo a extremo", "Compra con lista guardada; replan sin_resultados → sobre_presupuesto con alerta; precio_alto → alerta en vez de lista; sin_stock; error de herramienta; tope de pasos; memoria entre hilos y usuarios; reinicio del proceso; alerta que se cumple en un turno posterior"],
         ["Demo guionada (scripts/demo_agente.py)", "5 historias con traza completa, determinista y sin red: docs/agente/evidencia/demo_guionada.txt"],
         ["Demo con Gemini real (--live)", "Historias 1 a 3 completas con el mismo comportamiento adaptativo (replan por sin_resultados, sobre_presupuesto y precio_alto; alertas y lista creadas); la cuota gratuita se agotó en la historia 4 y el agente lo informó sin caerse: docs/agente/evidencia/demo_gemini.txt"],
@@ -208,7 +208,7 @@ recuadro(
         "Argumente con sus propias palabras por qué eligieron cada componente. Datos del proyecto para apoyarse:",
         "• LangGraph: el flujo tiene un ciclo (reflect → plan), estado compartido y checkpointer; el proyecto ya tenía un orquestador propio para el chat.",
         "• Reglas deterministas (diagnose, analyze_price_trend, presupuesto) frente a LLM: qué se puede probar sin red y qué no.",
-        "• SqliteSaver vs. checkpointer de Postgres (un solo servidor); embeddings locales (solo léxicos) vs. Gemini (semánticos).",
+        "• SqliteSaver vs. PostgresSaver (varias réplicas); embeddings locales (solo léxicos) vs. Gemini (semánticos).",
         "• Memoria núcleo + búsqueda semántica: el caso «Recomiéndame un celular» no comparte palabras con «Prefiero Samsung».",
         "• Límites conocidos: progreso del plan aproximado, alertas evaluadas solo al revisarlas, cuota gratuita de Gemini.",
     ],

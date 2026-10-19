@@ -126,7 +126,7 @@ sequenceDiagram
 ## 5. Memoria
 
 ### Corto plazo — continuidad dentro de una tarea
-* El historial de cada hilo vive en el **checkpointer de LangGraph** (`SqliteSaver`, archivo `agent_checkpoints.db`): sobrevive a reinicios del proceso y permite retomar una tarea larga.
+* El historial de cada hilo vive en el **checkpointer de LangGraph** (`SqliteSaver` en local, archivo `agent_checkpoints.db`; `PostgresSaver` si la app usa Postgres): sobrevive a reinicios del proceso y permite retomar una tarea larga.
 * El `thread_id` se guarda como `usuario:hilo`, así que dos usuarios con el mismo id de hilo **nunca** comparten historial.
 * A `act` solo se le manda una **ventana** de los últimos 24 mensajes (`window_messages`): nunca empieza con un `ToolMessage` huérfano y siempre incluye el último mensaje humano. Lo recortado se resume sin LLM (`summarize_dropped`: qué pidió el usuario y qué herramientas se usaron), para no perder el hilo.
 
@@ -151,7 +151,7 @@ puntaje = 0,75 · similitud_coseno(consulta, recuerdo)
 
 ```bash
 uv venv --python 3.12 .venv && uv pip install -e '.[dev]'
-.venv/bin/python -m pytest tests/agent -q                      # 81 pruebas, sin red
+.venv/bin/python -m pytest tests/agent -q                      # 88 pruebas, sin red
 .venv/bin/python scripts/demo_agente.py                        # 5 historias, modelo guionado
 .venv/bin/python scripts/demo_agente.py --live --embeddings gemini   # con Gemini real (.env: GEMINI_API_KEY, GEMINI_MODEL)
 RUN_LIVE=1 .venv/bin/python -m pytest tests/agent/test_live_gemini.py -q   # pruebas contra Gemini
@@ -173,7 +173,10 @@ Migración: `alembic upgrade head` (agrega `agent_memories`, `price_alerts`, `sh
 
 | Evidencia | Dónde |
 |---|---|
-| Pruebas unitarias y de escenarios | `tests/agent/` — 81 pruebas + 2 opt-in contra Gemini |
+| Resultado de las pruebas (88 del agente; 873 en la suite completa) | `docs/agente/evidencia/pytest_agente.txt`, `pytest_suite_completa.txt` |
+| Bocetos de diseño (estado, contratos, prompt, esquema de datos) | `docs/agente/DISENO.md` |
+| Informe (≤ 5 páginas) y presentación de la exposición (9 diapositivas con notas de apoyo) | `docs/agente/Informe_EP2_Agente_TodoBarato.docx`, `docs/agente/Presentacion_EP2_Agente_TodoBarato.pptx` |
+| Pruebas unitarias y de escenarios | `tests/agent/` — 88 pruebas + 3 opt-in (2 Gemini, 1 Postgres) |
 | Traza de las 5 historias con modelo guionado | `docs/agente/evidencia/demo_guionada.txt` |
 | Traza con Gemini real (historias 1–3 completas; cortó la cuota gratuita en la 4) | `docs/agente/evidencia/demo_gemini.txt` |
 | Pruebas en vivo (embeddings semánticos reales y tarea completa con Gemini) | `tests/agent/test_live_gemini.py` — pasaron |
@@ -195,7 +198,7 @@ Qué demuestra cada grupo de pruebas:
 * **El modelo guionado no es una lista fija:** su política lee las observaciones y decide (por eso reacciona al replan), pero sigue siendo un doble de prueba. Lo que prueba es el grafo, no la calidad de Gemini; para eso están las pruebas y la demo en vivo.
 * **Los embeddings locales no son semánticos** (hash de palabras). Con ellos la memoria funciona por coincidencia de palabras más la memoria núcleo; la recuperación por significado real requiere `EMBEDDING_PROVIDER=gemini`. Las pruebas del ranking semántico usan un embedder de prueba por conceptos y, aparte, hay una prueba opt-in con Gemini real.
 * **El progreso del plan es aproximado:** un paso se marca como hecho si nombra una herramienta que se ejecutó. Si el LLM redacta pasos sin nombrar herramientas, quedan pendientes (se prefiere no marcar de más).
-* **`SqliteSaver` es de un solo servidor.** Para varias réplicas habría que pasar a un checkpointer de Postgres.
+* **Escalabilidad del checkpointer.** `AGENT_CHECKPOINT=auto` elige `PostgresSaver` cuando la app usa Postgres/Supabase (varias réplicas comparten los hilos; probado con dos conexiones contra un Postgres 16 real) y `SqliteSaver` en desarrollo local. Postgres usa `prepare_threshold=0` por compatibilidad con el pooler de Supabase; esa configuración con el pooler real de Supabase no se probó.
 * **Las alertas se evalúan cuando el usuario las revisa**, no en segundo plano. Un cron que corra `check_price_alerts` tras cada ingesta sería el siguiente paso.
 * **Cuota gratuita de Gemini:** la demo completa en vivo supera el límite del plan gratuito; por eso la evidencia en vivo es parcial.
 

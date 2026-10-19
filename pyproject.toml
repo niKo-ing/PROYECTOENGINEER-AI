@@ -24,6 +24,7 @@ dependencies = [
   "langchain-core>=1.6,<2.0",
   "langchain-google-genai>=4.3,<5.0",
   "langgraph-checkpoint-sqlite>=3.1,<4.0",
+  "langgraph-checkpoint-postgres>=3.2,<4.0",
 ]
 
 [project.optional-dependencies]

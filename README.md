@@ -2,6 +2,34 @@
 
 > **Evaluación Parcial 2 (ISY0101) — Agente de ahorro con LangGraph.** Un agente que busca, compara, razona sobre el historial de precios y **escribe** alertas y listas de compra, con memoria de corto y largo plazo y replanificación adaptativa. Arquitectura, diagramas, cómo ejecutarlo y evidencia: [`docs/agente/ARQUITECTURA.md`](docs/agente/ARQUITECTURA.md). Código en `app/agent/`, pruebas en `tests/agent/`, demo con `python scripts/demo_agente.py`.
 
+### Ejecutar y validar el agente (paso a paso)
+
+Requisitos: Python 3.12 y [uv](https://docs.astral.sh/uv/). Para la demo en vivo, una llave de Gemini.
+
+```bash
+# 1. Entorno e instalación
+uv venv --python 3.12 .venv
+uv pip install -e '.[dev]'
+
+# 2. Pruebas (sin red, ~10 s): deben dar 88 passed, 3 skipped
+.venv/bin/python -m pytest tests/agent -q
+
+# 3. Demo guionada, sin red: 5 historias con la traza completa (plan, herramientas, replanes, memoria)
+.venv/bin/python scripts/demo_agente.py
+
+# 4. Demo con Gemini real: cree un .env con LLM_PROVIDER=gemini, GEMINI_API_KEY=... y GEMINI_MODEL=gemini-flash-lite-latest
+.venv/bin/python scripts/demo_agente.py --live --embeddings gemini
+
+# 5. Opcionales: pruebas contra Gemini y contra Postgres real
+RUN_LIVE=1 .venv/bin/python -m pytest tests/agent/test_live_gemini.py -q
+TEST_POSTGRES_URL=postgresql://usuario:clave@localhost:5432/base .venv/bin/python -m pytest tests/agent/test_checkpointer.py -q
+
+# 6. API (usa la base de DATABASE_URL, o SQLite local sin ella): POST /api/v1/agent/run
+.venv/bin/python -m uvicorn app.main:app --port 8000
+```
+
+Scripts asociados: `scripts/demo_agente.py` (demo), `scripts/generar_diagramas.py` (diagramas PNG), `scripts/generar_informe.py` (informe .docx). Un `.env` con `DATABASE_URL` hace que las pruebas intenten conectarse a esa base: para probar, no lo defina. Detalle de arquitectura en [`docs/agente/ARQUITECTURA.md`](docs/agente/ARQUITECTURA.md) y de contratos en [`docs/agente/DISENO.md`](docs/agente/DISENO.md).
+
 Base de infraestructura para un monolito modular. El backend usa FastAPI y SQLAlchemy; el frontend usa Next.js, React, TypeScript y Tailwind CSS. PostgreSQL en Supabase es la base de datos objetivo.
 
 ## Inicio rápido con Docker
