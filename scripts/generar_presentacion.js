@@ -139,19 +139,19 @@ s.addShape(pres.ShapeType.roundRect, { x: 0.5, y: 4.0, w: 9.0, h: 0.9, fill: { c
 texto(s, ".venv/bin/python scripts/demo_agente.py --live --embeddings gemini", { x: 0.7, y: 4.0, w: 8.6, h: 0.9, fontSize: 14, color: C.accent2, fontFace: "Courier New", align: "center", valign: "middle" });
 
 // 8 ── pantalla del agente
-s = diapo("CONTENIDO", "Demostración", "Presenta: Ariel. 45 s. Capturas de la pantalla /agente en modo demo (se abre con /agente?demo=1; sin ese parámetro la pantalla usa Gemini real). Izquierda: historia 2, el panel «Cómo pensó» muestra el plan, la búsqueda sin resultados y el cambio de estrategia. Derecha: tras simular la baja de precio, la alerta se cumple y queda registrada en «Guardado». Para mostrarla en vivo: backend en el puerto 8000, frontend con pnpm dev y abrir http://localhost:3000/agente?demo=1.");
+s = diapo("CONTENIDO", "Demostración", "Presenta: Ariel. 45 s. Capturas reales de /agente con Gemini y el catálogo real de Supabase. Izquierda: el pedido del HP Victus ($1.336.540) supera el presupuesto de $1.000.000; en «Cómo pensó» se ve el recuadro naranja del replan y la alerta creada (marca ESCRIBE). Derecha: en una conversación nueva, «Revisa mis alertas» encuentra la alerta y, en «Memoria que usó», recuerda la preferencia por Samsung y la tarea anterior. Para mostrarlo en vivo: backend en el puerto 8000, frontend con pnpm dev e iniciar sesión en http://localhost:3000/agente. Respaldo sin Gemini ni login: /agente?demo=1.");
 s.addText("La pantalla: se ve cómo piensa", { placeholder: "title" });
 const capturas = [
-  ["pantalla_razonamiento.png", "Plan, herramientas y replanes en vivo"],
-  ["pantalla_alerta_cumplida.png", "La alerta se cumple y queda guardada"],
+  ["real_alerta_replan.png", "Replanifica y crea la alerta"],
+  ["real_revisar_alertas.png", "Revisa la alerta y usa su memoria"],
 ];
 capturas.forEach(([archivo, pie], i) => {
   const x = 0.5 + i * 4.6;
-  s.addShape(pres.ShapeType.roundRect, { x, y: 1.2, w: 4.4, h: 2.95, fill: { color: C.background2 }, rectRadius: 0.1, shadow: sombra(), objectName: `Marco captura ${i + 1}` });
-  s.addImage({ path: path.join(RAIZ, "docs", "agente", "evidencia", archivo), x: x + 0.1, y: 1.3, w: 4.2, h: 2.625, altText: pie });
-  texto(s, pie, { x, y: 4.3, w: 4.4, h: 0.4, fontSize: 14, bold: true, color: C.text2, align: "center", valign: "middle" });
+  s.addShape(pres.ShapeType.roundRect, { x, y: 1.2, w: 4.4, h: 2.3, fill: { color: C.background2 }, rectRadius: 0.1, shadow: sombra(), objectName: `Marco captura ${i + 1}` });
+  s.addImage({ path: path.join(RAIZ, "docs", "agente", "evidencia", archivo), x: x + 0.1, y: 1.3, w: 4.2, h: 2.008, altText: pie });
+  texto(s, pie, { x, y: 3.6, w: 4.4, h: 0.4, fontSize: 14, bold: true, color: C.text2, align: "center", valign: "middle" });
 });
-texto(s, "Modo demo en http://localhost:3000/agente?demo=1: sin login y sin gastar cuota", { x: 0.5, y: 4.8, w: 9.0, h: 0.35, fontSize: 14, color: C.text1, align: "center" });
+texto(s, "Gemini real con el catálogo real: el pedido supera el presupuesto, replanifica, deja la alerta guardada y luego la revisa recordando lo que aprendió.", { x: 0.5, y: 4.2, w: 9.0, h: 0.75, fontSize: 14, color: C.text1, align: "left", valign: "top" });
 
 // 9 ── evidencia
 pres.addSection({ title: "Cierre" });
