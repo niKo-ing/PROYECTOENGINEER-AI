@@ -1,5 +1,59 @@
 # SoloTodo AI
 
+> **Evaluación Parcial 2 (ISY0101) — Agente de ahorro con LangGraph.** Un agente que busca, compara, razona sobre el historial de precios y **escribe** alertas y listas de compra, con memoria de corto y largo plazo y replanificación adaptativa. Arquitectura, diagramas, cómo ejecutarlo y evidencia: [`docs/agente/ARQUITECTURA.md`](docs/agente/ARQUITECTURA.md). Código en `app/agent/`, pruebas en `tests/agent/`, demo con `python scripts/demo_agente.py`.
+
+### Ejecutar y validar el agente (paso a paso)
+
+Requisitos: Python 3.12 y [uv](https://docs.astral.sh/uv/). Para la demo en vivo, una llave de Gemini.
+
+```bash
+# 1. Entorno e instalación
+uv venv --python 3.12 .venv
+uv pip install -e '.[dev]'
+
+# 2. Pruebas (sin red, ~10 s): deben dar 88 passed, 3 skipped
+#    (si su .env trae un DATABASE_URL de Supabase, anteponga DATABASE_URL=sqlite:///./dev_local.db)
+.venv/bin/python -m pytest tests/agent -q
+
+# 3. Demo guionada, sin red: 5 historias con la traza completa (plan, herramientas, replanes, memoria)
+.venv/bin/python scripts/demo_agente.py
+
+# 4. Demo con Gemini real: cree un .env con LLM_PROVIDER=gemini, GEMINI_API_KEY=... y GEMINI_MODEL=gemini-flash-lite-latest
+.venv/bin/python scripts/demo_agente.py --live --embeddings gemini
+
+# 5. Opcionales: pruebas contra Gemini y contra Postgres real
+RUN_LIVE=1 .venv/bin/python -m pytest tests/agent/test_live_gemini.py -q
+TEST_POSTGRES_URL=postgresql://usuario:clave@localhost:5432/base .venv/bin/python -m pytest tests/agent/test_checkpointer.py -q
+
+# 6. API (usa la base de DATABASE_URL, o SQLite local sin ella): POST /api/v1/agent/run
+.venv/bin/python -m uvicorn app.main:app --port 8000
+```
+
+### Probar la pantalla del agente (frontend)
+
+Hace falta Node con `pnpm` y dos terminales. Si el `DATABASE_URL` de su `.env` apunta a Supabase y esa conexión no está disponible, fuerce una base SQLite local solo para esta prueba (el valor del entorno manda sobre el `.env` y no lo modifica):
+
+```bash
+# Una sola vez: catálogo de ejemplo en una base local aparte (dev_local.db)
+DATABASE_URL=sqlite:///./dev_local.db .venv/bin/python scripts/sembrar_catalogo_demo.py
+
+# Terminal 1: backend (modo demo activo por defecto fuera de producción)
+DATABASE_URL=sqlite:///./dev_local.db .venv/bin/python -m uvicorn app.main:app --port 8000
+
+# Terminal 2: frontend
+cd frontend && pnpm install && pnpm dev
+```
+
+El chat de IA original sigue en **/chat**; el agente es una pantalla adicional en `/agente`.
+
+Abra **http://localhost:3000/agente** (también está el botón «Agente» en la barra superior).
+
+- **Modo Demo** (por defecto, sin login, sin red, sin gastar cuota): catálogo de ejemplo y modelo guionado. Pruebe las 5 historias de la pantalla. A la derecha, «Cómo pensó» muestra el plan, cada herramienta y los replanes; «Guardado» muestra alertas, listas y memoria. Tras la historia 2 pulse **Simular baja de precio** y pida «Revisa mis alertas de precio». **Reiniciar demo** deja todo de cero.
+- **Modo Gemini real**: requiere iniciar sesión (Supabase) y `GEMINI_API_KEY`; usa el endpoint autenticado `/api/v1/agent/run`. Con una base SQLite vacía no hay productos que buscar: siembre el catálogo de ejemplo con `.venv/bin/python scripts/sembrar_catalogo_demo.py` (solo SQLite local; no hace nada si ya hay productos).
+- El modo demo se apaga solo con `APP_ENV=production`, o con `AGENT_DEMO_ENABLED=false`.
+
+Scripts asociados: `scripts/demo_agente.py` (demo), `scripts/generar_diagramas.py` (diagramas PNG), `scripts/generar_informe.py` (informe .docx). Un `.env` con `DATABASE_URL` hace que las pruebas intenten conectarse a esa base: para probar, no lo defina. Detalle de arquitectura en [`docs/agente/ARQUITECTURA.md`](docs/agente/ARQUITECTURA.md) y de contratos en [`docs/agente/DISENO.md`](docs/agente/DISENO.md).
+
 Base de infraestructura para un monolito modular. El backend usa FastAPI y SQLAlchemy; el frontend usa Next.js, React, TypeScript y Tailwind CSS. PostgreSQL en Supabase es la base de datos objetivo.
 
 ## Inicio rápido con Docker

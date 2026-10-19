@@ -20,6 +20,11 @@ dependencies = [
   "beautifulsoup4>=4.12,<5.0",
   "httpx>=0.27,<1.0",
   "apscheduler>=3.10,<4.0",
+  "langgraph>=1.2,<2.0",
+  "langchain-core>=1.6,<2.0",
+  "langchain-google-genai>=4.3,<5.0",
+  "langgraph-checkpoint-sqlite>=3.1,<4.0",
+  "langgraph-checkpoint-postgres>=3.2,<4.0",
 ]
 
 [project.optional-dependencies]
@@ -30,6 +35,7 @@ testpaths = ["tests"]
 pythonpath = ["."]
 markers = [
   "slow: tests that perform real-world or expensive discovery operations",
+  "live: tests that call real Gemini (need GEMINI_API_KEY and RUN_LIVE=1)",
 ]
 [tool.setuptools.packages.find]
 include = ["app*"]

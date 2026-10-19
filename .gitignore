@@ -8,3 +8,6 @@ __pycache__/
 *.egg-info/
 *.db
 .vercel/
+.pptx-venv/
+prueba 1/
+*.pptx
