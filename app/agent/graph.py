@@ -18,6 +18,7 @@
 
 from __future__ import annotations
 
+import json
 import operator
 from typing import Annotated, Any, TypedDict
 
@@ -74,6 +75,7 @@ Reglas:
 - Sigue el plan, un paso a la vez, y no repitas una consulta que ya hiciste.
 - Antes de recomendar comprar un producto, revisa su oferta (get_product_offers) y su tendencia (analyze_price_trend).
 - Solo escribes (create_price_alert, save_shopping_list, remember_preference) cuando el usuario lo pidió o es claramente lo que necesita. remember_preference es solo para datos estables que el usuario declaró.
+- save_shopping_list SOLO si el usuario pidió una lista o guardar/armar la compra («lista», «guarda», «arma»). Si solo pide una recomendación o una comparación, responde sin guardar ninguna lista.
 - Respeta el presupuesto. Si no alcanza, dilo con la cifra y propón la alternativa.
 - Si el usuario pidió que le avisen (o dijo «avísame») y nada cabe en su presupuesto, crea la alerta SIN preguntar: usa create_price_alert sobre el producto que mejor calza con lo pedido, con el presupuesto como precio objetivo, e informa cuánto falta.
 - Termina con una respuesta breve en español: qué elegiste, cuánto cuesta, por qué, y qué dejaste guardado."""
@@ -104,12 +106,22 @@ def _tools_of_last_round(messages: list[AnyMessage]) -> list[ToolMessage]:
     return list(reversed(out))
 
 
+def _not_saved(message: ToolMessage) -> bool:
+    """La herramienta de escritura respondió que NO escribió (p. ej. el usuario no pidió una lista)."""
+    try:
+        data = json.loads(message.content if isinstance(message.content, str) else "")
+    except (TypeError, json.JSONDecodeError):
+        return False
+    return isinstance(data, dict) and data.get("saved") is False
+
+
 def build_agent_graph(
     llm: BaseChatModel,
     tools: list[BaseTool],
     memory: LongTermMemory,
     *,
     checkpointer: Any = None,
+    context: Any = None,
     max_steps: int = 10,
     max_replans: int = 2,
     max_window: int = 24,
@@ -123,6 +135,8 @@ def build_agent_graph(
     def recall(state: AgentState) -> dict[str, Any]:
         goal = _last_human(state.get("messages", []))
         turn = state.get("turn", 0) + 1
+        if context is not None:
+            context.goal = goal
         hits = memory.recall(goal, k=4)
         memories = [f"[{hit.kind}] {hit.content}" for hit in hits]
         budget = extract_budget_clp(goal)
@@ -196,7 +210,7 @@ def build_agent_graph(
         observed = _tools_of_last_round(state["messages"])
         diagnosis: Diagnosis | None = diagnose(observed, state.get("budget_clp"))
         progress = mark_progress(state.get("plan", []), [m.name for m in observed if m.name])
-        wrote = state.get("wrote", []) + [n for n in after_tools_bookkeeping(state) if not any(m.name == n and getattr(m, "status", None) == "error" for m in observed)]
+        wrote = state.get("wrote", []) + [n for n in after_tools_bookkeeping(state) if not any(m.name == n and (getattr(m, "status", None) == "error" or _not_saved(m)) for m in observed)]
         update: dict[str, Any] = {"plan": progress, "wrote": wrote, "replan_reason": None}
         event: dict[str, Any] = {"turn": state.get("turn", 1), "node": "reflect", "observed": [m.name for m in observed], "diagnosis": None}
         if diagnosis is not None:

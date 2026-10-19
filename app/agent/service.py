@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import os
+import re
 import sqlite3
 import uuid
 from dataclasses import asdict, dataclass, field
@@ -17,13 +18,18 @@ from sqlalchemy.orm import Session
 from app.agent.graph import _text, build_agent_graph
 from app.agent.llm import as_llm_error, get_chat_model, is_provider_error
 from app.agent.memory import LongTermMemory
-from app.agent.tools import build_tools
+from app.agent.tools import RunContext, build_tools
 from app.agent.security import enable_rls_on_connection
 from app.ai.rag.embedding import EmbeddingProvider
 from app.ai.rag.factory import get_embedding_provider
 from app.core.config import settings
 
 DEFAULT_CHECKPOINT_DB = os.getenv("AGENT_CHECKPOINT_DB", "agent_checkpoints.db")
+
+
+def _clean_answer(text: str) -> str:
+    """Gemini a veces abre la respuesta con puntuación suelta (\".He revisado…\"): se quita del inicio."""
+    return re.sub(r"^[\s.,;:]+(?=[^\s.,;:])", "", text)
 
 
 @dataclass
@@ -88,12 +94,14 @@ class AgentService:
     ):
         self.user_id = user_id
         self.memory = LongTermMemory(db, user_id, embedder or get_embedding_provider())
-        self.tools = build_tools(db, user_id, self.memory)
+        self.context = RunContext()
+        self.tools = build_tools(db, user_id, self.memory, self.context)
         self.graph = build_agent_graph(
             llm or get_chat_model(),
             self.tools,
             self.memory,
             checkpointer=checkpointer if checkpointer is not None else default_checkpointer(),
+            context=self.context,
             max_steps=max_steps,
             max_replans=max_replans,
         )
@@ -122,7 +130,7 @@ class AgentService:
         final = next((m for m in reversed(state["messages"]) if isinstance(m, AIMessage)), None)
         return AgentRunResult(
             thread_id=thread,
-            answer=_text(final.content) if final else "",
+            answer=_clean_answer(_text(final.content)) if final else "",
             plan=state.get("plan", []),
             plan_source=state.get("plan_source", ""),
             tools_used=tools_used,

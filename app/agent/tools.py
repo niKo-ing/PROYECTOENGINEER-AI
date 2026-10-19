@@ -15,6 +15,7 @@ negocio, así el agente lo ve como observación y puede replanificar.
 from __future__ import annotations
 
 import json
+import re
 import threading
 from datetime import datetime, timezone
 from statistics import mean
@@ -36,6 +37,18 @@ from app.services.product_service import ProductService
 
 READ_TOOLS = ("search_products", "get_product_offers", "get_price_history", "compare_products", "get_user_profile", "recall_memory", "check_price_alerts", "analyze_price_trend")
 WRITE_TOOLS = ("create_price_alert", "save_shopping_list", "remember_preference")
+
+
+# El pedido tiene que mencionar una lista o pedir guardar/armar/anotar para que se guarde una lista. Es una regla
+# en código y no solo en el prompt: Gemini guardaba listas que el usuario no había pedido.
+LIST_INTENT = re.compile(r"\blist[ao]s?\b|\bguard(a|á|ar|e|alo|álo|ame)\w*|\barm(a|ar|ame|alo)\w*|\bañad(e|ir)\w*|\bagreg(a|ar)\w*|\banot(a|ar|á)\w*", re.IGNORECASE)
+
+
+class RunContext:
+    """Estado de la ejecución en curso que las herramientas necesitan: el pedido del usuario."""
+
+    def __init__(self) -> None:
+        self.goal = ""
 
 
 class ProductIdInput(BaseModel):
@@ -98,7 +111,7 @@ def trend_verdict(history_prices: list[int], current: int | None) -> dict[str, A
     return {"verdict": verdict, "current_clp": current, "min_clp": low, "max_clp": high, "avg_clp": avg, "vs_avg_pct": vs_avg, "points": len(prices), "reason": reason}
 
 
-def build_tools(db: Session, user_id: str, memory: LongTermMemory) -> list[StructuredTool]:
+def build_tools(db: Session, user_id: str, memory: LongTermMemory, context: RunContext | None = None) -> list[StructuredTool]:
     """Construye las herramientas ligadas a una sesión de base de datos y a un usuario."""
     products = ProductService(db)
 
@@ -181,6 +194,8 @@ def build_tools(db: Session, user_id: str, memory: LongTermMemory) -> list[Struc
         return {"alert_id": alert.id, "product": product.name, "target_price_clp": alert.target_price_clp, "current_price_clp": current, "already_met": current is not None and current <= target_price_clp, "updated_existing": updated}
 
     def save_shopping_list(name: str, product_ids: list[int], budget_clp: int | None = None, notes: str | None = None):
+        if context is not None and context.goal and not LIST_INTENT.search(context.goal):
+            return {"saved": False, "reason": "El usuario no pidió guardar una lista. No se guardó nada: da la recomendación y ofrécele guardarla si quiere."}
         items, skipped = [], []
         for pid in dict.fromkeys(product_ids):
             product = db.get(Product, pid)
