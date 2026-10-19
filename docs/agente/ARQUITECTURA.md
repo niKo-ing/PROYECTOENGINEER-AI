@@ -176,7 +176,7 @@ Migración: `alembic upgrade head` (agrega `agent_memories`, `price_alerts`, `sh
 | Resultado de las pruebas (129 del agente; 909 en la suite completa) | `docs/agente/evidencia/pytest_agente.txt`, `pytest_suite_completa.txt` |
 | Bocetos de diseño (estado, contratos, prompt, esquema de datos) | `docs/agente/DISENO.md` |
 | Capturas de la pantalla del agente (`/agente`): plan y replanes; alerta cumplida | `docs/agente/evidencia/pantalla_razonamiento.png`, `pantalla_alerta_cumplida.png` |
-| Informe (≤ 5 páginas) y presentación de la exposición (10 diapositivas con notas de apoyo) | `docs/agente/Informe_EP2_Agente_TodoBarato.docx`, `docs/agente/Presentacion_EP2_Agente_TodoBarato.pptx` |
+| Informe (≤ 5 páginas) y presentación de la exposición (10 diapositivas con notas de apoyo) | `docs/agente/Informe_EP2_Agente_TodoBarato.pdf`, `docs/agente/Presentacion_EP2_Agente_TodoBarato.pptx` |
 | Pruebas unitarias y de escenarios | `tests/agent/` — 124 pruebas + 5 opt-in (2 Gemini, 3 Postgres) |
 | Traza de las 5 historias con modelo guionado | `docs/agente/evidencia/demo_guionada.txt` |
 | Traza con Gemini real (historias 1–3 completas; cortó la cuota gratuita en la 4) | `docs/agente/evidencia/demo_gemini.txt` |
