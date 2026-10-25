@@ -1,0 +1,33 @@
+{
+  "widgets": [
+    {"type": "text", "x": 0, "y": 0, "width": 24, "height": 2, "properties": {"markdown": "# TodoBarato AI · EP2 ITY1102\nALB → ASG `__ASG__` (2-4 réplicas en 2 zonas) · RDS `__DB__` · Objetivos: p95 < 2 s (catálogo), 5xx < 1 %, disponibilidad ≥ 99,5 %"}},
+    {"type": "metric", "x": 0, "y": 2, "width": 8, "height": 6, "properties": {"title": "Solicitudes por minuto (ALB)", "region": "__REGION__", "stat": "Sum", "period": 60, "view": "timeSeries",
+      "metrics": [["AWS/ApplicationELB", "RequestCount", "LoadBalancer", "__ALB__"]]}},
+    {"type": "metric", "x": 8, "y": 2, "width": 8, "height": 6, "properties": {"title": "Latencia del backend (p50 / p95 / p99, s)", "region": "__REGION__", "period": 60, "view": "timeSeries",
+      "metrics": [["AWS/ApplicationELB", "TargetResponseTime", "TargetGroup", "__TGAPI__", "LoadBalancer", "__ALB__", {"stat": "p50", "label": "p50"}],
+                  ["...", {"stat": "p95", "label": "p95"}], ["...", {"stat": "p99", "label": "p99"}]]}},
+    {"type": "metric", "x": 16, "y": 2, "width": 8, "height": 6, "properties": {"title": "Errores (5xx del backend y del ALB)", "region": "__REGION__", "stat": "Sum", "period": 60, "view": "timeSeries",
+      "metrics": [["AWS/ApplicationELB", "HTTPCode_Target_5XX_Count", "LoadBalancer", "__ALB__", {"label": "5xx backend"}],
+                  ["AWS/ApplicationELB", "HTTPCode_ELB_5XX_Count", "LoadBalancer", "__ALB__", {"label": "5xx ALB"}]]}},
+    {"type": "metric", "x": 0, "y": 8, "width": 8, "height": 6, "properties": {"title": "Réplicas sanas / no sanas", "region": "__REGION__", "stat": "Maximum", "period": 60, "view": "timeSeries",
+      "metrics": [["AWS/ApplicationELB", "HealthyHostCount", "TargetGroup", "__TGAPI__", "LoadBalancer", "__ALB__", {"label": "API sanas"}],
+                  ["AWS/ApplicationELB", "UnHealthyHostCount", "TargetGroup", "__TGAPI__", "LoadBalancer", "__ALB__", {"label": "API no sanas"}],
+                  ["AWS/ApplicationELB", "HealthyHostCount", "TargetGroup", "__TGFRONT__", "LoadBalancer", "__ALB__", {"label": "Frontend sanas"}]]}},
+    {"type": "metric", "x": 8, "y": 8, "width": 8, "height": 6, "properties": {"title": "CPU del grupo de la API (objetivo 60 %)", "region": "__REGION__", "stat": "Average", "period": 60, "view": "timeSeries",
+      "metrics": [["AWS/EC2", "CPUUtilization", "AutoScalingGroupName", "__ASG__"]],
+      "annotations": {"horizontal": [{"value": 60, "label": "objetivo de escalado"}]}}},
+    {"type": "metric", "x": 16, "y": 8, "width": 8, "height": 6, "properties": {"title": "Instancias en servicio (ASG)", "region": "__REGION__", "stat": "Average", "period": 60, "view": "timeSeries",
+      "metrics": [["AWS/AutoScaling", "GroupInServiceInstances", "AutoScalingGroupName", "__ASG__", {"label": "en servicio"}],
+                  ["AWS/AutoScaling", "GroupDesiredCapacity", "AutoScalingGroupName", "__ASG__", {"label": "deseadas"}]]}},
+    {"type": "metric", "x": 0, "y": 14, "width": 8, "height": 6, "properties": {"title": "RDS: CPU (%)", "region": "__REGION__", "stat": "Average", "period": 60,
+      "metrics": [["AWS/RDS", "CPUUtilization", "DBInstanceIdentifier", "__DB__"]]}},
+    {"type": "metric", "x": 8, "y": 14, "width": 8, "height": 6, "properties": {"title": "RDS: conexiones", "region": "__REGION__", "stat": "Maximum", "period": 60,
+      "metrics": [["AWS/RDS", "DatabaseConnections", "DBInstanceIdentifier", "__DB__"]]}},
+    {"type": "metric", "x": 16, "y": 14, "width": 8, "height": 6, "properties": {"title": "RDS: latencia de lectura / escritura (s)", "region": "__REGION__", "stat": "Average", "period": 60,
+      "metrics": [["AWS/RDS", "ReadLatency", "DBInstanceIdentifier", "__DB__"], ["AWS/RDS", "WriteLatency", "DBInstanceIdentifier", "__DB__"]]}},
+    {"type": "alarm", "x": 0, "y": 20, "width": 24, "height": 3, "properties": {"title": "Alarmas (→ SNS tb-ep2-alarmas)",
+      "alarms": ["arn:aws:cloudwatch:__REGION__:CUENTA:alarm:tb-ep2-api-replica-caida", "arn:aws:cloudwatch:__REGION__:CUENTA:alarm:tb-ep2-alb-errores-5xx",
+                 "arn:aws:cloudwatch:__REGION__:CUENTA:alarm:tb-ep2-alb-latencia", "arn:aws:cloudwatch:__REGION__:CUENTA:alarm:tb-ep2-rds-cpu",
+                 "arn:aws:cloudwatch:__REGION__:CUENTA:alarm:tb-ep2-rds-memoria"]}}
+  ]
+}

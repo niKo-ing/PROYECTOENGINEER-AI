@@ -1,0 +1,36 @@
+@startuml 07-secuencia-consulta-ia
+title Flujo síncrono · consulta al asistente de IA
+skinparam shadowing false
+skinparam defaultFontName "DejaVu Sans"
+autonumber
+
+actor Comprador as U
+participant "Web\nNext.js" as WEB
+participant "ALB" as ALB
+participant "API\n(réplica en 1a o 1b)" as API
+participant "Orquestador\nintención + plan" as O
+participant "RAG híbrido\n+ caché TTL" as R
+participant "Herramientas\ncatálogo" as H
+participant "Gemini" as G
+database "RDS" as DB
+
+U -> WEB : «¿qué notebook me conviene\npara estudiar bajo $500.000?»
+WEB -> ALB : POST /api/v1/ai/chat (JWT)
+ALB -> API : least outstanding requests
+API -> API : valida JWT (JWKS en caché)
+API -> O : mensaje + perfil
+O -> R : contexto (top-k=6, presupuesto 1.600 tokens)
+R -> DB : búsqueda léxica + vectores
+R --> O : fragmentos con evidencia
+O -> G : plan + herramientas disponibles
+G --> O : llamar buscar_productos(categoría, precio_max)
+O -> H : máx. AI_MAX_TOOL_CALLS = 3
+H -> DB : consulta al catálogo
+H --> O : productos + precios por tienda
+O -> G : redactar respuesta con evidencia
+G --> O : respuesta
+O --> API : respuesta + fuentes
+API --> WEB : 200 JSON
+WEB --> U : recomendación con precios reales
+note over G : LLM_TIMEOUT_SECONDS = 60;\nel ALB espera hasta 180 s (idle timeout)
+@enduml

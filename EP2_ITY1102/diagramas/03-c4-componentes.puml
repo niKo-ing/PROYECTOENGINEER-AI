@@ -1,0 +1,54 @@
+@startuml 03-c4-componentes
+!include <C4/C4_Component>
+LAYOUT_WITH_LEGEND()
+title TodoBarato AI · C4 Nivel 3 · Componentes de la API y del worker
+
+ContainerDb(db, "RDS PostgreSQL", "")
+System_Ext(llm, "Gemini / Bedrock", "")
+System_Ext(tiendas, "Tiendas en línea", "")
+Container(web, "Aplicación web", "Next.js")
+
+Container_Boundary(api, "API de catálogo e IA (FastAPI)") {
+  Component(routers, "Routers REST", "app/routers", "products, categories, user_profile, ai, agent, admin. Validación con Pydantic.")
+  Component(seg, "Seguridad", "app/core/security", "Verifica JWT (JWKS), roles admin, RLS en tablas del agente.")
+  Component(servicios, "Servicios de dominio", "app/services", "Productos, facetas, perfil, especificaciones.")
+  Component(repos, "Repositorios", "app/repositories · SQLAlchemy 2", "Acceso a datos; sesiones con pool y pre-ping.")
+  Component(orq, "Orquestador del asistente", "app/ai/orchestrator · planner · intent", "Detecta intención, planifica y limita llamadas a herramientas (AI_MAX_TOOL_CALLS).")
+  Component(rag, "RAG híbrido", "app/ai/rag", "Recuperación léxica + embeddings, reranking, caché TTL y presupuesto de tokens.")
+  Component(tools, "Herramientas", "app/ai/tools · engine", "Consultas al catálogo y al perfil: evidencia, no texto inventado.")
+  Component(agente, "Agente de ahorro", "app/agent · LangGraph", "Plan → herramientas → replanificación; memoria corta/larga; checkpoints en Postgres.")
+  Component(prov, "Proveedores LLM", "app/ai/providers", "Interfaz común: Gemini, OpenAI (Bedrock como alternativa). Timeout y respaldo.")
+}
+
+Container_Boundary(worker, "Worker de ingesta") {
+  Component(sched, "Scheduler", "APScheduler", "Una tarea por tienda (sync_interval_min), max_instances=1.")
+  Component(evt, "Receptor de eventos", "app/routers/eventos", "Verifica la firma SNS y el tema; encola la ingesta sin solapar corridas.")
+  Component(conn, "Conectores", "app/ingestion/connectors", "SP Digital, Paris: descubrimiento de URLs y extracción.")
+  Component(pipe, "Pipeline", "app/ingestion/pipeline · validation", "Normaliza, valida, aplica límites y registra auditoría.")
+  Component(match, "Matching de identidad", "app/catalog/matching · ai_matching", "Reglas SKU/MPN/GTIN primero; IA solo en casos ambiguos.")
+}
+
+Rel(web, routers, "JSON / HTTP")
+Rel(routers, seg, "Autentica")
+Rel(routers, servicios, "")
+Rel(routers, orq, "/ai/chat")
+Rel(routers, agente, "/agent/run")
+Rel(servicios, repos, "")
+Rel(orq, rag, "Contexto")
+Rel(orq, tools, "Invoca")
+Rel(agente, tools, "Invoca")
+Rel(orq, prov, "Genera")
+Rel(agente, prov, "Planifica")
+Rel(tools, repos, "")
+Rel(repos, db, "SQL")
+Rel(rag, db, "Base de conocimiento")
+Rel(agente, db, "Checkpoints / memoria")
+Rel(prov, llm, "HTTPS")
+Rel(sched, pipe, "Cada N min")
+Rel(evt, pipe, "Evento ingesta_programada")
+Rel(pipe, conn, "")
+Rel(conn, tiendas, "HTTPS")
+Rel(pipe, match, "")
+Rel(match, prov, "Ambiguos")
+Rel(pipe, db, "Ofertas e historial")
+@enduml

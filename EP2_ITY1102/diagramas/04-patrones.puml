@@ -1,0 +1,62 @@
+@startuml 04-patrones
+title TodoBarato AI · Patrones: microservicios + Event-Driven (Pub/Sub)
+skinparam componentStyle rectangle
+skinparam shadowing false
+skinparam defaultFontName "DejaVu Sans"
+skinparam rectangle {
+  BackgroundColor #F7F9FC
+  BorderColor #5A6B85
+}
+left to right direction
+
+actor "Usuario" as U
+node "ALB\n(enrutamiento por ruta)" as ALB #E8F1FF
+
+package "Microservicio Web" #FFFFFF {
+  [Next.js\nSSR + proxy /api/v1] as WEB
+}
+package "Microservicio API (sin estado, 2-4 réplicas)" #FFFFFF {
+  [Catálogo\nREST] as CAT
+  [Asistente IA\nRAG + herramientas] as IA
+  [Agente LangGraph\nalertas y listas] as AG
+}
+package "Microservicio Worker (1 réplica, idempotente)" #FFFFFF {
+  [Receptor SNS\n(firma + tema)] as RX
+  [Pipeline de ingesta\nconectores → matching] as ING
+}
+
+queue "EventBridge\nrate(6 hours)" as EB #FFF4E0
+queue "SNS\ntb-ep2-eventos-ingesta" as SNS #FFF4E0
+queue "SNS\ntb-ep2-alarmas" as SNSA #FFF4E0
+database "RDS PostgreSQL" as DB
+cloud "CloudWatch\nalarmas" as CW
+actor "Equipo\n(correo)" as OPS
+
+U --> ALB : HTTPS
+ALB --> WEB : /*
+ALB --> CAT : /api/*
+ALB --> IA : /api/v1/ai/*
+ALB --> AG : /api/v1/agent/*
+EB --> SNS : publica\n«ingesta_programada»
+SNS --> ALB : POST /api/v1/eventos/sns\n(mensaje firmado)
+ALB --> RX
+RX --> ING : 202 Accepted +\ntarea en segundo plano
+ING --> DB : ofertas, precios,\nhistorial
+CAT --> DB
+IA --> DB
+AG --> DB
+CW --> SNSA : ALARM / OK
+SNSA --> OPS
+
+note bottom of SNS
+  Productor y consumidor desacoplados:
+  EventBridge no conoce al worker.
+  Producción: SNS → SQS (cola durable + DLQ)
+  → workers que escalan por profundidad de cola.
+end note
+note bottom of CAT
+  Cada servicio escala por separado:
+  la API por CPU (objetivo 60 %),
+  el worker queda en 1 para no duplicar ingestas.
+end note
+@enduml

@@ -24,7 +24,7 @@ import {
   type AgentRun,
   type AgentState,
 } from "@/lib/api/agent";
-import { formatCLP } from "@/lib/utils";
+import { formatCLP, newId } from "@/lib/utils";
 import { useSession } from "@/lib/supabase/use-session";
 import { cn } from "@/lib/utils";
 
@@ -137,10 +137,10 @@ export function AgentScreen() {
     setDraft("");
     setError("");
     setIsLoading(true);
-    setMessages((current) => [...current, { id: crypto.randomUUID(), role: "user", text: trimmed }]);
+    setMessages((current) => [...current, { id: newId(), role: "user", text: trimmed }]);
     try {
       const run = await runAgent(mode, trimmed, threadId, accessToken);
-      const id = crypto.randomUUID();
+      const id = newId();
       setMessages((current) => [...current, { id, role: "assistant", text: run.answer, run }]);
       setSelectedRunId(id);
       await refreshState(mode);
@@ -157,7 +157,7 @@ export function AgentScreen() {
       const drop = await dropDemoPrice();
       setMessages((current) => [
         ...current,
-        { id: crypto.randomUUID(), role: "notice", text: `Pasaron los días: ${drop.product} bajó de ${formatCLP(drop.before_clp)} a ${formatCLP(drop.after_clp)}. Pídele «Revisa mis alertas de precio».` },
+        { id: newId(), role: "notice", text: `Pasaron los días: ${drop.product} bajó de ${formatCLP(drop.before_clp)} a ${formatCLP(drop.after_clp)}. Pídele «Revisa mis alertas de precio».` },
       ]);
       await refreshState("demo");
     } catch (requestError) {

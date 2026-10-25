@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Info, Sparkles } from "lucide-react";
 
-import { cn } from "@/lib/utils";
+import { cn, newId } from "@/lib/utils";
 import { MarkdownContent } from "@/components/chat/markdown-content";
 import { ProductRecommendations } from "@/components/chat/product-recommendations";
 import { SuggestionChips } from "@/components/chat/suggestion-chips";
@@ -127,7 +127,7 @@ export function ChatInterface({ accessToken, productId, productName }: ChatInter
     setDraft("");
     setError("");
     setThinkingLabel(isCatalog ? "Buscando en el catálogo…" : "Consultando al asistente…");
-    setMessages((current) => [...current, { id: crypto.randomUUID(), role: "user", text: trimmed }]);
+    setMessages((current) => [...current, { id: newId(), role: "user", text: trimmed }]);
     setIsLoading(true);
 
     try {
@@ -141,7 +141,7 @@ export function ChatInterface({ accessToken, productId, productName }: ChatInter
       setMessages((current) => [
         ...current,
         {
-          id: crypto.randomUUID(),
+          id: newId(),
           role: "assistant",
           text: result.answer,
           toolsUsed: result.tools_used.length > 0 ? result.tools_used : undefined,

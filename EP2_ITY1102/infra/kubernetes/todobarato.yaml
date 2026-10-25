@@ -1,0 +1,202 @@
+# Referencia de producción en Amazon EKS (no se aplica en AWS Academy: la cuenta no permite EKS/IAM).
+# Equivale al despliegue real con EC2 + ASG + ALB: mismas imágenes, mismos puertos, mismas pruebas de salud.
+#   kubectl apply -f todobarato.yaml
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: todobarato
+---
+# Secretos: en producción los sincroniza External Secrets Operator desde AWS Secrets Manager.
+apiVersion: v1
+kind: Secret
+metadata:
+  name: todobarato-env
+  namespace: todobarato
+type: Opaque
+stringData:
+  DATABASE_URL: "postgresql://todobarato:CAMBIAR@tb-postgres.xxxx.us-east-1.rds.amazonaws.com:5432/todobarato?sslmode=require"
+  GEMINI_API_KEY: "CAMBIAR"
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: todobarato-config
+  namespace: todobarato
+data:
+  APP_ENV: production
+  LLM_PROVIDER: gemini
+  GEMINI_MODEL: gemini-flash-lite-latest
+  LLM_TIMEOUT_SECONDS: "60"
+  AI_MAX_TOOL_CALLS: "3"
+  AGENT_DEMO_ENABLED: "false"
+---
+# ---------------- API (sin estado, escala horizontal)
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: api
+  namespace: todobarato
+spec:
+  replicas: 2
+  strategy:
+    type: RollingUpdate
+    rollingUpdate: { maxUnavailable: 0, maxSurge: 1 }   # despliegues sin caída
+  selector: { matchLabels: { app: api } }
+  template:
+    metadata: { labels: { app: api } }
+    spec:
+      # Réplicas repartidas entre zonas de disponibilidad.
+      topologySpreadConstraints:
+        - maxSkew: 1
+          topologyKey: topology.kubernetes.io/zone
+          whenUnsatisfiable: DoNotSchedule
+          labelSelector: { matchLabels: { app: api } }
+      securityContext: { runAsNonRoot: true, runAsUser: 10001 }
+      containers:
+        - name: api
+          image: 255708237033.dkr.ecr.us-east-1.amazonaws.com/todobarato-backend:ep2
+          ports: [{ containerPort: 8000 }]
+          envFrom:
+            - configMapRef: { name: todobarato-config }
+            - secretRef: { name: todobarato-env }
+          env:
+            - { name: INGESTION_SCHEDULER_ENABLED, value: "false" }
+            - { name: UVICORN_WORKERS, value: "2" }
+          resources:
+            requests: { cpu: 500m, memory: 768Mi }
+            limits: { cpu: "1", memory: 1Gi }
+          readinessProbe:
+            httpGet: { path: /health, port: 8000 }
+            periodSeconds: 10
+          livenessProbe:
+            httpGet: { path: /health, port: 8000 }
+            initialDelaySeconds: 40
+            periodSeconds: 15
+            failureThreshold: 3
+          securityContext: { allowPrivilegeEscalation: false, readOnlyRootFilesystem: false }
+---
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: api
+  namespace: todobarato
+spec:
+  scaleTargetRef: { apiVersion: apps/v1, kind: Deployment, name: api }
+  minReplicas: 2
+  maxReplicas: 6
+  metrics:
+    - type: Resource
+      resource: { name: cpu, target: { type: Utilization, averageUtilization: 60 } }
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: api
+  namespace: todobarato
+spec:
+  minAvailable: 1
+  selector: { matchLabels: { app: api } }
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: backend          # el frontend lo usa como BACKEND_URL=http://backend:8000
+  namespace: todobarato
+spec:
+  selector: { app: api }
+  ports: [{ port: 8000, targetPort: 8000 }]
+---
+# ---------------- Web (Next.js)
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: web
+  namespace: todobarato
+spec:
+  replicas: 2
+  selector: { matchLabels: { app: web } }
+  template:
+    metadata: { labels: { app: web } }
+    spec:
+      topologySpreadConstraints:
+        - maxSkew: 1
+          topologyKey: topology.kubernetes.io/zone
+          whenUnsatisfiable: ScheduleAnyway
+          labelSelector: { matchLabels: { app: web } }
+      containers:
+        - name: web
+          image: 255708237033.dkr.ecr.us-east-1.amazonaws.com/todobarato-frontend:ep2
+          ports: [{ containerPort: 3000 }]
+          env: [{ name: BACKEND_URL, value: "http://backend:8000" }]
+          resources:
+            requests: { cpu: 250m, memory: 384Mi }
+            limits: { cpu: 500m, memory: 512Mi }
+          readinessProbe: { httpGet: { path: /, port: 3000 }, periodSeconds: 10 }
+---
+apiVersion: v1
+kind: Service
+metadata: { name: web, namespace: todobarato }
+spec:
+  selector: { app: web }
+  ports: [{ port: 3000, targetPort: 3000 }]
+---
+# ---------------- Worker de ingesta (1 réplica: el scheduler no se duplica)
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: worker
+  namespace: todobarato
+spec:
+  replicas: 1
+  strategy: { type: Recreate }   # nunca dos workers a la vez
+  selector: { matchLabels: { app: worker } }
+  template:
+    metadata: { labels: { app: worker } }
+    spec:
+      containers:
+        - name: worker
+          image: 255708237033.dkr.ecr.us-east-1.amazonaws.com/todobarato-backend:ep2
+          envFrom:
+            - configMapRef: { name: todobarato-config }
+            - secretRef: { name: todobarato-env }
+          env:
+            - { name: INGESTION_SCHEDULER_ENABLED, value: "true" }
+            - { name: UVICORN_WORKERS, value: "1" }
+            - { name: SNS_TOPIC_ARN_EVENTOS, value: "arn:aws:sns:us-east-1:255708237033:tb-ep2-eventos-ingesta" }
+          ports: [{ containerPort: 8000 }]
+          resources:
+            requests: { cpu: 500m, memory: 768Mi }
+            limits: { cpu: "1", memory: 1Gi }
+          livenessProbe: { httpGet: { path: /health, port: 8000 }, initialDelaySeconds: 40, periodSeconds: 30 }
+---
+apiVersion: v1
+kind: Service
+metadata: { name: worker, namespace: todobarato }
+spec:
+  selector: { app: worker }
+  ports: [{ port: 8000, targetPort: 8000 }]
+---
+# ---------------- Ingress → AWS Load Balancer Controller crea el ALB con las mismas reglas
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: todobarato
+  namespace: todobarato
+  annotations:
+    alb.ingress.kubernetes.io/scheme: internet-facing
+    alb.ingress.kubernetes.io/target-type: ip
+    alb.ingress.kubernetes.io/listen-ports: '[{"HTTPS":443}]'
+    alb.ingress.kubernetes.io/ssl-redirect: "443"
+    alb.ingress.kubernetes.io/healthcheck-path: /health
+    alb.ingress.kubernetes.io/load-balancer-attributes: idle_timeout.timeout_seconds=180
+    alb.ingress.kubernetes.io/target-group-attributes: load_balancing.algorithm.type=least_outstanding_requests,deregistration_delay.timeout_seconds=30
+    alb.ingress.kubernetes.io/wafv2-acl-arn: arn:aws:wafv2:us-east-1:255708237033:regional/webacl/tb-waf/CAMBIAR
+spec:
+  ingressClassName: alb
+  rules:
+    - http:
+        paths:
+          - { path: /api/v1/eventos, pathType: Prefix, backend: { service: { name: worker, port: { number: 8000 } } } }
+          - { path: /api, pathType: Prefix, backend: { service: { name: backend, port: { number: 8000 } } } }
+          - { path: /health, pathType: Exact, backend: { service: { name: backend, port: { number: 8000 } } } }
+          - { path: /, pathType: Prefix, backend: { service: { name: web, port: { number: 3000 } } } }

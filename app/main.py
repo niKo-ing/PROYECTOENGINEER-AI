@@ -1,4 +1,5 @@
 import logging
+import os
 import threading
 from contextlib import asynccontextmanager
 from typing import AsyncGenerator
@@ -14,6 +15,7 @@ from app.routers.ai import router as ai_router
 from app.agent.security import enable_agent_rls
 from app.routers.agent import demo_router as agent_demo_router, router as agent_router
 from app.routers.admin import router as admin_router
+from app.routers.eventos import router as eventos_router
 
 log = logging.getLogger(__name__)
 
@@ -165,10 +167,15 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
         session_factory=SessionLocal,
         job_callback=_run_store_sync,
     )
-    try:
-        scheduler.start()
-    except Exception:
-        log.warning("Ingestion scheduler could not start", exc_info=True)
+    # Con varias réplicas detrás del balanceador solo el worker de ingesta programa las sincronizaciones:
+    # las réplicas de la API arrancan con INGESTION_SCHEDULER_ENABLED=false para no duplicarlas.
+    if os.getenv("INGESTION_SCHEDULER_ENABLED", "true").strip().lower() in {"1", "true", "yes", "on"}:
+        try:
+            scheduler.start()
+        except Exception:
+            log.warning("Ingestion scheduler could not start", exc_info=True)
+    else:
+        log.info("Ingestion scheduler disabled on this replica (INGESTION_SCHEDULER_ENABLED=false)")
     app.state.ingestion_scheduler = scheduler
     threading.Thread(target=_warm_agent_checkpointer, name="agent-warmup", daemon=True).start()
     try:
@@ -186,10 +193,17 @@ def create_app() -> FastAPI:
     app.include_router(agent_router, prefix="/api/v1")
     app.include_router(agent_demo_router, prefix="/api/v1")
     app.include_router(admin_router, prefix="/api/v1")
+    app.include_router(eventos_router, prefix="/api/v1")
 
     @app.get("/health", tags=["system"])
     def health() -> dict[str, str]:
-        return {"status": "ok"}
+        # INSTANCIA y ZONA las fija el arranque de la EC2: muestran qué réplica respondió detrás del ALB.
+        return {
+            "status": "ok",
+            "instancia": os.getenv("INSTANCIA", "local"),
+            "zona": os.getenv("ZONA", "local"),
+            "rol": os.getenv("ROL", "local"),
+        }
 
     return app
 

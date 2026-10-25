@@ -1,0 +1,412 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>EP2 · Equipo 1 · TodoBarato AI</title>
+<style>
+@font-face { font-family: "ISerif"; src: url(fonts/InstrumentSerif-Regular.ttf); }
+@font-face { font-family: "ISerif"; font-style: italic; src: url(fonts/InstrumentSerif-Italic.ttf); }
+@font-face { font-family: "ISans"; src: url(fonts/InstrumentSans-Regular.ttf); }
+@font-face { font-family: "ISans"; font-weight: 700; src: url(fonts/InstrumentSans-Bold.ttf); }
+@font-face { font-family: "ISans"; font-style: italic; src: url(fonts/InstrumentSans-Italic.ttf); }
+@font-face { font-family: "GMono"; src: url(fonts/GeistMono-Regular.ttf); }
+@font-face { font-family: "GMono"; font-weight: 700; src: url(fonts/GeistMono-Bold.ttf); }
+@page { size: 1920px 1080px; margin: 0; }
+:root {
+  --tinta: #0E1726; --tinta2: #16233A; --papel: #F3EFE6; --papel2: #E9E3D6;
+  --ambar: #E3A23B; --frio: #6F8DB5; --frio2: #A9BBD3; --gris: #7A7F88; --linea: #C9C1B0;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { background: #555; }
+.l { width: 1920px; height: 1080px; position: relative; overflow: hidden; break-after: page; font-family: "ISans", sans-serif; }
+.l:last-child { break-after: auto; }
+.osc { background: var(--tinta); color: var(--papel); }
+.cla { background: var(--papel); color: var(--tinta); }
+/* marco de lámina */
+.rot { position: absolute; left: 112px; top: 72px; right: 112px; display: flex; justify-content: space-between;
+       font: 20px/1 "GMono", monospace; letter-spacing: .14em; text-transform: uppercase; opacity: .62; }
+.pie { position: absolute; left: 112px; bottom: 64px; right: 112px; display: flex; justify-content: space-between;
+       font: 18px/1 "GMono", monospace; letter-spacing: .12em; text-transform: uppercase; opacity: .5; }
+.t { position: absolute; left: 112px; top: 150px; font: 400 92px/1.02 "ISerif", serif; letter-spacing: -.01em; max-width: 1500px; }
+.t i { color: var(--ambar); }
+.cla .t i { color: #B7781C; }
+.sub { position: absolute; left: 116px; top: 268px; font: 30px/1.35 "ISans"; opacity: .72; max-width: 1200px; }
+.mono { font-family: "GMono", monospace; }
+.et { font: 20px/1.3 "GMono", monospace; letter-spacing: .1em; text-transform: uppercase; opacity: .6; }
+.cifra { font: 400 150px/0.95 "ISerif", serif; letter-spacing: -.02em; }
+.ambar { color: var(--ambar); }
+.cla .ambar { color: #B7781C; }
+svg text { font-family: "GMono", monospace; }
+</style>
+</head>
+<body>
+
+<!-- ============================================================ 1 · PORTADA -->
+<section class="l osc">
+  <svg width="1920" height="1080" style="position:absolute;inset:0" aria-hidden="true">
+    <g id="constelacion"></g>
+  </svg>
+  <div class="rot"><span>EP2 · ITY1102 · Arquitectura de sistemas de IA</span><span>Lámina 00</span></div>
+  <div style="position:absolute;left:112px;top:330px">
+    <div class="et" style="opacity:.7;margin-bottom:28px">Defensa técnica · Equipo 1</div>
+    <div style="font:400 210px/0.9 'ISerif',serif;letter-spacing:-.02em">TodoBarato <i style="color:var(--ambar)">AI</i></div>
+    <div style="font:34px/1.35 'ISans';opacity:.78;margin-top:40px;max-width:1000px">Arquitectura de IA escalable y segura,<br>desplegada y medida en AWS.</div>
+  </div>
+  <div class="pie" style="opacity:.7"><span>Nicolás Estefanía · Diego Tapia · Ariel Espinoza</span><span>Docente Mateo Serna F. · 25.10.2026</span></div>
+</section>
+
+<!-- ============================================================ 2 · CASO -->
+<section class="l cla">
+  <div class="rot"><span>2.1 · Introducción y contexto</span><span>IE4 · Lámina 01</span></div>
+  <div class="t">Un mismo producto,<br><i>tres nombres.</i></div>
+  <svg width="1920" height="1080" style="position:absolute;inset:0">
+    <g font-size="26" fill="#0E1726">
+      <text x="140" y="560">«ASUS Prime H610M-E D4 LGA1700»</text>
+      <text x="140" y="680">«Placa Madre Asus H610M-E DDR4»</text>
+      <text x="140" y="800">«MB ASUS PRIME H610ME D4 mATX»</text>
+    </g>
+    <g fill="#7A7F88" font-size="18" letter-spacing="2">
+      <text x="140" y="526">SP DIGITAL · $149.990</text><text x="140" y="646">PARIS · $159.990</text><text x="140" y="766">OTRA TIENDA · $155.000</text>
+    </g>
+    <g stroke="#0E1726" stroke-width="1.6" fill="none">
+      <path d="M720 552 C 860 552, 880 680, 1010 680"/><path d="M720 672 L 1010 680"/><path d="M720 792 C 860 792, 880 680, 1010 680"/>
+    </g>
+    <circle cx="1040" cy="680" r="30" fill="#E3A23B"/><circle cx="1040" cy="680" r="54" fill="none" stroke="#E3A23B" stroke-width="1.5"/>
+    <text x="1120" y="668" font-size="22" letter-spacing="2" fill="#7A7F88">PRODUCTO CANÓNICO</text>
+    <text x="1120" y="704" font-size="22" fill="#0E1726">SKU · MPN · GTIN → IA solo si es ambiguo</text>
+  </svg>
+  <div style="position:absolute;left:1120px;top:300px;width:690px">
+    <div class="et" style="margin-bottom:22px">El problema</div>
+    <div style="font:31px/1.4 'ISans'">Cada tienda publica nombres, unidades y descripciones distintas. Comparar es lento para el comprador y caro para la empresa que vigila a su competencia.</div>
+  </div>
+  <div style="position:absolute;left:1120px;top:790px;width:700px;display:grid;grid-template-columns:1fr 1fr 1fr;gap:26px">
+    <div><div class="et">01</div><div style="font:26px/1.3 'ISans';margin-top:8px">Catálogo canónico</div></div>
+    <div><div class="et">02</div><div style="font:26px/1.3 'ISans';margin-top:8px">Asistente con evidencia</div></div>
+    <div><div class="et">03</div><div style="font:26px/1.3 'ISans';margin-top:8px">Agente de ahorro</div></div>
+  </div>
+  <div class="pie"><span>Caso empresarial</span><span>Ariel</span></div>
+</section>
+
+<!-- ============================================================ 3 · OBJETIVOS -->
+<section class="l osc">
+  <div class="rot"><span>2.1 · Objetivos de la arquitectura</span><span>IE4 · Lámina 02</span></div>
+  <div class="t">Cinco metas <i>medibles.</i></div>
+  <div style="position:absolute;left:112px;right:112px;top:430px;display:grid;grid-template-columns:repeat(5,1fr);border-top:1px solid rgba(243,239,230,.25)">
+    <div style="padding:40px 24px 0 0"><div class="et">Disponibilidad</div><div class="cifra" style="font-size:120px;margin-top:22px">99,5<span style="font-size:60px">%</span></div><div style="font:24px/1.4 'ISans';opacity:.7;margin-top:22px">mensual, tolerando la caída de una réplica o una zona</div></div>
+    <div style="padding:40px 24px 0 24px;border-left:1px solid rgba(243,239,230,.25)"><div class="et">Latencia p95</div><div class="cifra" style="font-size:120px;margin-top:22px">&lt;2<span style="font-size:60px"> s</span></div><div style="font:24px/1.4 'ISans';opacity:.7;margin-top:22px">en el catálogo, con carga real</div></div>
+    <div style="padding:40px 24px 0 24px;border-left:1px solid rgba(243,239,230,.25)"><div class="et">Escalado</div><div class="cifra" style="font-size:120px;margin-top:22px">2→4</div><div style="font:24px/1.4 'ISans';opacity:.7;margin-top:22px">réplicas automáticas al 60 % de CPU</div></div>
+    <div style="padding:40px 24px 0 24px;border-left:1px solid rgba(243,239,230,.25)"><div class="et">RPO · RTO</div><div class="cifra" style="font-size:120px;margin-top:22px">5<span style="font-size:80px;opacity:.55"> / </span>15</div><div style="font:24px/1.4 'ISans';opacity:.7;margin-top:22px">minutos de datos · de recuperación</div></div>
+    <div style="padding:40px 0 0 24px;border-left:1px solid rgba(243,239,230,.25)"><div class="et">Costo</div><div class="cifra ambar" style="font-size:120px;margin-top:22px">&lt;200</div><div style="font:24px/1.4 'ISans';opacity:.7;margin-top:22px">USD al mes con 5.000 usuarios</div></div>
+  </div>
+  <div style="position:absolute;left:112px;bottom:140px;font:28px/1.4 'ISerif';font-style:italic;opacity:.75;max-width:1400px">Cada meta tiene una medición en AWS al final de esta defensa.</div>
+  <div class="pie"><span>Requisitos no funcionales</span><span>Ariel</span></div>
+</section>
+
+<!-- ============================================================ 4 · C4 CONTEXTO + CONTENEDORES -->
+<section class="l cla">
+  <div class="rot"><span>2.2 · Arquitectura · Modelo C4</span><span>IE4 · Lámina 03</span></div>
+  <div class="t" style="font-size:72px">Contexto y <i>contenedores.</i></div>
+  <div style="position:absolute;left:112px;top:270px;width:760px;height:700px;background:#FBF9F4;border:1px solid var(--linea);padding:22px;display:flex;flex-direction:column">
+    <div class="et" style="margin-bottom:10px">Nivel 1 · Contexto</div>
+    <img src="../../diagramas/svg/01-c4-contexto.svg" style="flex:1;min-height:0;width:100%;object-fit:contain" alt="C4 contexto">
+  </div>
+  <div style="position:absolute;left:900px;top:270px;width:908px;height:700px;background:#FBF9F4;border:1px solid var(--linea);padding:22px;display:flex;flex-direction:column">
+    <div class="et" style="margin-bottom:10px">Nivel 2 · Contenedores</div>
+    <img src="../../diagramas/svg/02-c4-contenedores.svg" style="flex:1;min-height:0;width:100%;object-fit:contain" alt="C4 contenedores">
+  </div>
+  <div class="pie"><span>CloudFront → ALB → web · API · worker · RDS · eventos · observabilidad</span><span>Ariel</span></div>
+</section>
+
+<!-- ============================================================ 5 · C4 COMPONENTES -->
+<section class="l cla">
+  <div class="rot"><span>2.2 · Arquitectura · Modelo C4</span><span>IE4 · Lámina 04</span></div>
+  <div class="t" style="font-size:72px">Componentes: <i>reglas primero.</i></div>
+  <div style="position:absolute;left:112px;top:270px;width:1180px;height:700px;background:#FBF9F4;border:1px solid var(--linea);padding:22px;display:flex;flex-direction:column">
+    <div class="et" style="margin-bottom:10px">Nivel 3 · API y worker (módulos reales de app/)</div>
+    <img src="../../diagramas/svg/03-c4-componentes.svg" style="flex:1;min-height:0;width:100%;object-fit:contain" alt="C4 componentes">
+  </div>
+  <div style="position:absolute;left:1340px;top:290px;width:470px;display:flex;flex-direction:column;gap:46px">
+    <div><div class="et">A · Sin estado</div><div style="font:28px/1.38 'ISans';margin-top:12px">Los checkpoints del agente viven en Postgres: cualquier réplica continúa la conversación.</div></div>
+    <div><div class="et">B · Matching híbrido</div><div style="font:28px/1.38 'ISans';margin-top:12px">SKU, MPN y GTIN resuelven la identidad; el LLM solo decide lo ambiguo.</div></div>
+    <div><div class="et">C · Acotado</div><div style="font:28px/1.38 'ISans';margin-top:12px">Máx. 3 herramientas y 1.600 tokens de contexto por consulta.</div></div>
+  </div>
+  <div class="pie"><span>Router → servicio → repositorio · orquestador · RAG · agente · ingesta</span><span>Ariel</span></div>
+</section>
+
+<!-- ============================================================ 6 · PATRONES -->
+<section class="l osc">
+  <div class="rot"><span>2.2 · Justificación de patrones</span><span>IE4 · Lámina 05</span></div>
+  <div class="t" style="font-size:80px">Tres servicios.<br><i>Un evento</i> los desacopla.</div>
+  <svg width="1920" height="1080" style="position:absolute;inset:0" aria-label="Microservicios y flujo de eventos">
+    <defs><marker id="fl" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="9" markerHeight="9" orient="auto"><path d="M0 0 L10 5 L0 10 z" fill="#F3EFE6"/></marker>
+          <marker id="fa" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="9" markerHeight="9" orient="auto"><path d="M0 0 L10 5 L0 10 z" fill="#E3A23B"/></marker></defs>
+    <!-- ALB -->
+    <rect x="140" y="560" width="230" height="110" rx="4" fill="none" stroke="#F3EFE6" stroke-width="1.5"/>
+    <text x="255" y="608" text-anchor="middle" font-size="26" fill="#F3EFE6">ALB</text><text x="255" y="642" text-anchor="middle" font-size="18" fill="#A9BBD3">por ruta</text>
+    <!-- servicios -->
+    <g font-size="24" fill="#F3EFE6" text-anchor="middle">
+      <rect x="520" y="430" width="300" height="110" rx="4" fill="#16233A" stroke="#6F8DB5"/><text x="670" y="478">WEB</text><text x="670" y="512" font-size="18" fill="#A9BBD3">Next.js · /*</text>
+      <rect x="520" y="560" width="300" height="110" rx="4" fill="#16233A" stroke="#6F8DB5"/><text x="670" y="608">API · 2–4</text><text x="670" y="642" font-size="18" fill="#A9BBD3">FastAPI · /api/*</text>
+      <rect x="520" y="690" width="300" height="110" rx="4" fill="#16233A" stroke="#E3A23B"/><text x="670" y="738">WORKER · 1</text><text x="670" y="772" font-size="18" fill="#E3A23B">singleton + lock</text>
+    </g>
+    <g stroke="#F3EFE6" stroke-width="1.5" fill="none" marker-end="url(#fl)">
+      <path d="M370 600 C 440 600, 450 485, 516 485"/><path d="M370 615 L 516 615"/><path d="M370 630 C 440 630, 450 745, 516 745"/>
+    </g>
+    <!-- eventos -->
+    <g font-size="22" fill="#F3EFE6" text-anchor="middle">
+      <circle cx="1060" cy="880" r="54" fill="none" stroke="#E3A23B" stroke-width="1.5"/><text x="1060" y="876">EventBridge</text><text x="1060" y="902" font-size="16" fill="#E3A23B">cada 6 h</text>
+      <circle cx="1300" cy="880" r="54" fill="none" stroke="#E3A23B" stroke-width="1.5"/><text x="1300" y="886">SNS</text>
+    </g>
+    <g stroke="#E3A23B" stroke-width="1.6" fill="none" marker-end="url(#fa)">
+      <path d="M1114 880 L 1242 880"/><path d="M1300 826 C 1300 700, 900 640, 826 740"/>
+    </g>
+    <text x="1350" y="760" font-size="18" fill="#E3A23B" letter-spacing="1">mensaje firmado → 202 → segundo plano</text>
+  </svg>
+  <div style="position:absolute;left:1400px;top:420px;width:420px;display:flex;flex-direction:column;gap:40px">
+    <div><div class="et">Microservicios</div><div style="font:27px/1.38 'ISans';margin-top:10px">La búsqueda escala con los usuarios; la ingesta, con su calendario.</div></div>
+    <div><div class="et ambar" style="opacity:1">Defecto hallado al desplegar</div><div style="font:27px/1.38 'ISans';margin-top:10px">Con 2 réplicas la ingesta corría 2 veces. Se separó el worker.</div></div>
+  </div>
+  <div class="pie"><span>Microservicios · Event-Driven (Pub/Sub) · singleton · RAG + herramientas · adapter de LLM</span><span>Diego</span></div>
+</section>
+
+<!-- ============================================================ 7 · ALTA DISPONIBILIDAD -->
+<section class="l cla">
+  <div class="rot"><span>2.2 · Patrones de alta disponibilidad</span><span>IE4 · Lámina 06</span></div>
+  <div class="t" style="font-size:80px">Dos zonas. <i>Ninguna</i> es indispensable.</div>
+  <svg width="1920" height="1080" style="position:absolute;inset:0" aria-label="Despliegue en dos zonas">
+    <text x="660" y="318" text-anchor="middle" font-size="20" fill="#7A7F88" letter-spacing="2">CLOUDFRONT · HTTPS → ALB · HEALTH CHECK 5 s</text>
+    <rect x="510" y="340" width="300" height="70" rx="4" fill="#0E1726"/><text x="660" y="384" text-anchor="middle" font-size="24" fill="#F3EFE6">ALB</text>
+    <rect x="140" y="470" width="500" height="430" fill="none" stroke="#C9C1B0" stroke-dasharray="6 6"/>
+    <rect x="680" y="470" width="500" height="430" fill="none" stroke="#C9C1B0" stroke-dasharray="6 6"/>
+    <text x="164" y="504" font-size="20" fill="#7A7F88" letter-spacing="2">ZONA us-east-1a</text><text x="704" y="504" font-size="20" fill="#7A7F88" letter-spacing="2">ZONA us-east-1b</text>
+    <g font-size="20" text-anchor="middle">
+      <rect x="190" y="540" width="190" height="96" rx="4" fill="#FBF9F4" stroke="#6F8DB5" stroke-width="2"/><text x="285" y="584" fill="#0E1726">réplica API</text><text x="285" y="612" fill="#6F8DB5">activa</text>
+      <rect x="410" y="540" width="190" height="96" rx="4" fill="#FBF9F4" stroke="#6F8DB5" stroke-width="2"/><text x="505" y="584" fill="#0E1726">worker</text><text x="505" y="612" fill="#6F8DB5">ingesta</text>
+      <rect x="840" y="540" width="190" height="96" rx="4" fill="#FBF9F4" stroke="#6F8DB5" stroke-width="2"/><text x="935" y="584" fill="#0E1726">réplica API</text><text x="935" y="612" fill="#6F8DB5">activa</text>
+      <rect x="230" y="740" width="320" height="110" rx="54" fill="#0E1726"/><text x="390" y="790" fill="#F3EFE6">RDS primaria</text><text x="390" y="818" fill="#E3A23B">cifrada · PITR</text>
+      <rect x="770" y="740" width="320" height="110" rx="54" fill="none" stroke="#0E1726" stroke-dasharray="5 5"/><text x="930" y="790" fill="#0E1726">RDS standby</text><text x="930" y="818" fill="#7A7F88">Multi-AZ (prod.)</text>
+    </g>
+    <g stroke="#0E1726" stroke-width="1.4" fill="none"><path d="M610 410 L 285 540"/><path d="M660 410 L 505 540"/><path d="M710 410 L 935 540"/></g>
+    <path d="M550 795 L 770 795" stroke="#B7781C" stroke-width="1.6" stroke-dasharray="4 5" fill="none"/>
+    <text x="660" y="780" text-anchor="middle" font-size="16" fill="#B7781C">replicación síncrona</text>
+  </svg>
+  <div style="position:absolute;left:1270px;top:330px;width:550px;display:flex;flex-direction:column;gap:28px">
+    <div style="display:grid;grid-template-columns:150px 1fr;gap:14px;align-items:baseline;border-bottom:1px solid var(--linea);padding-bottom:20px"><div class="cifra" style="font-size:72px">12 s</div><div style="font:24px/1.35 'ISans'">el ALB retira una réplica caída (medido)</div></div>
+    <div style="display:grid;grid-template-columns:150px 1fr;gap:14px;align-items:baseline;border-bottom:1px solid var(--linea);padding-bottom:20px"><div class="cifra" style="font-size:72px">219 s</div><div style="font:24px/1.35 'ISans'">el Auto Scaling la repone solo</div></div>
+    <div style="display:grid;grid-template-columns:150px 1fr;gap:14px;align-items:baseline;border-bottom:1px solid var(--linea);padding-bottom:20px"><div class="cifra" style="font-size:72px">5<span style="opacity:.55">/</span>15</div><div style="font:24px/1.35 'ISans'">RPO · RTO en minutos (backups + PITR)</div></div>
+    <div><div class="et">Seguridad</div><div style="font:24px/1.38 'ISans';margin-top:8px">SG encadenados, RDS privada con TLS, AES-256.</div></div>
+    <div><div class="et">Eficiencia</div><div style="font:24px/1.38 'ISans';margin-top:8px">2 réplicas por disponibilidad, no por carga: el pico es 2 req/s.</div></div>
+  </div>
+  <div class="pie"><span>Redundancia activa · autocuración · health checks · Multi-AZ</span><span>Diego</span></div>
+</section>
+
+<!-- ============================================================ 8 · DECISIONES -->
+<section class="l osc">
+  <div class="rot"><span>2.2 · Decisiones clave y alternativas descartadas</span><span>IE4 · Lámina 07</span></div>
+  <div class="t" style="font-size:80px">Lo que elegimos <i>y lo que no.</i></div>
+  <div style="position:absolute;left:112px;right:112px;top:330px;display:grid;grid-template-columns:420px 420px 1fr;row-gap:0">
+    <div class="et" style="padding:0 0 16px">Elegido</div><div class="et" style="padding:0 0 16px">Descartado</div><div class="et" style="padding:0 0 16px">Por qué</div>
+  </div>
+  <div id="decisiones" style="position:absolute;left:112px;right:112px;top:380px"></div>
+  <div class="pie"><span>Cada decisión responde a un requisito o a una medición</span><span>Diego</span></div>
+</section>
+
+<!-- ============================================================ 9 · INTEGRACIÓN -->
+<section class="l cla">
+  <div class="rot"><span>2.3 · Integración de servicios distribuidos</span><span>IE6 · Lámina 08</span></div>
+  <div class="t" style="font-size:80px">Contratos simples,<br><i>proveedores intercambiables.</i></div>
+  <div style="position:absolute;left:112px;right:112px;top:440px;display:grid;grid-template-columns:repeat(5,1fr);gap:0;border-top:2px solid var(--tinta)">
+    <div style="padding:30px 26px 0 0"><div class="et">Web ↔ API</div><div style="font:400 50px/1.05 'ISerif';margin:16px 0 18px">REST · JSON</div><div style="font:23px/1.4 'ISans';opacity:.78">Esquemas Pydantic. GraphQL y gRPC no aportan a este volumen.</div></div>
+    <div style="padding:30px 26px 0;border-left:1px solid var(--linea)"><div class="et">Disparo de ingesta</div><div style="font:400 50px/1.05 'ISerif';margin:16px 0 18px">Eventos</div><div style="font:23px/1.4 'ISans';opacity:.78">El worker responde 202 en ms; síncrono bloquearía la API minutos.</div></div>
+    <div style="padding:30px 26px 0;border-left:1px solid var(--linea)"><div class="et">Entrega</div><div style="font:400 50px/1.05 'ISerif';margin:16px 0 18px">SNS <span style="font-size:30px">→ SQS</span></div><div style="font:23px/1.4 'ISans';opacity:.78">Firma verificada. En producción, cola durable con DLQ.</div></div>
+    <div style="padding:30px 26px 0;border-left:1px solid var(--linea)"><div class="et">API ↔ LLM</div><div style="font:400 50px/1.05 'ISerif';margin:16px 0 18px">Adapter</div><div style="font:23px/1.4 'ISans';opacity:.78">Gemini hoy, Bedrock Nova Lite mañana: una variable de entorno.</div></div>
+    <div style="padding:30px 0 0 26px;border-left:1px solid var(--linea)"><div class="et">Estado del agente</div><div style="font:400 50px/1.05 'ISerif';margin:16px 0 18px">Postgres</div><div style="font:23px/1.4 'ISans';opacity:.78">Checkpoints LangGraph: sin sesiones pegajosas en el balanceador.</div></div>
+  </div>
+  <div style="position:absolute;left:112px;bottom:140px;display:flex;gap:42px;align-items:baseline">
+    <span class="et">Frameworks</span><span style="font:28px/1 'ISans'">FastAPI · LangGraph · SQLAlchemy 2 + Alembic · Next.js · RAG híbrido</span>
+  </div>
+  <div class="pie"><span>Interoperabilidad por contrato · alternativas evaluadas con su impacto</span><span>Nicolás</span></div>
+</section>
+
+<!-- ============================================================ 10 · ORQUESTACIÓN -->
+<section class="l osc">
+  <div class="rot"><span>2.3 · Orquestación, contenedores y balanceo</span><span>IE6 · Lámina 09</span></div>
+  <div class="t" style="font-size:80px">Del navegador a la réplica,<br><i>en tres saltos.</i></div>
+  <svg width="1920" height="1080" style="position:absolute;inset:0" aria-label="Ruta de una solicitud">
+    <g font-size="22" fill="#F3EFE6" text-anchor="middle">
+      <circle cx="210" cy="640" r="86" fill="none" stroke="#F3EFE6" stroke-width="1.4"/><text x="210" y="634">usuario</text><text x="210" y="662" font-size="16" fill="#A9BBD3">HTTPS</text>
+      <circle cx="520" cy="640" r="86" fill="none" stroke="#E3A23B" stroke-width="1.8"/><text x="520" y="634">CloudFront</text><text x="520" y="662" font-size="16" fill="#E3A23B">TLS 1.2+</text>
+      <circle cx="830" cy="640" r="86" fill="none" stroke="#F3EFE6" stroke-width="1.4"/><text x="830" y="634">ALB</text><text x="830" y="662" font-size="16" fill="#A9BBD3">least outst.</text>
+    </g>
+    <g stroke="#F3EFE6" stroke-width="1.4"><path d="M296 640 H434"/><path d="M606 640 H744"/></g>
+    <g font-size="19" fill="#A9BBD3"><text x="930" y="512">/api/v1/eventos/*  → worker</text><text x="930" y="646">/api/* · /health   → API</text><text x="930" y="780">/*                 → web</text></g>
+    <g stroke="#6F8DB5" stroke-width="1.4" fill="none"><path d="M900 590 L 922 505"/><path d="M916 640 H 922"/><path d="M900 690 L 922 772"/></g>
+  </svg>
+  <div style="position:absolute;left:1380px;top:430px;width:440px;display:flex;flex-direction:column;gap:34px">
+    <div><div class="et">Contenedores</div><div style="font:25px/1.4 'ISans';margin-top:8px">Docker multi-etapa, sin root, HEALTHCHECK. 469 MB la API.</div></div>
+    <div><div class="et">Orquestación (lab)</div><div style="font:25px/1.4 'ISans';margin-top:8px">Auto Scaling 2–4 por CPU 60 % en 2 zonas; rolling de a una réplica.</div></div>
+    <div><div class="et">Producción</div><div style="font:25px/1.4 'ISans';margin-top:8px">ECS Fargate (como en la EP1), 2–6 tareas, rollback automático.</div></div>
+  </div>
+  <div class="pie"><span>Health check /health cada 5 s · 2 fallos · drenaje 30 s · idle timeout 180 s</span><span>Nicolás</span></div>
+</section>
+
+<!-- ============================================================ 11 · SEGURIDAD Y MONITOREO -->
+<section class="l cla">
+  <div class="rot"><span>2.3 · Seguridad y monitoreo</span><span>IE6 · Lámina 10</span></div>
+  <div class="t" style="font-size:80px">Capas que protegen,<br><i>alarmas que avisan.</i></div>
+  <svg width="1920" height="1080" style="position:absolute;inset:0" aria-label="Capas de seguridad">
+    <g fill="none" stroke-width="1.5">
+      <circle cx="470" cy="700" r="270" stroke="#C9C1B0"/><circle cx="470" cy="700" r="205" stroke="#A9BBD3"/>
+      <circle cx="470" cy="700" r="140" stroke="#6F8DB5"/><circle cx="470" cy="700" r="70" stroke="#B7781C" stroke-width="2"/>
+    </g>
+    <circle cx="470" cy="700" r="12" fill="#B7781C"/>
+    <g font-size="18" fill="#0E1726" text-anchor="middle" letter-spacing="1">
+      <text x="470" y="448">HTTPS · CLOUDFRONT</text><text x="470" y="514">JWT · JWKS · RLS</text>
+      <text x="470" y="578">SECURITY GROUPS</text><text x="470" y="650">TLS + AES-256</text>
+    </g>
+    <text x="470" y="740" text-anchor="middle" font-size="16" fill="#B7781C">DATOS</text>
+  </svg>
+  <div style="position:absolute;left:880px;top:390px;width:440px;display:flex;flex-direction:column;gap:24px">
+    <div class="et">Plan de seguridad</div>
+    <div style="font:24px/1.42 'ISans'"><b>Secretos</b> generados al desplegar, cifrados en un bucket privado; nunca en la imagen.</div>
+    <div style="font:24px/1.42 'ISans'"><b>Eventos</b> con firma de SNS verificada: un mensaje sin firma recibe 403.</div>
+    <div style="font:24px/1.42 'ISans'"><b>Producción:</b> Secrets Manager, Cognito y AWS WAF.</div>
+  </div>
+  <div style="position:absolute;left:1380px;top:390px;width:440px;display:flex;flex-direction:column;gap:18px">
+    <div class="et">Observabilidad</div>
+    <div style="font:24px/1.42 'ISans'">Dashboard CloudWatch, logs y 5 alarmas. La de réplica caída llegó por correo en el failover:</div>
+    <img src="../../evidencia/alarma-correo.png" alt="Correo de alarma" style="width:440px;border:1px solid var(--linea);box-shadow:0 18px 40px rgba(14,23,38,.12)">
+  </div>
+  <div class="pie"><span>Defensa en profundidad · métricas · logs · alertas</span><span>Nicolás</span></div>
+</section>
+
+<!-- ============================================================ 12 · RENDIMIENTO -->
+<section class="l osc">
+  <div class="rot"><span>2.4 · Optimización · rendimiento</span><span>IE8 · Lámina 11</span></div>
+  <div class="t" style="font-size:80px">Medido, no supuesto.</div>
+  <div style="position:absolute;left:112px;top:330px;display:grid;grid-template-columns:repeat(3,auto);column-gap:110px">
+    <div><div class="cifra" style="font-size:190px">43,9</div><div class="et" style="margin-top:14px">req/s del catálogo · 2 réplicas</div></div>
+    <div><div class="cifra" style="font-size:190px">0,95<span style="font-size:80px"> s</span></div><div class="et" style="margin-top:14px">latencia p95 · meta &lt; 2 s</div></div>
+    <div><div class="cifra ambar" style="font-size:190px">0</div><div class="et" style="margin-top:14px">errores en 1.999 solicitudes</div></div>
+  </div>
+  <svg width="1920" height="1080" style="position:absolute;inset:0" aria-label="CPU de la API y de RDS">
+    <text x="112" y="700" font-size="20" fill="#A9BBD3" letter-spacing="2">¿DÓNDE ESTÁ EL CUELLO DE BOTELLA? · CPU DURANTE LA CARGA</text>
+    <line x1="112" y1="730" x2="1212" y2="730" stroke="rgba(243,239,230,.2)"/>
+    <rect x="300" y="752" width="540" height="40" fill="#E3A23B"/><text x="112" y="780" font-size="24" fill="#F3EFE6">API</text><text x="860" y="780" font-size="24" fill="#E3A23B">54 %</text>
+    <rect x="300" y="818" width="150" height="40" fill="#6F8DB5"/><text x="112" y="846" font-size="24" fill="#F3EFE6">RDS</text><text x="470" y="846" font-size="24" fill="#A9BBD3">15 %</text>
+    <line x1="900" y1="740" x2="900" y2="880" stroke="#F3EFE6" stroke-dasharray="4 5" opacity=".5"/><text x="910" y="872" font-size="16" fill="#F3EFE6" opacity=".6">objetivo de escalado 60 %</text>
+  </svg>
+  <div style="position:absolute;left:1340px;top:720px;width:480px;font:27px/1.4 'ISans';opacity:.85">Se escala la API por CPU; la base queda en db.t4g.micro. Con 22 veces el pico estimado, sobra holgura.</div>
+  <div class="pie"><span>hey · 45 s · 20 clientes concurrentes · desde Chile a us-east-1</span><span>Diego</span></div>
+</section>
+
+<!-- ============================================================ 13 · FAILOVER -->
+<section class="l cla">
+  <div class="rot"><span>2.4 · Optimización · confiabilidad</span><span>IE8 · Lámina 12</span></div>
+  <div class="t" style="font-size:80px">Una réplica cae. <i>El servicio no.</i></div>
+  <div style="position:absolute;left:116px;top:262px;font:26px/1.4 'ISans';opacity:.7">Cada marca es una consulta a /health cada 0,5 s · terminamos una réplica en la línea vertical</div>
+  <svg id="failover" width="1920" height="1080" style="position:absolute;inset:0" aria-label="Línea de tiempo del failover"></svg>
+  <div class="pie"><span>Optimización aplicada: health check 15 s × 3 → 5 s × 2 · ventana de errores 27 → 12 s</span><span>Diego</span></div>
+</section>
+
+<!-- ============================================================ 14 · COSTO Y RECURSOS -->
+<section class="l osc">
+  <div class="rot"><span>2.4 · Optimización · recursos y costo</span><span>IE8 · Lámina 13</span></div>
+  <div class="t" style="font-size:80px">La GPU propia costaba <i>13 veces más.</i></div>
+  <svg width="1920" height="1080" style="position:absolute;inset:0" aria-label="Costo mensual del modelo de IA">
+    <text x="112" y="380" font-size="20" fill="#A9BBD3" letter-spacing="2">COSTO MENSUAL DE LA INFERENCIA · USD</text>
+    <g font-size="24">
+      <text x="112" y="452" fill="#F3EFE6">GPU g5.xlarge 24×7</text><rect x="520" y="424" width="1100" height="40" fill="#6F8DB5"/><text x="1640" y="452" fill="#A9BBD3">734</text>
+      <text x="112" y="532" fill="#F3EFE6">Bedrock Claude 3 Haiku</text><rect x="520" y="504" width="228" height="40" fill="#6F8DB5" opacity=".7"/><text x="768" y="532" fill="#A9BBD3">152</text>
+      <text x="112" y="612" fill="#F3EFE6">Gemini Flash-Lite (hoy)</text><rect x="520" y="584" width="83" height="40" fill="#E3A23B"/><text x="623" y="612" fill="#E3A23B">55</text>
+      <text x="112" y="692" fill="#F3EFE6">Bedrock Nova Lite (prod.)</text><rect x="520" y="664" width="49" height="40" fill="#E3A23B" opacity=".6"/><text x="589" y="692" fill="#E3A23B">33</text>
+    </g>
+  </svg>
+  <div style="position:absolute;left:112px;top:780px;display:grid;grid-template-columns:auto auto auto;column-gap:120px;align-items:end">
+    <div><div class="cifra" style="font-size:130px">120,44</div><div class="et" style="margin-top:10px">USD/mes en AWS · Pricing Calculator</div></div>
+    <div><div class="cifra" style="font-size:130px">0</div><div class="et" style="margin-top:10px">GPU o TPU: no se entrena, se infiere por API</div></div>
+    <div><div class="cifra ambar" style="font-size:130px">≈178</div><div class="et" style="margin-top:10px">USD/mes total con el LLM · meta &lt; 200</div></div>
+  </div>
+  <div class="pie"><span>t3.small × 3 · RDS db.t4g.micro Multi-AZ · ALB · CloudWatch · S3</span><span>Diego</span></div>
+</section>
+
+<!-- ============================================================ 15 · CONCLUSIÓN -->
+<section class="l osc">
+  <svg width="1920" height="1080" style="position:absolute;inset:0" aria-hidden="true"><g id="constelacion2"></g></svg>
+  <div class="rot"><span>2.4 · Conclusiones</span><span>IE8 · Lámina 14</span></div>
+  <div style="position:absolute;left:112px;top:250px;font:400 120px/1 'ISerif';letter-spacing:-.02em;max-width:1500px">Una arquitectura que se defiende <i style="color:var(--ambar)">con mediciones.</i></div>
+  <div style="position:absolute;left:112px;right:112px;top:620px;display:grid;grid-template-columns:repeat(4,1fr);gap:40px;border-top:1px solid rgba(243,239,230,.25);padding-top:34px">
+    <div><div class="et">EP1 → EP2</div><div style="font:26px/1.4 'ISans';margin-top:12px">Recursos e integración, lo que faltó, ahora medidos.</div></div>
+    <div><div class="et">Escala</div><div style="font:26px/1.4 'ISans';margin-top:12px">Tres servicios que crecen por separado, unidos por eventos.</div></div>
+    <div><div class="et">Resiste</div><div style="font:26px/1.4 'ISans';margin-top:12px">Dos zonas, autocuración y alertas probadas en vivo.</div></div>
+    <div><div class="et">Siguiente</div><div style="font:26px/1.4 'ISans';margin-top:12px">ECS Fargate, SQS, Secrets Manager, Cognito, Bedrock.</div></div>
+  </div>
+  <div style="position:absolute;left:112px;bottom:130px;font:400 64px/1 'ISerif';font-style:italic;color:var(--ambar)">¿Preguntas?</div>
+  <div class="pie" style="opacity:.6"><span>https://d1d1jx3qpvm3xv.cloudfront.net</span><span>Equipo 1</span></div>
+</section>
+
+<script>
+const NS = 'http://www.w3.org/2000/svg';
+const el = (tag, at, padre) => { const e = document.createElementNS(NS, tag); for (const k in at) e.setAttribute(k, at[k]); padre && padre.appendChild(e); return e; };
+
+// Constelación determinista (nodos que se repiten con disciplina)
+function constelacion(id, semilla, n, x0, x1, y0, y1) {
+  const g = document.getElementById(id); let s = semilla;
+  const r = () => (s = (s * 16807) % 2147483647) / 2147483647;
+  const p = [];
+  for (let i = 0; i < n; i++) p.push([x0 + r() * (x1 - x0), y0 + r() * (y1 - y0)]);
+  p.forEach((a, i) => p.slice(i + 1).forEach(b => { const d = Math.hypot(a[0] - b[0], a[1] - b[1]); if (d < 150) el('line', { x1: a[0], y1: a[1], x2: b[0], y2: b[1], stroke: '#F3EFE6', 'stroke-opacity': (0.16 * (1 - d / 150)).toFixed(3), 'stroke-width': 1 }, g); }));
+  p.forEach((a, i) => el('circle', { cx: a[0], cy: a[1], r: i % 11 === 0 ? 4 : 1.8, fill: i % 11 === 0 ? '#E3A23B' : '#F3EFE6', 'fill-opacity': i % 11 === 0 ? 0.9 : 0.45 }, g));
+}
+constelacion('constelacion', 7, 120, 1120, 1840, 120, 980);
+constelacion('constelacion2', 19, 46, 1380, 1840, 820, 990);
+
+// Decisiones: elegido / descartado (tachado) / motivo
+const dec = [
+  ['Tres servicios + eventos', 'Monolito con scheduler', 'Escalado independiente; sin ingesta duplicada.'],
+  ['ECS Fargate (producción)', 'EKS', 'Sin plano de control que operar, como decidió la EP1.'],
+  ['LLM por API', 'GPU propia', 'USD 55 contra USD 734 al mes: 13× más barato.'],
+  ['Least outstanding requests', 'Round robin', 'Las solicitudes duran entre 50 ms y 30 s.'],
+  ['Health check 5 s × 2', '15 s × 3', 'Ventana de errores de 27 a 12 s (medido).'],
+  ['CloudFront + HTTPS', 'HTTP directo al ALB', 'Sin contexto seguro el chat fallaba en el navegador.'],
+];
+const cont = document.getElementById('decisiones');
+dec.forEach(([a, b, c]) => {
+  const f = document.createElement('div');
+  f.style.cssText = 'display:grid;grid-template-columns:420px 420px 1fr;border-top:1px solid rgba(243,239,230,.2);padding:20px 0;align-items:baseline';
+  f.innerHTML = `<div style="font:400 38px/1.1 ISerif">${a}</div><div style="font:24px/1.3 GMono;color:#A9BBD3;text-decoration:line-through;text-decoration-color:rgba(169,187,211,.6)">${b}</div><div style="font:25px/1.4 ISans;opacity:.82">${c}</div>`;
+  cont.appendChild(f);
+});
+
+// Failover: series reales (a = us-east-1a, b = us-east-1b, x = falla), corte = réplica terminada
+const S = {
+  planificado: { s: 'bbaababbaabbabbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb', c: 12, t: 'Retiro planificado', d: '155 OK · 0 fallas · 100 %' },
+  abrupto15: { s: 'ababababaababbxxbbxbxxbbxbxxbbxbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb', c: 12, t: 'Caída abrupta · health check 15 s × 3', d: '9 fallas · 93,6 % · ventana 27 s' },
+  abrupto: { s: 'aabbababababaabbxxbbxbxbxbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb', c: 12, t: 'Caída abrupta · health check 5 s × 2', d: '5 fallas · 96,6 % · ventana 12 s' },
+};
+const svg = document.getElementById('failover');
+const X0 = 116, ANCHO = 1688, N = 80; // primeros 40 s (80 consultas)
+const paso = ANCHO / N;
+['planificado', 'abrupto15', 'abrupto'].forEach((k, fila) => {
+  const y = 400 + fila * 200, d = S[k];
+  el('text', { x: X0, y: y - 34, 'font-size': 22, fill: '#0E1726' }, svg).textContent = d.t;
+  el('text', { x: X0 + ANCHO, y: y - 34, 'font-size': 20, fill: k === 'planificado' ? '#6F8DB5' : '#B7781C', 'text-anchor': 'end' }, svg).textContent = d.d;
+  el('line', { x1: X0, y1: y + 46, x2: X0 + ANCHO, y2: y + 46, stroke: '#C9C1B0' }, svg);
+  for (let i = 0; i < N; i++) {
+    const c = d.s[i], x = X0 + i * paso + paso / 2;
+    if (c === 'x') { el('rect', { x: x - 5, y: y - 6, width: 10, height: 52, fill: '#E3A23B' }, svg); }
+    else el('rect', { x: x - 4, y: c === 'a' ? y : y + 22, width: 8, height: 18, rx: 2, fill: c === 'a' ? '#0E1726' : '#6F8DB5' }, svg);
+  }
+  const xc = X0 + d.c * paso;
+  el('line', { x1: xc, y1: y - 18, x2: xc, y2: y + 56, stroke: '#0E1726', 'stroke-width': 2 }, svg);
+});
+// leyenda y eje
+const yl = 1000 - 92;
+[['#0E1726', 'responde us-east-1a'], ['#6F8DB5', 'responde us-east-1b'], ['#E3A23B', 'solicitud fallida (502)']].forEach(([col, txt], i) => {
+  el('rect', { x: X0 + i * 420, y: yl - 16, width: 14, height: 18, rx: 2, fill: col }, svg);
+  el('text', { x: X0 + i * 420 + 26, y: yl, 'font-size': 20, fill: '#0E1726' }, svg).textContent = txt;
+});
+[0, 10, 20, 30, 40].forEach(s => el('text', { x: X0 + s * 2 * paso, y: 878, 'font-size': 18, fill: '#7A7F88', 'text-anchor': s ? 'middle' : 'start' }, svg).textContent = s + ' s');
+</script>
+</body>
+</html>

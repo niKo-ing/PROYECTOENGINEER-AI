@@ -1,0 +1,67 @@
+{
+  "_comentario": "Referencia de producción en Amazon ECS Fargate (orquestador elegido en la EP1). No se aplica en AWS Academy: la cuenta no permite ECS ni crear el rol de ejecución. Mismas imágenes, puertos y health checks que el despliegue real.",
+  "taskDefinition": {
+    "family": "todobarato-api",
+    "requiresCompatibilities": ["FARGATE"],
+    "networkMode": "awsvpc",
+    "cpu": "512",
+    "memory": "1024",
+    "runtimePlatform": { "cpuArchitecture": "X86_64", "operatingSystemFamily": "LINUX" },
+    "executionRoleArn": "arn:aws:iam::CUENTA:role/todobarato-ecs-ejecucion",
+    "taskRoleArn": "arn:aws:iam::CUENTA:role/todobarato-api-tarea",
+    "containerDefinitions": [
+      {
+        "name": "api",
+        "image": "CUENTA.dkr.ecr.us-east-1.amazonaws.com/todobarato-backend:ep2",
+        "essential": true,
+        "portMappings": [{ "containerPort": 8000, "protocol": "tcp" }],
+        "environment": [
+          { "name": "APP_ENV", "value": "production" },
+          { "name": "INGESTION_SCHEDULER_ENABLED", "value": "false" },
+          { "name": "UVICORN_WORKERS", "value": "2" },
+          { "name": "LLM_PROVIDER", "value": "gemini" }
+        ],
+        "secrets": [
+          { "name": "DATABASE_URL", "valueFrom": "arn:aws:secretsmanager:us-east-1:CUENTA:secret:todobarato/database-url" },
+          { "name": "GEMINI_API_KEY", "valueFrom": "arn:aws:secretsmanager:us-east-1:CUENTA:secret:todobarato/gemini-api-key" }
+        ],
+        "healthCheck": {
+          "command": ["CMD-SHELL", "python -c \"import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/health', timeout=3)\""],
+          "interval": 15, "timeout": 5, "retries": 3, "startPeriod": 40
+        },
+        "readonlyRootFilesystem": false,
+        "user": "10001",
+        "logConfiguration": {
+          "logDriver": "awslogs",
+          "options": { "awslogs-group": "/ecs/todobarato-api", "awslogs-region": "us-east-1", "awslogs-stream-prefix": "api" }
+        }
+      }
+    ]
+  },
+  "service": {
+    "serviceName": "todobarato-api",
+    "cluster": "todobarato",
+    "launchType": "FARGATE",
+    "desiredCount": 2,
+    "deploymentConfiguration": {
+      "minimumHealthyPercent": 100,
+      "maximumPercent": 200,
+      "deploymentCircuitBreaker": { "enable": true, "rollback": true }
+    },
+    "networkConfiguration": {
+      "awsvpcConfiguration": {
+        "subnets": ["subnet-privada-us-east-1a", "subnet-privada-us-east-1b"],
+        "securityGroups": ["sg-todobarato-app"],
+        "assignPublicIp": "DISABLED"
+      }
+    },
+    "loadBalancers": [{ "targetGroupArn": "arn:aws:elasticloadbalancing:us-east-1:CUENTA:targetgroup/tb-api/ID", "containerName": "api", "containerPort": 8000 }],
+    "healthCheckGracePeriodSeconds": 60
+  },
+  "autoscaling": {
+    "_comentario": "Application Auto Scaling sobre ecs:service:DesiredCount",
+    "minCapacity": 2,
+    "maxCapacity": 6,
+    "targetTracking": { "predefinedMetric": "ECSServiceAverageCPUUtilization", "targetValue": 60, "scaleOutCooldown": 60, "scaleInCooldown": 300 }
+  }
+}
