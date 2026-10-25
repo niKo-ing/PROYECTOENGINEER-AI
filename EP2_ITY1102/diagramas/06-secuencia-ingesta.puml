@@ -1,0 +1,39 @@
+@startuml 06-secuencia-ingesta
+title Flujo Event-Driven · ingesta programada de precios
+skinparam shadowing false
+skinparam defaultFontName "DejaVu Sans"
+autonumber
+
+participant "EventBridge\n(rate 6 h)" as EB
+participant "SNS\neventos-ingesta" as SNS
+participant "ALB" as ALB
+participant "Worker\n/api/v1/eventos/sns" as W
+participant "Pipeline\nde ingesta" as P
+participant "Tienda\n(SP Digital, Paris)" as T
+participant "Matching\n(reglas → IA)" as M
+participant "Gemini" as G
+database "RDS" as DB
+
+EB -> SNS : Publish {"tipo":"ingesta_programada"}
+SNS -> ALB : POST (JSON firmado, SignatureVersion 2)
+ALB -> W : regla prioridad 10 → TG worker
+W -> W : verifica tema + firma\n(certificado sns.us-east-1.amazonaws.com)
+W --> SNS : 202 Accepted (no bloquea)
+note right of SNS : si falla: reintentos con\nbackoff (política de entrega HTTP)
+group tarea en segundo plano (lock: una corrida a la vez)
+  W -> DB : tiendas con sync_enabled
+  loop por cada tienda
+    W -> P : _run_store_sync(tienda)
+    P -> T : descubre URLs y extrae (con límites)
+    T --> P : productos, precio, stock
+    P -> M : ¿producto ya existe?
+    alt SKU / MPN / GTIN coincide
+      M --> P : producto canónico (determinista)
+    else datos ambiguos
+      M -> G : desambiguar (prompt acotado)
+      G --> M : misma entidad + confianza
+    end
+    P -> DB : upsert oferta + historial de precio
+  end
+end
+@enduml

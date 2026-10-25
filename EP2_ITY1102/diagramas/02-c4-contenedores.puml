@@ -1,0 +1,38 @@
+@startuml 02-c4-contenedores
+!include <C4/C4_Container>
+LAYOUT_WITH_LEGEND()
+title TodoBarato AI · C4 Nivel 2 · Contenedores
+
+Person(usuario, "Comprador / analista / admin")
+System_Ext(tiendas, "Tiendas en línea", "SP Digital, Paris…")
+System_Ext(llm, "Gemini / Bedrock", "LLM + embeddings")
+System_Ext(idp, "Supabase Auth / Cognito", "JWT")
+
+System_Boundary(tb, "TodoBarato AI (AWS us-east-1)") {
+  Container(cdn, "CDN / borde HTTPS", "Amazon CloudFront", "Termina TLS (*.cloudfront.net, TLS 1.2+), redirige HTTP→HTTPS y reenvía todo al ALB sin caché.")
+  Container(alb, "Balanceador de carga", "AWS ALB", "Enruta por ruta: /api/* → API, /api/v1/eventos/* → worker, resto → web. Health checks cada 5 s.")
+  Container(web, "Aplicación web", "Next.js 16 · React 19 · Node 24", "Catálogo, comparador, chat del asistente y pantalla del agente. Réplicas en 2 zonas.")
+  Container(api, "API de catálogo e IA", "Python 3.12 · FastAPI · Uvicorn", "Productos, categorías, perfil, chat IA (RAG + herramientas) y agente LangGraph. Sin estado: escala horizontal 2-4 réplicas.")
+  Container(worker, "Worker de ingesta", "Python 3.12 · APScheduler", "Conectores de tiendas, normalización, matching (SKU/MPN/GTIN + IA) e historial de precios. Instancia única (evita ingestas duplicadas).")
+  ContainerDb(db, "Base de datos", "Amazon RDS PostgreSQL 17", "Catálogo canónico, ofertas, historial de precios, perfiles, memoria y checkpoints del agente, base de conocimiento RAG.")
+  ContainerQueue(eventos, "Bus de eventos", "EventBridge + SNS (prod: SQS)", "«ingesta_programada» cada 6 h; alarmas de CloudWatch.")
+  Container(s3, "Almacenamiento de objetos", "Amazon S3 (SSE)", "Imágenes Docker, configuración cifrada, logs (30 días) y respaldos.")
+  Container(obs, "Observabilidad", "CloudWatch (+ Grafana)", "Métricas del ALB, ASG y RDS, dashboard y alarmas → SNS.")
+}
+
+Rel(usuario, cdn, "Usa", "HTTPS")
+Rel(cdn, alb, "Reenvía", "HTTP + cabecera de origen")
+Rel(alb, web, "Páginas", "HTTP :3000")
+Rel(alb, api, "/api/*, /health", "HTTP :8000")
+Rel(alb, worker, "/api/v1/eventos/sns", "HTTP :8000")
+Rel(web, api, "Proxy /api/v1 (SSR)", "HTTP")
+Rel(api, db, "Lee / escribe", "SQL · TLS")
+Rel(worker, db, "Escribe catálogo y precios", "SQL · TLS")
+Rel(api, llm, "Chat, plan del agente, embeddings", "HTTPS")
+Rel(worker, llm, "Desambiguación de productos", "HTTPS")
+Rel(worker, tiendas, "Extrae", "HTTPS")
+Rel(api, idp, "Valida JWT", "JWKS")
+Rel(eventos, alb, "Notificación firmada", "HTTP (SNS)")
+Rel(api, s3, "Arranque: imagen + config", "")
+Rel(obs, eventos, "Alarmas", "SNS")
+@enduml

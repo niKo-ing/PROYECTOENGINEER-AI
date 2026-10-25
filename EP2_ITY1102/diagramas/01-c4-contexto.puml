@@ -1,0 +1,25 @@
+@startuml 01-c4-contexto
+!include <C4/C4_Context>
+LAYOUT_WITH_LEGEND()
+title TodoBarato AI · C4 Nivel 1 · Contexto del sistema
+
+Person(comprador, "Comprador", "Busca productos, compara precios entre tiendas y conversa con el asistente / agente de ahorro.")
+Person(tienda, "Analista de tienda", "Vigila precios de la competencia y el historial para decidir su pricing.")
+Person(admin, "Administrador", "Revisa la calidad del catálogo, valida especificaciones y lanza ingestas.")
+
+System(tb, "TodoBarato AI", "Plataforma de comparación de precios con catálogo unificado, asistente conversacional (RAG + herramientas) y agente de ahorro (LangGraph) con alertas y listas.")
+
+System_Ext(tiendas, "Tiendas en línea", "SP Digital, Paris y otras: páginas de producto, precios y stock (HTML / JSON-LD).")
+System_Ext(llm, "Proveedor de LLM", "Google Gemini (producción actual). Alternativas evaluadas: Amazon Bedrock (Nova / Titan), OpenAI.")
+System_Ext(idp, "Proveedor de identidad", "Supabase Auth (JWT). Alternativa AWS: Amazon Cognito.")
+System_Ext(aws, "AWS (servicios gestionados)", "Cómputo, balanceo, base de datos, colas/eventos y observabilidad.")
+
+Rel(comprador, tb, "Busca, compara, conversa, crea alertas", "HTTPS")
+Rel(tienda, tb, "Consulta precios e historial", "HTTPS")
+Rel(admin, tb, "Administra catálogo e ingesta", "HTTPS")
+Rel(tb, tiendas, "Extrae productos y precios (ingesta programada)", "HTTPS")
+Rel(tb, llm, "Genera respuestas, planifica y desambigua productos", "HTTPS / API")
+Rel(comprador, idp, "Inicia sesión", "OAuth / correo")
+Rel(tb, idp, "Valida tokens (JWKS)", "HTTPS")
+Rel(tb, aws, "Se ejecuta sobre", "")
+@enduml

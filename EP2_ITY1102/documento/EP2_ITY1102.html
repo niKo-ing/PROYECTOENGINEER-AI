@@ -1,0 +1,530 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>EP2 ITY1102 · TodoBarato AI</title>
+<style>
+  @page { size: Letter; margin: 15mm 15mm 15mm 15mm; }
+  :root { --tinta:#1b2433; --suave:#56627a; --linea:#d5dbe6; --acento:#1f5fbf; --fondo:#f3f6fb; }
+  * { box-sizing: border-box; }
+  body { font-family: "DejaVu Sans", "Liberation Sans", Arial, sans-serif; color: var(--tinta);
+         font-size: 8.7pt; line-height: 1.32; margin: 0; }
+  h1 { font-size: 20pt; margin: 0 0 4px; color: var(--acento); }
+  h2 { font-size: 12.5pt; margin: 14px 0 6px; padding-bottom: 3px; border-bottom: 2px solid var(--acento); break-after: avoid; }
+  h3 { font-size: 10.3pt; margin: 10px 0 4px; break-after: avoid; }
+  h2 .ie, h3 .ie { font-size: 8pt; font-weight: normal; color: #fff; background: var(--acento); padding: 1px 5px; border-radius: 3px; margin-left: 6px; vertical-align: 2px; }
+  p { margin: 0 0 6px; text-align: justify; }
+  ul, ol { margin: 0 0 6px; padding-left: 18px; }
+  li { margin-bottom: 2px; }
+  table { width: 100%; border-collapse: collapse; margin: 3px 0 7px; font-size: 8.1pt; break-inside: avoid; }
+  th, td { border: 1px solid var(--linea); padding: 2px 5px; vertical-align: top; text-align: left; }
+  th { background: var(--fondo); }
+  td.n, th.n { text-align: right; white-space: nowrap; }
+  tr.total td { font-weight: bold; background: var(--fondo); }
+  figure { margin: 6px 0 10px; text-align: center; break-inside: avoid; }
+  figure img { max-width: 100%; max-height: 98mm; border: 1px solid var(--linea); }
+  figure.ancha img { max-height: 78mm; }
+  figcaption { font-size: 8pt; color: var(--suave); margin-top: 3px; }
+  code, pre { font-family: "DejaVu Sans Mono", monospace; font-size: 7.8pt; }
+  pre { background: var(--fondo); border: 1px solid var(--linea); padding: 6px 8px; white-space: pre-wrap; margin: 4px 0 8px; break-inside: avoid; }
+  .caja { background: var(--fondo); border-left: 3px solid var(--acento); padding: 6px 9px; margin: 6px 0 8px; }
+  .portada { height: 248mm; display: flex; flex-direction: column; justify-content: space-between; }
+  .portada .titulo { margin-top: 50mm; }
+  .portada .sub { font-size: 12.5pt; color: var(--suave); margin: 6px 0 0; }
+  .portada table { font-size: 9.6pt; width: 80%; }
+  .salto { break-before: page; }
+  .dos { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .chico { font-size: 8pt; color: var(--suave); }
+  .ref p { padding-left: 22px; text-indent: -22px; text-align: left; }
+  .indice { columns: 2; column-gap: 24px; font-size: 8.8pt; }
+  .indice div { break-inside: avoid; margin-bottom: 2px; }
+  .indice .s { padding-left: 12px; color: var(--suave); }
+  a { color: inherit; text-decoration: none; }
+</style>
+</head>
+<body>
+
+<!-- ================================================================ PORTADA -->
+<section class="portada">
+  <div class="titulo">
+    <p class="chico">ITY1102 · Arquitectura de Sistemas de Inteligencia Artificial · Evaluación Parcial N°2</p>
+    <h1>DOCUMENTACIÓN DE ARQUITECTURA: TODOBARATO AI</h1>
+    <p class="sub">Implementación de arquitectura IA escalable y segura en AWS<br>
+      Plantilla arc42 extendida · continuación de la EP1 (v1.1.0)</p>
+  </div>
+  <table>
+    <tr><th>Asignatura</th><td>Arquitectura de Sistemas de Inteligencia Artificial (ITY1102)</td></tr>
+    <tr><th>Evaluación</th><td>Evaluación Parcial N°2 (EP2) · Encargo</td></tr>
+    <tr><th>Docente</th><td>Mateo Serna Fernández</td></tr>
+    <tr><th>Equipo</th><td>Equipo 1</td></tr>
+    <tr><th>Integrantes</th><td>Nicolás Estefanía, Diego Tapia y Ariel Espinoza</td></tr>
+    <tr><th>Versión del sistema</th><td>2.0.0</td></tr>
+    <tr><th>Fecha</th><td>25 de octubre de 2026</td></tr>
+  </table>
+</section>
+
+<!-- ================================================================ HISTORIAL + ÍNDICE -->
+<h2 class="salto">Historial de versiones</h2>
+<table>
+  <tr><th style="width:13%">Fecha</th><th style="width:9%">Versión</th><th style="width:24%">Autor</th><th>Descripción</th></tr>
+  <tr><td>10/09/2026</td><td>0.1.0</td><td>N. Estefanía, D. Tapia, A. Espinoza</td><td>Versión inicial de la documentación arc42 basada en el repositorio.</td></tr>
+  <tr><td>13/09/2026</td><td>1.0.0</td><td>N. Estefanía, D. Tapia, A. Espinoza</td><td>Dimensionamiento inicial (Supabase/PaaS) y primeros diagramas.</td></tr>
+  <tr><td>20/09/2026</td><td>1.1.0</td><td>N. Estefanía, D. Tapia, A. Espinoza</td><td>EP1: simulación de arquitectura nativa en AWS (ECS, RDS, Cognito, Bedrock, S3, CloudFront).</td></tr>
+  <tr><td>25/10/2026</td><td><b>2.0.0</b></td><td>N. Estefanía, D. Tapia, A. Espinoza</td><td><b>EP2:</b> C4 completo (3 niveles), evolución a microservicios + Event-Driven, dimensionamiento con AWS Pricing Calculator, Docker/ECS/EKS/ALB, seguridad, monitoreo, alta disponibilidad y <b>despliegue real en AWS</b> con pruebas de carga y de failover.</td></tr>
+</table>
+
+<h3>Índice</h3>
+<div class="indice">
+  <div>1. Introducción y objetivos</div>
+  <div class="s">1.1 Requisitos · 1.2 Calidad · 1.3 Interesados · 1.4 Retroalimentación EP1</div>
+  <div>2. Restricciones</div>
+  <div class="s">2.1 Técnicas · 2.2 Del entorno AWS Academy · 2.3 Organizacionales y convenciones</div>
+  <div>3. Alcance y contexto · C4 nivel 1 <b>(IE1)</b></div>
+  <div>4. Estrategia de solución · patrones <b>(IE3)</b></div>
+  <div>5. Vista de bloques · C4 niveles 2 y 3 <b>(IE1)</b></div>
+  <div>6. Vista de tiempo de ejecución</div>
+  <div>7. Vista de implementación</div>
+  <div class="s">7.1 Despliegue · 7.2 Dimensionamiento y costos <b>(IE2)</b> · 7.3 Herramientas de infraestructura <b>(IE5)</b></div>
+  <div>8. Conceptos transversales</div>
+  <div class="s">8.1 Seguridad · 8.2 Monitoreo <b>(IE7)</b> · 8.3 Alta disponibilidad <b>(IE7)</b></div>
+  <div>9. Decisiones de arquitectura</div>
+  <div>10. Requisitos de calidad · evidencia medida en AWS</div>
+  <div>11. Riesgos y deuda técnica</div>
+  <div>Referencias · Declaración de uso de IA · Anexo A (evidencia) · Anexo B (glosario)</div>
+</div>
+
+<!-- ================================================================ 1. INTRODUCCIÓN -->
+<h2>1. Introducción y objetivos</h2>
+<p>TodoBarato AI es una plataforma de inteligencia de productos y precios: centraliza las ofertas de distintas tiendas
+(SP Digital, Paris y otras), las normaliza en un <b>catálogo canónico</b> y ofrece dos capacidades de IA, un
+<b>asistente conversacional</b> (RAG híbrido + herramientas sobre el catálogo) y un <b>agente de ahorro</b> (LangGraph)
+que crea alertas de precio y listas de compra. La EP1 (v1.1.0) definió los componentes y simuló la arquitectura en AWS;
+esta versión completa el diseño técnico y lo <b>despliega en AWS</b> para verificar cada decisión con mediciones.
+El documento sigue la plantilla arc42 (Starke &amp; Hruschka, 2023), los diagramas usan el modelo C4 (Brown, 2018) y las
+decisiones se contrastan con los pilares del AWS Well-Architected Framework (Amazon Web Services, 2024).</p>
+
+<h3>1.1 Descripción general de los requisitos</h3>
+<table>
+  <tr><th style="width:14%">Tipo</th><th>Requisito</th><th style="width:31%">Meta medible</th></tr>
+  <tr><td>Funcional</td><td>Buscar y comparar productos y precios por tienda, con historial.</td><td>Catálogo p95 &lt; 2 s</td></tr>
+  <tr><td>Funcional</td><td>Asistente y agente en lenguaje natural con evidencia del catálogo.</td><td>≤ 3 llamadas a herramientas por consulta</td></tr>
+  <tr><td>Funcional</td><td>Ingesta periódica de tiendas sin duplicar productos ni corridas.</td><td>Cada 6 h; 0 corridas solapadas</td></tr>
+  <tr><td>No funcional</td><td>Disponibilidad ante la caída de una instancia o de una zona.</td><td>≥ 99,5 % mensual; RTO 15 min; RPO 5 min</td></tr>
+  <tr><td>No funcional</td><td>Escalabilidad horizontal de la API sin estado.</td><td>2 → 4 réplicas automáticas al 60 % de CPU</td></tr>
+  <tr><td>No funcional</td><td>Seguridad: cifrado, mínimo privilegio, secretos fuera del código.</td><td>TLS en tránsito, AES-256 en reposo</td></tr>
+  <tr><td>No funcional</td><td>Costo acotado en la etapa de lanzamiento.</td><td>&lt; USD 200/mes con 5.000 usuarios</td></tr>
+</table>
+
+<p><b>1.2 Objetivos de calidad (ISO 25010):</b> disponibilidad, escalabilidad, seguridad, mantenibilidad y eficiencia; cada uno se verifica con una medición en la sección 10.</p>
+<h3>1.3 Interesados (stakeholders)</h3>
+<table>
+  <tr><th style="width:26%">Rol</th><th>Objetivo / alcance</th></tr>
+  <tr><td>Usuario final (consumidor)</td><td>Buscar, comparar precios entre tiendas y conversar con el asistente o el agente de ahorro.</td></tr>
+  <tr><td>Cliente empresa (retailer)</td><td>Monitorear precios de la competencia, ofertas e historial para decidir su pricing.</td></tr>
+  <tr><td>Administrador del sistema</td><td>Gestionar ingestas, validar especificaciones y vigilar la salud operacional.</td></tr>
+  <tr><td>Equipo de desarrollo</td><td>Evolucionar la plataforma con pruebas y despliegues sin caída.</td></tr>
+</table>
+
+<h3>1.4 Retroalimentación de la EP1 incorporada</h3>
+<div class="caja">
+  La EP1 obtuvo 71,4/100. Los dos indicadores no logrados se abordan explícitamente: <b>(a) recursos de
+  infraestructura (CPU/GPU/TPU) y frameworks</b> → sección 7.2, con supuestos de carga, cálculo de réplicas y tokens,
+  comparación GPU propia vs. API y el presupuesto en AWS Pricing Calculator; <b>(b) alternativas de integración y su
+  impacto en eficiencia y rendimiento</b> → sección 7.3 (síncrono vs. eventos, REST, proveedor de LLM, estado del agente).
+  Además, el monolito modular de la EP1 evoluciona a <b>tres servicios desplegables por separado</b> sin reescribir código.
+</div>
+
+<!-- ================================================================ 2. RESTRICCIONES -->
+<h2>2. Restricciones</h2>
+<h3>2.1 Restricciones técnicas</h3>
+<table>
+  <tr><th style="width:7%">Código</th><th>Restricción</th><th style="width:34%">Antecedente</th></tr>
+  <tr><td>RT1</td><td>Backend en Python 3.12 con FastAPI; agente con LangGraph.</td><td><code>app/main.py</code>, <code>app/agent/</code></td></tr>
+  <tr><td>RT2</td><td>PostgreSQL con SQLAlchemy 2 y migraciones Alembic.</td><td><code>app/db.py</code>, <code>alembic/</code></td></tr>
+  <tr><td>RT3</td><td>Frontend Next.js 16 con SSR y proxy de <code>/api/v1</code>: requiere un servidor Node, no solo archivos estáticos.</td><td><code>frontend/next.config.ts</code></td></tr>
+  <tr><td>RT4</td><td>Inferencia de IA por API (sin GPU local); proveedores alternables por <code>LLM_PROVIDER</code>.</td><td><code>app/ai/providers/factory.py</code></td></tr>
+  <tr><td>RT5</td><td>Autenticación por JWT validado con JWKS (hoy Supabase Auth; diseño objetivo Cognito).</td><td><code>app/core/security.py</code></td></tr>
+</table>
+<h3>2.2 Restricciones del entorno AWS Academy (medidas el 25-10-2026)</h3>
+<table>
+  <tr><th style="width:30%">Permitido</th><th>Bloqueado por la política de la cuenta</th></tr>
+  <tr><td>EC2 (hasta t3.medium), Auto Scaling, ALB, RDS, S3, SNS, EventBridge, CloudWatch, Parameter Store</td>
+      <td>ECS, EKS, ECR, SQS, Secrets Manager, Bedrock (InvokeModel), Price List API, crear roles IAM (único perfil de EC2: <code>myS3Role</code>, <code>s3:*</code>), modificar instancias RDS</td></tr>
+</table>
+<p class="chico">Por eso el despliegue real usa EC2 + Auto Scaling + Docker con imágenes en S3, y lo bloqueado (ECS Fargate, ECR,
+SQS, Secrets Manager, Bedrock, Cognito) se mantiene como diseño de producción, con su configuración de referencia en
+<code>infra/ecs/</code> e <code>infra/kubernetes/</code>.</p>
+<p class="chico"><b>2.3 Organizacionales y convenciones:</b> equipo de 3 estudiantes, presupuesto de laboratorio de USD 20 y rate-limiting de las tiendas; API REST bajo <code>/api/v1</code>, secretos fuera del repositorio, pytest antes de cada despliegue y prefijo <code>tb-ep2</code> en todo recurso AWS.</p>
+
+<!-- ================================================================ 3. CONTEXTO -->
+<h2>3. Alcance y contexto del sistema · C4 nivel 1 <span class="ie">IE1</span></h2>
+<figure><img src="../diagramas/svg/01-c4-contexto.svg" alt="C4 contexto" style="max-height:78mm">
+  <figcaption>Figura 1. C4 nivel 1: actores y sistemas externos.</figcaption></figure>
+<table>
+  <tr><th style="width:23%">Vecino</th><th>Responsabilidad</th><th style="width:28%">Relación</th></tr>
+  <tr><td>Consumidor / empresa / admin</td><td>Consulta catálogo, compara, conversa con el asistente, define alertas, administra ingestas.</td><td>HTTPS vía ALB, JWT</td></tr>
+  <tr><td>Tiendas en línea</td><td>Fuente de productos, precios y stock (HTML / JSON-LD).</td><td>Extracción programada</td></tr>
+  <tr><td>Proveedor de LLM</td><td>Generación, planificación del agente y desambiguación de productos.</td><td>API HTTPS, timeout 60 s</td></tr>
+  <tr><td>Proveedor de identidad</td><td>Registro, inicio de sesión y emisión de JWT.</td><td>Validación por JWKS</td></tr>
+  <tr><td>AWS</td><td>Cómputo, balanceo, base de datos, eventos y observabilidad gestionados.</td><td>Región us-east-1</td></tr>
+</table>
+
+<!-- ================================================================ 4. ESTRATEGIA -->
+<h2>4. Estrategia de solución · patrones arquitectónicos <span class="ie">IE3</span></h2>
+<p>La EP1 eligió un monolito modular para reducir complejidad. Con la API escalando a varias réplicas aparecieron dos
+problemas: la ingesta escala junto con la API aunque tenga otro ritmo, y el scheduler interno corría <b>una vez por
+réplica</b> (defecto detectado al desplegar). La estrategia v2.0.0 conserva el mismo código modular pero lo despliega
+como <b>tres servicios</b> y desacopla la ingesta con <b>eventos</b>, siguiendo el criterio de separar por ritmo de
+cambio y de escalado (Newman, 2021).</p>
+<figure class="ancha"><img src="../diagramas/svg/04-patrones.svg" alt="Patrones">
+  <figcaption>Figura 2. Diagrama de implementación de los patrones: microservicios enrutados por el ALB y flujo Event-Driven (Pub/Sub).</figcaption></figure>
+<table>
+  <tr><th style="width:16%">Patrón</th><th>Aplicación</th><th style="width:31%">Requisito funcional que resuelve</th></tr>
+  <tr><td><b>Microservicios</b></td><td>Web, API y worker con su propio grupo de Auto Scaling y target group; el ALB enruta por ruta.</td>
+      <td>Búsqueda y chat escalan con los usuarios; la ingesta, con su calendario. Una falla de ingesta no afecta las búsquedas.</td></tr>
+  <tr><td><b>Event-Driven / Pub-Sub</b></td><td>EventBridge publica <code>ingesta_programada</code> en SNS; SNS entrega un mensaje firmado al worker; el worker responde 202 y procesa en segundo plano.</td>
+      <td>Ingesta periódica de precios sin acoplar productor y consumidor; reintentos con backoff de SNS.</td></tr>
+  <tr><td><b>Singleton + lock</b></td><td>Scheduler solo en el worker (<code>INGESTION_SCHEDULER_ENABLED</code>); un lock impide corridas solapadas.</td><td>Ingesta sin duplicar productos ni corridas.</td></tr>
+  <tr><td><b>RAG + Tool use</b></td><td>El LLM responde solo con evidencia recuperada y herramientas del catálogo.</td><td>Respuestas verificables y acotadas en tokens.</td></tr>
+  <tr><td><b>Adapter + Factory</b></td><td>Interfaz común para Gemini, OpenAI o Bedrock.</td><td>Cambiar de proveedor sin tocar el resto.</td></tr>
+</table>
+
+<!-- ================================================================ 5. BLOQUES -->
+<h2>5. Vista de bloques de construcción <span class="ie">IE1</span></h2>
+<h3>5.1 Nivel 2 · Contenedores (C4)</h3>
+<figure><img src="../diagramas/svg/02-c4-contenedores.svg" alt="C4 contenedores" style="max-height:100mm">
+  <figcaption>Figura 3. C4 nivel 2: contenedores desplegables y sus protocolos.</figcaption></figure>
+<table>
+  <tr><th style="width:19%">Contenedor</th><th>Responsabilidad</th><th style="width:31%">Tecnología</th></tr>
+  <tr><td>CDN / borde HTTPS</td><td>Termina TLS con certificado *.cloudfront.net, redirige HTTP → HTTPS y reenvía al ALB sin caché.</td><td>Amazon CloudFront</td></tr>
+  <tr><td>Balanceador</td><td>Enruta por ruta y retira réplicas no sanas.</td><td>AWS ALB</td></tr>
+  <tr><td>Aplicación web</td><td>Interfaz, SSR y proxy de <code>/api/v1</code> hacia la API.</td><td>Next.js 16, React 19, Node 24</td></tr>
+  <tr><td>API de catálogo e IA</td><td>REST de catálogo, chat (RAG + herramientas) y agente. Sin estado.</td><td>FastAPI, SQLAlchemy 2, LangGraph</td></tr>
+  <tr><td>Worker de ingesta</td><td>Conectores, normalización, matching e historial; único consumidor de eventos.</td><td>APScheduler, httpx, BeautifulSoup</td></tr>
+  <tr><td>Base de datos</td><td>Catálogo, ofertas, historial, perfiles, memoria y checkpoints del agente.</td><td>Amazon RDS PostgreSQL 17</td></tr>
+  <tr><td>Bus de eventos</td><td>Desacopla el disparo de la ingesta y las alarmas.</td><td>EventBridge + SNS (producción: + SQS)</td></tr>
+  <tr><td>Almacenamiento</td><td>Imágenes, configuración cifrada, logs y respaldos.</td><td>Amazon S3 (SSE)</td></tr>
+  <tr><td>Observabilidad</td><td>Métricas, dashboard y alarmas.</td><td>Amazon CloudWatch</td></tr>
+</table>
+<h3>5.2 Nivel 3 · Componentes (C4)</h3>
+<figure><img src="../diagramas/svg/03-c4-componentes.svg" alt="C4 componentes" style="max-height:108mm">
+  <figcaption>Figura 4. C4 nivel 3: componentes de la API y del worker (módulos reales de <code>app/</code>).</figcaption></figure>
+<table>
+  <tr><th style="width:22%">Componente</th><th>Responsabilidad</th><th style="width:30%">Se relaciona con</th></tr>
+  <tr><td>Routers REST</td><td>Endpoints de productos, categorías, perfil, IA, agente y admin; validación Pydantic.</td><td>Seguridad, servicios, orquestador, agente</td></tr>
+  <tr><td>Seguridad</td><td>Verifica el JWT (JWKS), roles de administrador y RLS del agente.</td><td>Proveedor de identidad</td></tr>
+  <tr><td>Servicios / repositorios</td><td>Reglas de negocio y acceso a datos con sesiones en pool (pre-ping).</td><td>RDS PostgreSQL</td></tr>
+  <tr><td>Orquestador del asistente</td><td>Detecta intención, planifica y limita las herramientas por consulta.</td><td>RAG, herramientas, proveedores LLM</td></tr>
+  <tr><td>RAG híbrido</td><td>Recuperación léxica + embeddings, reranking, caché TTL, presupuesto de tokens.</td><td>Base de conocimiento en RDS</td></tr>
+  <tr><td>Agente de ahorro</td><td>Grafo LangGraph: plan → herramientas → replanificación; memoria y checkpoints.</td><td>Herramientas, LLM, RDS</td></tr>
+  <tr><td>Proveedores LLM</td><td>Adapter común para Gemini, OpenAI o Bedrock, con timeout.</td><td>API del LLM</td></tr>
+  <tr><td>Scheduler / receptor de eventos</td><td>Disparan la ingesta: por calendario o por evento SNS firmado.</td><td>Pipeline de ingesta</td></tr>
+  <tr><td>Pipeline, conectores, matching</td><td>Extraen, validan y normalizan; resuelven identidad por SKU/MPN/GTIN y, si es ambigua, con IA.</td><td>Tiendas, LLM, RDS</td></tr>
+</table>
+<p>El orquestador aplica «reglas primero, IA después»: solo los productos ambiguos llegan al LLM, lo que reduce costo y
+alucinaciones. El agente persiste su estado en Postgres, por lo que cualquier réplica continúa una conversación: la API
+queda <b>sin estado</b> y escala horizontalmente (Newman, 2021).</p>
+
+<!-- ================================================================ 6. EJECUCIÓN -->
+<h2>6. Vista de tiempo de ejecución</h2>
+<p class="chico">Diagramas de secuencia en el Anexo A (Figuras A8 y A9).</p>
+<p><b>Consulta:</b> el ALB elige la réplica con menos solicitudes pendientes; la API valida el JWT, el orquestador arma el
+contexto RAG (top-k 6, ≤ 1.600 tokens), el LLM decide qué herramienta usar (máx. 3) y redacta con evidencia del catálogo.
+<b>Ingesta:</b> EventBridge publica cada 6 h; SNS entrega por HTTP al ALB, que enruta solo al worker; el worker verifica
+firma y tema, responde 202 y sincroniza cada tienda en segundo plano, sin solapar corridas.</p>
+
+<!-- ================================================================ 7. IMPLEMENTACIÓN -->
+<h2>7. Vista de implementación</h2>
+<h3>7.1 Despliegue en AWS (us-east-1, dos zonas)</h3>
+<figure class="ancha"><img src="../diagramas/svg/05-despliegue-aws.svg" alt="Despliegue AWS">
+  <figcaption>Figura 5. Despliegue real: CloudFront (HTTPS), ALB, Auto Scaling en 2 zonas, RDS, S3, EventBridge/SNS y CloudWatch.</figcaption></figure>
+<table>
+  <tr><th style="width:22%">Elemento</th><th>Desplegado en AWS Academy</th><th style="width:34%">Diseño de producción (continuidad EP1)</th></tr>
+  <tr><td>Orquestación</td><td>Auto Scaling Groups sobre EC2 con Docker</td><td>ECS Fargate (<code>infra/ecs/</code>); alternativa EKS</td></tr>
+  <tr><td>Imágenes y CI/CD</td><td>Build en EC2 temporal → S3</td><td>GitHub Actions → ECR → ECS (igual que EP1)</td></tr>
+  <tr><td>Borde y frontend</td><td>CloudFront (HTTPS) → ALB → contenedor Next.js</td><td>Igual, con dominio propio, certificado ACM y AWS WAF</td></tr>
+  <tr><td>Base de datos</td><td>RDS PostgreSQL 17, una zona</td><td>RDS Multi-AZ</td></tr>
+  <tr><td>Eventos</td><td>EventBridge → SNS → worker</td><td>EventBridge → SNS → SQS (+ DLQ) → workers</td></tr>
+  <tr><td>Secretos</td><td>Config cifrada en S3 privado</td><td>Secrets Manager con rotación</td></tr>
+  <tr><td>Identidad / IA</td><td>Supabase Auth · Gemini</td><td>Cognito · Bedrock</td></tr>
+</table>
+
+<h3>7.2 Dimensionamiento de recursos y costos <span class="ie">IE2</span></h3>
+<table>
+  <tr><th>Supuesto de carga (lanzamiento, 12 meses)</th><th class="n">Valor</th><th>Derivación</th></tr>
+  <tr><td>Usuarios activos al mes</td><td class="n">5.000</td><td>Meta comercial del primer año</td></tr>
+  <tr><td>Sesiones/día · páginas por sesión · llamadas API por página</td><td class="n">1.200 · 8 · 3</td><td>28.800 solicitudes/día</td></tr>
+  <tr><td>Tráfico medio / pico (factor 6)</td><td class="n">0,33 / 2,0 req/s</td><td>Concentración tarde-noche</td></tr>
+  <tr><td>Consultas al asistente/día · tokens por consulta</td><td class="n">1.500 · 8.700</td><td>3 llamadas × (2.500 entrada + 400 salida)</td></tr>
+  <tr><td>Datos</td><td class="n">3,1 MB → 2 GB</td><td>Medido en la base actual (24 tablas)</td></tr>
+  <tr><td>Capacidad por réplica (medida)</td><td class="n">~22 req/s</td><td>43,9 req/s con 2 réplicas, p95 0,95 s, 0 errores</td></tr>
+</table>
+<table>
+  <tr><th style="width:15%">Componente</th><th style="width:24%">CPU · RAM · disco · red</th><th>Justificación técnica (carga y escalabilidad)</th></tr>
+  <tr><td>API (×2–4)</td><td>t3.small: 2 vCPU, 2 GiB, 20 GB gp3</td>
+      <td>FastAPI con 2 workers de Uvicorn. El chat es <b>I/O-bound</b> (espera 2–6 s al LLM). 2 réplicas por disponibilidad, no por carga (el pico es 2 req/s y cada réplica soporta ~22); escala al 60 % de CPU.</td></tr>
+  <tr><td>Web</td><td>~0,25 vCPU, ~400 MiB (misma EC2)</td><td>SSR de Next.js; comparte host para ahorrar instancias en esta etapa.</td></tr>
+  <tr><td>Worker</td><td>t3.small, 1 réplica</td><td>Ráfagas de CPU al parsear HTML (créditos burstable); una sola réplica evita ingestas duplicadas.</td></tr>
+  <tr><td>Base de datos</td><td>db.t4g.micro: 2 vCPU, 1 GiB, 20 GB gp3, Multi-AZ</td><td>En la carga, RDS llegó a 15 % de CPU: sobra holgura. Graviton por precio/rendimiento; escala vertical sin cambiar código.</td></tr>
+  <tr><td>Red</td><td>VPC 2 AZ, ALB, ~20 GB/mes de salida</td><td>Respuestas JSON pequeñas; las imágenes de producto las sirven las tiendas.</td></tr>
+  <tr><td><b>GPU / TPU</b></td><td><b>No se aprovisiona</b></td><td>No hay entrenamiento. La inferencia se consume por API y los embeddings son locales y livianos (256 dimensiones, CPU).</td></tr>
+</table>
+<table>
+  <tr><th>Recursos de IA: ¿GPU propia o modelo por API?</th><th class="n">USD/mes</th><th>Evaluación</th></tr>
+  <tr><td>Modelo abierto (Llama 3.1 8B) en g5.xlarge (GPU A10G 24 GB) 24×7</td><td class="n">734</td><td>13× más caro; requiere MLOps y queda ocioso fuera del pico.</td></tr>
+  <tr><td>Amazon Bedrock · Claude 3 Haiku (modelo de la EP1)</td><td class="n">≈ 152</td><td>Mejor calidad; con 338 M tokens/mes supera el presupuesto.</td></tr>
+  <tr><td>Amazon Bedrock · Nova Lite</td><td class="n">≈ 33</td><td>Más barato y nativo de AWS (IAM, VPC endpoints): <b>destino de producción</b>. Bloqueado en AWS Academy.</td></tr>
+  <tr><td><b>Gemini Flash-Lite por API (implementado hoy)</b></td><td class="n"><b>≈ 55</b></td><td>Ya integrado y probado; se reemplaza por Bedrock cambiando <code>LLM_PROVIDER</code> y su adapter.</td></tr>
+</table>
+<p class="chico">Frameworks: FastAPI (asíncrono, Pydantic), LangGraph (grafo de estados con checkpoints para un agente que replanifica),
+SQLAlchemy 2 + Alembic y Next.js. No se usan TensorFlow ni PyTorch: no hay entrenamiento ni inferencia local de modelos grandes.
+Precios de tokens de lista (USD por millón): Gemini Flash-Lite 0,10/0,40; Nova Lite 0,06/0,24; Claude 3 Haiku 0,25/1,25.</p>
+
+<table>
+  <tr><th>Servicio (AWS Pricing Calculator, us-east-1)</th><th>Configuración</th><th class="n">USD/mes</th></tr>
+  <tr><td>Amazon EC2 (API + web)</td><td>2 × t3.small On-Demand, 100 % uso + EBS 20 GB c/u</td><td class="n">33,57</td></tr>
+  <tr><td>Amazon EC2 (worker)</td><td>1 × t3.small On-Demand + EBS 20 GB</td><td class="n">16,78</td></tr>
+  <tr><td>Amazon RDS for PostgreSQL</td><td>db.t4g.micro Multi-AZ, 20 GB gp3, sin RDS Proxy ni Database Insights</td><td class="n">27,96</td></tr>
+  <tr><td>Elastic Load Balancing</td><td>1 ALB, ~1 req/s, 2 conexiones nuevas/s, 3 reglas, 20 GB/mes</td><td class="n">16,90</td></tr>
+  <tr><td>Amazon VPC</td><td>5 IPv4 públicas (3 EC2 + 2 del ALB)</td><td class="n">18,25</td></tr>
+  <tr><td>Amazon CloudWatch</td><td>21 métricas, 1 dashboard, 5 alarmas</td><td class="n">6,80</td></tr>
+  <tr><td>Amazon S3</td><td>5 GB Standard, 10.000 PUT, 50.000 GET</td><td class="n">0,18</td></tr>
+  <tr class="total"><td colspan="2">Total AWS Pricing Calculator · 12 meses: USD 1.445,28</td><td class="n">120,44</td></tr>
+  <tr><td>Fuera de la calculadora</td><td>Transferencia de salida 20 GB · SNS y EventBridge en capa gratuita</td><td class="n">1,80</td></tr>
+  <tr><td>LLM (implementación actual)</td><td>Gemini Flash-Lite: 338 M tokens de entrada + 54 M de salida</td><td class="n">55,35</td></tr>
+  <tr class="total"><td colspan="2">Total mensual estimado</td><td class="n">177,59</td></tr>
+</table>
+<p class="chico"><b>Enlace al presupuesto:</b> https://calculator.aws/#/estimate?id=1a58bb3366135e297defcea9acb01e129929f388
+(precios del 25-10-2026; captura en el Anexo A, Figura A1). La calculadora activa por defecto RDS Proxy (+21,90) y Database Insights (+18,25), que el diseño
+no usa. La EP1 estimó USD 43–45 porque no incluía el balanceador, la segunda zona ni las IPv4 públicas. Ahorros: Savings Plan
+de 1 año (−30 a −40 % en EC2/RDS), VPC endpoints sin IPv4 públicas y migrar el LLM a Nova Lite (−22).</p>
+<table>
+  <tr><th>Planificación de capacidad</th><th>Señal</th><th>Acción</th></tr>
+  <tr><td>×2 tráfico</td><td>CPU de la API &gt; 60 % sostenida</td><td>Automático: el ASG sube a 3–4 réplicas</td></tr>
+  <tr><td>×10 usuarios</td><td>Conexiones RDS &gt; 70 % o latencia de lectura &gt; 20 ms</td><td>db.t4g.small + RDS Proxy; réplica de lectura</td></tr>
+  <tr><td>Más tiendas</td><td>Ingesta &gt; 6 h</td><td>SQS + varios workers (competing consumers)</td></tr>
+  <tr><td>Uso intensivo de IA</td><td>Costo LLM &gt; infraestructura</td><td>Caché semántica, modelo pequeño para intención, cuotas por usuario</td></tr>
+</table>
+
+<h3>7.3 Herramientas de infraestructura <span class="ie">IE5</span></h3>
+<p><b>Contenedorización (Docker).</b> Dos imágenes de producción multi-etapa (<code>infra/docker/</code>):</p>
+<table>
+  <tr><th>Imagen</th><th>Base</th><th class="n">Tamaño</th><th>Características</th></tr>
+  <tr><td>todobarato-backend</td><td>python:3.12-slim</td><td class="n">469 MB</td><td>venv aislado, usuario sin privilegios (uid 10001), HEALTHCHECK, migraciones Alembic al arrancar</td></tr>
+  <tr><td>todobarato-frontend</td><td>node:24-slim</td><td class="n">1,06 GB</td><td><code>next build</code> + <code>next start</code> (el Dockerfile original usaba <code>pnpm dev</code>)</td></tr>
+</table>
+<p class="chico">Dockerfile de referencia y definición del servicio ECS Fargate en el Anexo A; archivos completos en <code>infra/docker/</code>, <code>infra/ecs/</code> e <code>infra/kubernetes/</code>.</p>
+<p><b>Orquestación y réplicas.</b> En el laboratorio (sin ECS/EKS) los <b>Auto Scaling Groups</b> cumplen el papel del
+orquestador: mantienen las réplicas deseadas, las reparten entre <code>us-east-1a</code> y <code>us-east-1b</code>,
+reemplazan las que fallan el health check y, en cada versión, se actualizan de a una réplica (<i>rolling</i>): se retira una por el ASG con drenaje en el ALB y se espera a que su reemplazo esté sano. AWS Academy bloquea <i>instance refresh</i>, así que <code>infra/actualizacion_gradual.sh</code> lo hace igual a mano; en producción lo hace ECS (<code>minimumHealthyPercent: 100</code>).</p>
+<table>
+  <tr><th>Grupo</th><th class="n">Mín</th><th class="n">Deseado</th><th class="n">Máx</th><th>Política de escalado</th></tr>
+  <tr><td>tb-ep2-api (web + API)</td><td class="n">2</td><td class="n">2</td><td class="n">4</td><td>Target tracking: CPU media 60 %</td></tr>
+  <tr><td>tb-ep2-worker</td><td class="n">1</td><td class="n">1</td><td class="n">1</td><td>Fija (singleton de ingesta)</td></tr>
+</table>
+<p><b>Balanceo de carga (ALB).</b> Algoritmo <i>least outstanding requests</i>: una consulta al agente puede tardar 30 s y otra
+al catálogo 50 ms, y repartir por solicitudes pendientes evita acumular trabajo en una réplica (Amazon Web Services, 2025).
+Idle timeout de 180 s, drenaje de 30 s y descarte de cabeceras inválidas. En EKS, el equivalente del escalado es el
+Horizontal Pod Autoscaler (The Kubernetes Authors, 2025).</p>
+<table>
+  <tr><th style="width:26%">Regla (prioridad)</th><th>Destino</th><th>Health check</th></tr>
+  <tr><td>10 · <code>/api/v1/eventos/*</code></td><td>TG worker :8000</td><td><code>/health</code> cada 5 s · 2 OK / 2 fallos · timeout 3 s</td></tr>
+  <tr><td>20 · <code>/api/*</code>, <code>/health</code></td><td>TG api :8000</td><td>igual</td></tr>
+  <tr><td>por defecto · <code>/*</code></td><td>TG front :3000</td><td><code>/</code> cada 5 s</td></tr>
+</table>
+<table>
+  <tr><th style="width:18%">Integración</th><th style="width:27%">Alternativas evaluadas</th><th>Decisión e impacto en eficiencia y rendimiento</th></tr>
+  <tr><td>Web ↔ API</td><td>REST/JSON · GraphQL · gRPC</td><td>REST/JSON: contrato existente, cacheable y depurable; gRPC no aporta con este volumen.</td></tr>
+  <tr><td>Disparo de ingesta</td><td>Cron interno · llamada síncrona · eventos</td><td>Eventos: el worker responde 202 en milisegundos y procesa aparte; la API no espera minutos de scraping.</td></tr>
+  <tr><td>Entrega de eventos</td><td>SNS → HTTP · SNS → SQS</td><td>SNS → HTTP en el lab (SQS bloqueado). Producción: SQS, con cola durable, DLQ y escalado por profundidad.</td></tr>
+  <tr><td>API ↔ LLM</td><td>Gemini · Bedrock · OpenAI · modelo propio</td><td>Adapter común; timeout 60 s y máx. 3 herramientas por consulta acotan latencia y costo.</td></tr>
+  <tr><td>Estado del agente</td><td>Memoria del proceso · Redis · Postgres</td><td>Postgres (checkpoints): cualquier réplica continúa la conversación, sin sesiones pegajosas que desbalanceen el ALB.</td></tr>
+</table>
+
+<!-- ================================================================ 8. CONCEPTOS TRANSVERSALES -->
+<h2>8. Conceptos transversales</h2>
+<h3>8.1 Plan de seguridad <span class="ie">IE7</span></h3>
+<table>
+  <tr><th style="width:15%">Ámbito</th><th>Control implementado y desplegado</th><th style="width:29%">Producción</th></tr>
+  <tr><td>Autenticación</td><td>JWT verificado con JWKS en cada solicitud (Supabase Auth: firma, emisor y audiencia).</td><td>Cognito: cambia la URL de JWKS, el emisor y el claim de audiencia en <code>security.py</code></td></tr>
+  <tr><td>Autorización</td><td>Roles de administrador por correo/ID; RLS en las tablas del agente; el agente solo escribe datos del usuario autenticado.</td><td>Igual + rol IAM por servicio</td></tr>
+  <tr><td>Red</td><td><b>HTTPS con CloudFront</b> (TLS 1.2+, redirección desde HTTP); SG encadenados: ALB (80) → app (3000/8000 solo desde el ALB) → RDS (5432 solo desde la app).</td><td>Dominio propio con ACM, AWS WAF, ALB solo accesible desde CloudFront, subredes privadas</td></tr>
+  <tr><td>Cifrado</td><td>TLS hacia RDS (<code>sslmode=require</code>); RDS, EBS y S3 con AES-256; IMDSv2 obligatorio.</td><td>Llaves KMS propias</td></tr>
+  <tr><td>Secretos</td><td>Clave de RDS aleatoria generada al desplegar; configuración cifrada (SSE) en bucket privado; nunca en imagen ni repositorio.</td><td>Secrets Manager con rotación</td></tr>
+  <tr><td>Eventos</td><td>Firma de SNS verificada criptográficamente, certificado de <code>sns.*.amazonaws.com</code> y tema esperado; 404 fuera del worker.</td><td>Igual</td></tr>
+  <tr><td>Contenedores</td><td>Usuario sin privilegios, imágenes slim, dependencias fijadas (<code>uv.lock</code>, <code>pnpm-lock.yaml</code>).</td><td>Escaneo de imágenes en ECR</td></tr>
+</table>
+<h3>8.2 Estrategia de monitoreo (observabilidad) <span class="ie">IE7</span></h3>
+<table>
+  <tr><th style="width:14%">Pilar</th><th style="width:30%">Herramienta</th><th>Qué se mide</th></tr>
+  <tr><td>Métricas</td><td>CloudWatch, dashboard <code>tb-ep2</code></td><td>Solicitudes, latencia p50/p95/p99, 5xx, réplicas sanas, CPU del ASG, instancias en servicio, CPU/conexiones/latencia de RDS</td></tr>
+  <tr><td>Logs</td><td>Docker → S3 cada 5 min (30 días); RDS → CloudWatch Logs</td><td>Errores, ingestas, eventos rechazados. Producción: CloudWatch Logs + Logs Insights</td></tr>
+  <tr><td>Alertas</td><td>5 alarmas (2 de 3 minutos) → SNS <code>tb-ep2-alarmas</code> → correo del equipo</td><td>Réplica caída, 5xx &gt; 10/min, latencia &gt; 5 s, CPU RDS &gt; 80 %, memoria RDS &lt; 100 MB. Verificada: «réplica caída» pasó a ALARM a las 14:35 durante el failover y volvió a OK a las 14:40; el correo de alerta llega al equipo (Figura A7)</td></tr>
+  <tr><td>Trazas de IA</td><td><code>app/ai/observability</code></td><td>Traza por consulta (<code>trace_id</code>) con cada etapa: intención, plan, RAG, evidencia, grounding</td></tr>
+  <tr><td>Visualización</td><td>Grafana con fuente CloudWatch (producción)</td><td>El mismo panel para el equipo sin acceso a la consola</td></tr>
+</table>
+<h3>8.3 Alta disponibilidad <span class="ie">IE7</span></h3>
+<p>Los objetivos de recuperación siguen la práctica de SRE de fijar metas medibles y verificarlas (Beyer et al., 2016).</p>
+<table>
+  <tr><th style="width:18%">Falla</th><th>Mecanismo</th><th style="width:28%">Recuperación</th></tr>
+  <tr><td>Proceso colgado</td><td>HEALTHCHECK de Docker + <code>--restart always</code></td><td>&lt; 1 min</td></tr>
+  <tr><td>Instancia</td><td>El ALB la retira tras 2 fallos (5 s); el ASG lanza otra</td><td>502 solo ~12 s; reposición 219 s (medido)</td></tr>
+  <tr><td>Zona completa</td><td>Réplicas activas en 1a y 1b; el ASG repone en la zona sana</td><td>Continúa con la réplica de la otra zona</td></tr>
+  <tr><td>BD primaria</td><td>RDS Multi-AZ con standby síncrona (producción)</td><td>Failover 60–120 s; RPO ≈ 0</td></tr>
+  <tr><td>Corrupción / borrado</td><td>Backups automáticos + restauración a un punto en el tiempo (PITR)</td><td>RPO 5 min; RTO ~15 min</td></tr>
+  <tr><td>Región</td><td>Imágenes y config versionadas en S3; despliegue idempotente con un script</td><td>RTO ~30 min en otra región</td></tr>
+</table>
+<p class="chico">En el laboratorio RDS queda en una zona por presupuesto (Multi-AZ duplica su costo) y porque la cuenta no
+permite modificar la instancia; la alta disponibilidad de la capa de aplicación se demostró en vivo (sección 10).</p>
+
+<!-- ================================================================ 9. DECISIONES -->
+<h2>9. Decisiones de arquitectura</h2>
+<table>
+  <tr><th style="width:24%">Decisión</th><th style="width:24%">Alternativa descartada</th><th>Justificación</th></tr>
+  <tr><td>Tres servicios + eventos</td><td>Monolito con scheduler interno (EP1)</td><td>Escalado independiente; elimina la ingesta duplicada por réplica.</td></tr>
+  <tr><td>ECS Fargate en producción</td><td>EKS</td><td>Sin plano de control que operar, como decidió la EP1; los manifiestos de EKS quedan como opción.</td></tr>
+  <tr><td>EC2 + ASG + Docker en el lab</td><td>ECS / EKS</td><td>Bloqueados en AWS Academy; mismas imágenes y health checks.</td></tr>
+  <tr><td>Frontend en contenedor (SSR)</td><td>S3 + CloudFront (EP1)</td><td>La app usa SSR y el proxy de Next.js; un sitio estático no los soporta.</td></tr>
+  <tr><td>LLM por API (Gemini → Bedrock)</td><td>GPU propia</td><td>13× más barato que una g5.xlarge; Bedrock Nova Lite como destino.</td></tr>
+  <tr><td>Least outstanding requests</td><td>Round robin</td><td>Las solicitudes duran entre 50 ms y 30 s.</td></tr>
+  <tr><td>Health check 5 s × 2</td><td>15 s × 3</td><td>Ventana de 502 de 27 → 12 s ante una caída abrupta (medido).</td></tr>
+  <tr><td>CloudFront para HTTPS</td><td>HTTP directo al ALB</td><td>Sin contexto seguro el navegador no expone <code>crypto.randomUUID</code> y el chat fallaba (hallazgo del despliegue); además cifra el tráfico del usuario. CloudFront da HTTPS sin dominio propio.</td></tr>
+  <tr><td>Subredes públicas + SG (lab)</td><td>Privadas + NAT Gateway</td><td>NAT ≈ USD 33/mes; en producción, privadas con VPC endpoints.</td></tr>
+</table>
+
+<!-- ================================================================ 10. CALIDAD / EVIDENCIA -->
+<h2>10. Requisitos de calidad · evidencia medida en AWS</h2>
+<p>La arquitectura se desplegó el 25-10-2026 con <code>infra/desplegar.sh</code> (≈ 12 min): S3, build remoto de imágenes,
+3 security groups, RDS PostgreSQL 17 con los datos reales migrados (24 tablas), 2 temas SNS, 2 launch templates, ALB con
+3 target groups y 3 reglas, 2 Auto Scaling Groups, dashboard, 5 alarmas y la regla de EventBridge. Se borra con
+<code>infra/destruir.sh</code>. La suite de la aplicación pasa completa (914 pruebas, incluidas 7 del endpoint de eventos).</p>
+<table>
+  <tr><th>Escenario de calidad</th><th>Resultado</th></tr>
+  <tr><td>Réplicas sanas (front y api)</td><td>2/2, en us-east-1a y us-east-1b</td></tr>
+  <tr><td>Reparto del ALB (10 llamadas)</td><td>5 en 1a · 5 en 1b</td></tr>
+  <tr><td>Catálogo desde RDS</td><td>HTTP 200, productos reales</td></tr>
+  <tr><td>Evento SNS firmado → worker</td><td>HTTP 202 (ingesta encolada)</td></tr>
+  <tr><td>Mensaje sin firma</td><td>HTTP 403 (rechazado)</td></tr>
+  <tr><td>Alarma «réplica caída»</td><td>ALARM 14:35 → OK 14:40</td></tr>
+</table>
+<p class="chico">Capturas de la aplicación en el ALB y gráficos de CloudWatch en el Anexo A (Figuras A2 a A5).</p>
+<h3>10.1 Rendimiento: prueba de carga (hey, 45 s, 20 clientes concurrentes, desde Chile)</h3>
+<table>
+  <tr><th>Endpoint</th><th class="n">req/s</th><th class="n">p50</th><th class="n">p95</th><th class="n">p99</th><th class="n">Errores</th></tr>
+  <tr><td><code>/health</code></td><td class="n">143,0</td><td class="n">0,13 s</td><td class="n">0,20 s</td><td class="n">0,31 s</td><td class="n">0 / 6.460</td></tr>
+  <tr><td>Catálogo (<code>/api/v1/products?limit=20</code>)</td><td class="n">43,9</td><td class="n">0,37 s</td><td class="n">0,95 s</td><td class="n">2,22 s</td><td class="n">0 / 1.999</td></tr>
+  <tr><td>Categorías</td><td class="n">72,2</td><td class="n">0,26 s</td><td class="n">0,63 s</td><td class="n">1,05 s</td><td class="n">0 / 3.276</td></tr>
+</table>
+<p>El catálogo cumple p95 &lt; 2 s con 22 veces el pico estimado; ~120 ms de cada respuesta son la latencia Chile–Virginia.
+La CPU de la API llegó a 54 % y la de RDS a 15 %: <b>el cuello de botella es la CPU de la API</b>, no la base. Por eso se
+escala la API por CPU y RDS se mantiene en db.t4g.micro.</p>
+<h3>10.2 Disponibilidad: caída de una réplica (consultas a <code>/health</code> cada 0,5 s durante 2 min)</h3>
+<table>
+  <tr><th>Escenario</th><th class="n">Solicitudes</th><th class="n">Fallidas</th><th class="n">Disponibilidad</th><th>Observación</th></tr>
+  <tr><td>Retiro planificado (ASG + drenaje 30 s)</td><td class="n">155</td><td class="n">0</td><td class="n">100 %</td><td>El ALB deja de enviar tráfico antes de apagar</td></tr>
+  <tr><td>Caída abrupta · health check 15 s × 3</td><td class="n">140</td><td class="n">9</td><td class="n">93,57 %</td><td>502 intermitentes entre t = 13 y 40 s</td></tr>
+  <tr><td>Caída abrupta · health check 5 s × 2</td><td class="n">147</td><td class="n">5</td><td class="n">96,60 %</td><td>Ventana de 502: 27 → 12 s</td></tr>
+  <tr><td>Autocuración del ASG</td><td colspan="3" class="n">219 s hasta volver a 2 réplicas sanas</td><td>Detecta a los 70 s y lanza un reemplazo</td></tr>
+</table>
+<p><b>Optimización aplicada y medida:</b> la ventana de errores de una caída abrupta depende del health check; al pasar de
+15 s × 3 a 5 s × 2 bajó de 27 a 12 s y los errores de 9 a 5, a cambio de más chequeos (sin costo relevante). Los
+despliegues usan retiro planificado, que no pierde solicitudes. Siguiente paso: reintentar en el cliente los 502 de GET.</p>
+
+<!-- ================================================================ 11. RIESGOS -->
+<h2>11. Riesgos y deuda técnica</h2>
+<table>
+  <tr><th style="width:30%">Riesgo / deuda</th><th>Mitigación</th></tr>
+  <tr><td>Cambio de HTML en una tienda rompe un conector</td><td>Validación y auditoría del pipeline; conectores aislados (una tienda caída no detiene a las demás).</td></tr>
+  <tr><td>Costo del LLM crece más que el tráfico</td><td>Límite de herramientas y tokens, caché, migrar a Nova Lite, modelo pequeño para intención.</td></tr>
+  <tr><td>RDS en una sola zona en el laboratorio</td><td>Backups diarios y PITR; Multi-AZ en producción.</td></tr>
+  <tr><td>Deuda: el logger de la app no está en nivel INFO</td><td>Los logs muestran que el evento se aceptó (202) pero no el detalle de la sincronización; configurar logging estructurado.</td></tr>
+  <tr><td>Hallazgo: el frontend dependía de un contexto seguro</td><td>Servido por HTTP, <code>crypto.randomUUID</code> no existe y el chat y el agente se caían (en local funcionaba porque <code>localhost</code> cuenta como seguro). Se corrigió en el código (<code>newId()</code>) y en la arquitectura (HTTPS con CloudFront). Verificado de punta a punta: login, chat (5,8 s) y agente (7,7 s) (Figura A6).</td></tr>
+  <tr><td>Deuda: Supabase Auth en vez de Cognito</td><td>Cambio acotado en <code>app/core/security.py</code> (JWKS, emisor, claim de audiencia).</td></tr>
+</table>
+
+<!-- ================================================================ REFERENCIAS -->
+<h2>Referencias</h2>
+<div class="ref">
+<p>Amazon Web Services. (2024). <i>AWS Well-Architected Framework</i>. https://docs.aws.amazon.com/wellarchitected/latest/framework/welcome.html</p>
+<p>Amazon Web Services. (2025). <i>What is an Application Load Balancer?</i> Elastic Load Balancing User Guide. https://docs.aws.amazon.com/elasticloadbalancing/latest/application/introduction.html</p>
+<p>Beyer, B., Jones, C., Petoff, J., &amp; Murphy, N. R. (2016). <i>Site reliability engineering: How Google runs production systems</i>. O'Reilly Media.</p>
+<p>Brown, S. (2018). <i>The C4 model for visualising software architecture</i>. https://c4model.com</p>
+<p>Newman, S. (2021). <i>Building microservices: Designing fine-grained systems</i> (2.ª ed.). O'Reilly Media.</p>
+<p>Starke, G., &amp; Hruschka, P. (2023). <i>arc42: Template for documentation of software and system architecture</i>. https://arc42.org</p>
+<p>The Kubernetes Authors. (2025). <i>Horizontal Pod Autoscaling</i>. https://kubernetes.io/docs/tasks/run-application/horizontal-pod-autoscale/</p>
+</div>
+
+<h2>Declaración de uso de IA generativa</h2>
+<p>El equipo utilizó Claude (Anthropic) como asistente para redactar borradores de este documento, generar los diagramas en
+PlantUML, escribir los scripts de despliegue, los Dockerfiles y la configuración de ECS/EKS, y armar el presupuesto en AWS
+Pricing Calculator. Todas las decisiones fueron revisadas por el equipo; el despliegue se ejecutó y verificó en AWS y los
+datos de la sección 10 provienen de mediciones reales. El código de la aplicación TodoBarato AI fue desarrollado por el
+equipo durante el semestre.</p>
+
+<!-- ================================================================ ANEXO -->
+<h2 class="salto">Anexo A. Evidencia complementaria del despliegue</h2>
+<figure><img src="../evidencia/aws-pricing-calculator.png" alt="AWS Pricing Calculator" style="max-height:105mm">
+  <figcaption>Figura A1. Presupuesto en AWS Pricing Calculator (us-east-1): USD 120,44 al mes, USD 1.445,28 en 12 meses.</figcaption></figure>
+<div class="dos">
+<figure><img src="../evidencia/app-alb.png" alt="App en el ALB"><figcaption>Figura A2. La aplicación servida por el ALB, con el catálogo leído desde RDS.</figcaption></figure>
+<figure><img src="../evidencia/cw-replicas.png" alt=""><figcaption>Figura A3. Réplicas sanas y no sanas durante las tres pruebas de failover.</figcaption></figure>
+<figure><img src="../evidencia/cw-solicitudes.png" alt=""><figcaption>Figura A4. Solicitudes por minuto y 5xx durante la prueba de carga.</figcaption></figure>
+<figure><img src="../evidencia/cw-cpu.png" alt=""><figcaption>Figura A5. CPU de la API (54 %) y de RDS (15 %) durante la carga.</figcaption></figure>
+</div>
+<figure><img src="../evidencia/agente-https.png" alt="Agente por HTTPS" style="max-height:95mm"><figcaption>Figura A6. El agente de ahorro funcionando en AWS por HTTPS (CloudFront): plan, herramientas, alerta escrita y memoria del usuario.</figcaption></figure>
+<figure><img src="../evidencia/alarma-correo.png" alt="Correo de alarma" style="max-height:80mm"><figcaption>Figura A7. Alerta recibida por correo (CloudWatch → SNS → nic.estefania@duocuc.cl), prueba del 25-10-2026 a las 15:50.</figcaption></figure>
+<h3>Dockerfile de referencia y servicio ECS Fargate (sección 7.3)</h3>
+<div class="dos">
+<pre>FROM python:3.12-slim AS deps        # etapa 1
+RUN python -m venv /opt/venv \
+ &amp;&amp; /opt/venv/bin/pip install .
+FROM python:3.12-slim                # etapa 2
+RUN useradd --create-home --uid 10001 app
+COPY --from=deps /opt/venv /opt/venv
+COPY --chown=app:app app ./app
+USER app
+HEALTHCHECK --interval=15s CMD python -c \
+ "urllib.request.urlopen('http://127.0.0.1:8000/health')"
+CMD alembic upgrade head &amp;&amp; \
+ uvicorn app.main:app --workers 2 --proxy-headers</pre>
+<pre># ECS Fargate (infra/ecs/servicio-api.json)
+cpu: 512 · memory: 1024 · desiredCount: 2
+subnets: privada-1a, privada-1b
+deploymentConfiguration:
+  minimumHealthyPercent: 100
+  maximumPercent: 200
+  deploymentCircuitBreaker: {enable, rollback}
+autoscaling: min 2 · max 6 · CPU 60 %
+secrets: DATABASE_URL, GEMINI_API_KEY
+  ← Secrets Manager
+# Alternativa EKS (infra/kubernetes/):
+# Deployment + HPA + PDB + topologySpread por zona</pre>
+</div>
+<h3>Vista de tiempo de ejecución (sección 6)</h3>
+<div class="dos">
+<figure><img src="../diagramas/svg/07-secuencia-consulta-ia.svg" alt="Consulta IA" style="max-height:120mm">
+  <figcaption>Figura A8. Flujo síncrono: consulta al asistente de IA.</figcaption></figure>
+<figure><img src="../diagramas/svg/06-secuencia-ingesta.svg" alt="Ingesta" style="max-height:120mm">
+  <figcaption>Figura A9. Flujo Event-Driven: ingesta programada.</figcaption></figure>
+</div>
+<p class="chico">Material reproducible en el repositorio: <code>EP2_ITY1102/infra/</code> (scripts de despliegue, prueba de carga,
+failover, exportación de gráficos y presupuesto), <code>EP2_ITY1102/diagramas/</code> (fuentes PlantUML) y
+<code>EP2_ITY1102/evidencia/</code>.</p>
+
+<!-- ================================================================ 12. GLOSARIO -->
+<h2>Anexo B. Glosario</h2>
+<table>
+  <tr><th style="width:22%">Término</th><th>Definición</th></tr>
+  <tr><td>ALB</td><td>Application Load Balancer: balanceador de capa 7 que enruta por ruta y revisa la salud de los destinos.</td></tr>
+  <tr><td>ASG</td><td>Auto Scaling Group: mantiene un número de instancias, las reparte entre zonas y reemplaza las no sanas.</td></tr>
+  <tr><td>Multi-AZ</td><td>Despliegue en dos o más zonas de disponibilidad de una región para tolerar la caída de una.</td></tr>
+  <tr><td>RPO / RTO</td><td>Pérdida de datos máxima tolerada / tiempo máximo para recuperar el servicio.</td></tr>
+  <tr><td>Pub/Sub</td><td>Patrón en que un productor publica eventos en un tema sin conocer a sus consumidores.</td></tr>
+  <tr><td>Health check</td><td>Consulta periódica (<code>/health</code>) con la que el ALB decide si una réplica recibe tráfico.</td></tr>
+  <tr><td>StoreOffer</td><td>Oferta concreta de un producto canónico en una tienda, a un precio y con un historial.</td></tr>
+  <tr><td>RAG</td><td>Retrieval-Augmented Generation: el LLM responde con fragmentos recuperados del catálogo como evidencia.</td></tr>
+</table>
+
+
+</body>
+</html>

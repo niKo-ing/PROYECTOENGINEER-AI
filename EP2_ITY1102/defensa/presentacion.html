@@ -1,0 +1,224 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>EP2 Presentación · TodoBarato AI</title>
+<style>
+  @page { size: 338.67mm 190.5mm; margin: 0; }
+  :root { --tinta:#152033; --suave:#5b6880; --acento:#1f5fbf; --acento2:#e8901c; --fondo:#f3f6fb; --linea:#d5dbe6; }
+  * { box-sizing: border-box; }
+  body { margin: 0; font-family: "DejaVu Sans", Arial, sans-serif; color: var(--tinta); background: #888; }
+  .d { width: 338.67mm; height: 190.5mm; padding: 13mm 17mm 11mm; background: #fff; position: relative;
+       break-after: page; overflow: hidden; display: flex; flex-direction: column; margin: 0 auto 8px; }
+  .d:last-child { break-after: auto; }
+  .d h2 { font-size: 25pt; margin: 0 0 2mm; }
+  .d .bajada { font-size: 13pt; color: var(--suave); margin: 0 0 6mm; }
+  .d .pie { position: absolute; left: 17mm; right: 17mm; bottom: 5mm; display: flex; justify-content: space-between;
+            font-size: 9pt; color: var(--suave); }
+  .d .pie b { color: var(--acento); }
+  .cuerpo { flex: 1; display: flex; gap: 9mm; min-height: 0; }
+  .col { flex: 1; min-width: 0; }
+  .col.img { display: flex; align-items: center; justify-content: center; }
+  .col.img img { max-width: 100%; max-height: 128mm; }
+  ul { margin: 0; padding-left: 6mm; font-size: 14pt; line-height: 1.45; }
+  li { margin-bottom: 2.2mm; }
+  li small { display: block; color: var(--suave); font-size: 11pt; }
+  table { border-collapse: collapse; width: 100%; font-size: 12pt; }
+  th, td { border-bottom: 1px solid var(--linea); padding: 2mm 3mm; text-align: left; vertical-align: top; }
+  th { color: var(--suave); font-weight: normal; font-size: 10.5pt; text-transform: uppercase; letter-spacing: .04em; }
+  .n { text-align: right; white-space: nowrap; }
+  .kpis { display: grid; grid-template-columns: repeat(4, 1fr); gap: 5mm; margin-bottom: 6mm; }
+  .kpi { background: var(--fondo); border-radius: 4mm; padding: 5mm; }
+  .kpi b { display: block; font-size: 25pt; color: var(--acento); }
+  .kpi span { font-size: 11pt; color: var(--suave); }
+  .portada { background: linear-gradient(135deg, #12305e 0%, #1f5fbf 70%, #2b78e4 100%); color: #fff; justify-content: center; }
+  .portada h1 { font-size: 46pt; margin: 0; }
+  .portada p { font-size: 17pt; margin: 3mm 0; opacity: .92; }
+  .portada .equipo { margin-top: 14mm; font-size: 13pt; opacity: .85; }
+  .etiqueta { display: inline-block; background: var(--acento2); color: #fff; font-size: 10pt; padding: 1mm 3mm;
+              border-radius: 2mm; margin-bottom: 3mm; letter-spacing: .05em; }
+  .caja { background: var(--fondo); border-left: 2mm solid var(--acento); padding: 4mm 6mm; font-size: 13pt; margin-top: 4mm; }
+  .verde { color: #157347; } .rojo { color: #b02a37; }
+  .cuerpo.apilado { flex-direction: column; gap: 4mm; }
+  .img-ancha { flex: 1; min-height: 0; display: flex; align-items: center; justify-content: center; }
+  .img-ancha img { max-width: 100%; max-height: 100%; }
+  .fila3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 5mm; }
+  .fila3 > div { background: var(--fondo); border-radius: 3mm; padding: 3mm 4mm; font-size: 11pt; }
+  .fila3 b { display: block; color: var(--acento); font-size: 12.5pt; margin-bottom: 1mm; }
+</style>
+</head>
+<body>
+
+<section class="d portada">
+  <span class="etiqueta">ITY1102 · EVALUACIÓN PARCIAL 2</span>
+  <h1>TodoBarato AI</h1>
+  <p>Arquitectura de IA escalable y segura, desplegada en AWS</p>
+  <p class="equipo">Equipo 1 · Nicolás Estefanía · Diego Tapia · Ariel Espinoza</p>
+</section>
+
+<section class="d">
+  <h2>El caso y los objetivos</h2>
+  <p class="bajada">Comparar precios entre tiendas es lento porque cada una publica datos distintos.</p>
+  <div class="cuerpo">
+    <div class="col"><ul>
+      <li>Catálogo canónico: SP Digital, Paris y más, normalizados</li>
+      <li>Asistente de IA con evidencia del catálogo (RAG + herramientas)</li>
+      <li>Agente de ahorro (LangGraph): alertas de precio y listas</li>
+      <li>Para empresas: vigilar a la competencia y su historial</li>
+    </ul></div>
+    <div class="col"><table>
+      <tr><th>Objetivo no funcional</th><th class="n">Meta</th></tr>
+      <tr><td>Disponibilidad</td><td class="n">≥ 99,5 %</td></tr>
+      <tr><td>Latencia catálogo (p95)</td><td class="n">&lt; 2 s</td></tr>
+      <tr><td>Escalado de la API</td><td class="n">2 → 4 réplicas</td></tr>
+      <tr><td>RPO / RTO</td><td class="n">5 min / 15 min</td></tr>
+      <tr><td>Costo de lanzamiento</td><td class="n">&lt; USD 200/mes</td></tr>
+    </table></div>
+  </div>
+  <div class="pie"><span>2.1 Introducción y contexto</span><b>Ariel</b></div>
+</section>
+
+<section class="d">
+  <h2>C4: contexto y contenedores</h2>
+  <p class="bajada">Tres servicios desplegables detrás de un balanceador, sobre servicios gestionados de AWS.</p>
+  <div class="cuerpo">
+    <div class="col img"><img src="../diagramas/svg/01-c4-contexto.svg" alt=""></div>
+    <div class="col img"><img src="../diagramas/svg/02-c4-contenedores.svg" alt=""></div>
+  </div>
+  <div class="pie"><span>2.2 Arquitectura</span><b>Ariel</b></div>
+</section>
+
+<section class="d">
+  <h2>C4: componentes de la API y del worker</h2>
+  <p class="bajada">Módulos reales del código: reglas primero, IA solo donde aporta.</p>
+  <div class="cuerpo">
+    <div class="col img" style="flex:1.6"><img src="../diagramas/svg/03-c4-componentes.svg" alt=""></div>
+    <div class="col"><ul>
+      <li><b>API sin estado</b><small>Checkpoints del agente en Postgres: cualquier réplica sigue la conversación</small></li>
+      <li><b>Orquestador + RAG</b><small>Máx. 3 herramientas y 1.600 tokens de contexto por consulta</small></li>
+      <li><b>Matching híbrido</b><small>SKU/MPN/GTIN primero; el LLM solo en casos ambiguos</small></li>
+      <li><b>Worker</b><small>Scheduler + receptor de eventos SNS firmados</small></li>
+    </ul></div>
+  </div>
+  <div class="pie"><span>2.2 Arquitectura</span><b>Ariel</b></div>
+</section>
+
+<section class="d">
+  <h2>Patrones: microservicios + Event-Driven</h2>
+  <p class="bajada">Del monolito modular de la EP1 a servicios que escalan por separado.</p>
+  <div class="cuerpo apilado">
+    <div class="img-ancha"><img src="../diagramas/svg/04-patrones.svg" alt=""></div>
+    <div class="fila3">
+      <div><b>Microservicios</b><span>Web, API y worker con su propio grupo de Auto Scaling; el ALB enruta por ruta</span></div>
+      <div><b>Pub/Sub</b><span>EventBridge → SNS → worker: mensaje firmado, 202 y proceso en segundo plano</span></div>
+      <div><b>Singleton de ingesta</b><span>Con 2 réplicas la ingesta corría 2 veces: lo detectamos y corregimos</span></div>
+    </div>
+  </div>
+  <div class="pie"><span>2.2 Justificación de patrones</span><b>Diego</b></div>
+</section>
+
+<section class="d">
+  <h2>Alta disponibilidad en dos zonas</h2>
+  <p class="bajada">Si cae una réplica o una zona, la otra sigue atendiendo y el grupo se repone solo.</p>
+  <div class="cuerpo apilado">
+    <div class="img-ancha"><img src="../diagramas/svg/05-despliegue-aws.svg" alt=""></div>
+    <div class="fila3">
+      <div><b>Instancia</b><span>El ALB la retira en ~12 s y el ASG la repone en 219 s (medido)</span></div>
+      <div><b>Zona / base de datos</b><span>Réplica activa en la otra zona · RDS Multi-AZ: failover 60–120 s · PITR: RPO 5 min</span></div>
+      <div><b>Seguridad y eficiencia</b><span>SG encadenados, TLS, AES-256; 2 réplicas por disponibilidad, no por carga</span></div>
+    </div>
+  </div>
+  <div class="pie"><span>2.2 Patrones de alta disponibilidad</span><b>Diego</b></div>
+</section>
+
+<section class="d">
+  <h2>Decisiones clave y alternativas descartadas</h2>
+  <p class="bajada">Cada decisión responde a un requerimiento o a una restricción medida.</p>
+  <div class="cuerpo"><div class="col"><table>
+    <tr><th>Decisión</th><th>Descartado</th><th>Por qué</th></tr>
+    <tr><td>Gemini por API</td><td>GPU propia g5.xlarge</td><td>USD 55 vs. USD 734 al mes: 13× más barato</td></tr>
+    <tr><td>EC2 + ASG + Docker</td><td>EKS / ECS Fargate</td><td>Bloqueados en AWS Academy; producción en ECS Fargate (EP1)</td></tr>
+    <tr><td>Least outstanding requests</td><td>Round robin</td><td>El agente tarda 30 s y el catálogo 50 ms</td></tr>
+    <tr><td>Estado del agente en Postgres</td><td>Sesiones pegajosas</td><td>Cualquier réplica continúa la conversación</td></tr>
+    <tr><td>SNS → HTTP (lab)</td><td>SQS</td><td>SQS bloqueado; en producción SNS → SQS + DLQ</td></tr>
+    <tr><td>Subredes públicas + SG</td><td>NAT Gateway</td><td>Ahorra ≈ USD 33/mes en esta etapa</td></tr>
+  </table></div></div>
+  <div class="pie"><span>2.2 Decisiones</span><b>Diego</b></div>
+</section>
+
+<section class="d">
+  <h2>Integración entre servicios</h2>
+  <p class="bajada">Contratos simples y un proveedor de IA intercambiable.</p>
+  <div class="cuerpo">
+    <div class="col"><ul>
+      <li><b>Web ↔ API</b>: REST/JSON con esquemas Pydantic</li>
+      <li><b>EventBridge → SNS → worker</b>: JSON firmado, verificado con el certificado de AWS</li>
+      <li><b>API ↔ LLM</b>: interfaz común (Gemini, OpenAI, Bedrock) por variable de entorno</li>
+      <li><b>Agente</b>: LangGraph con checkpoints en Postgres</li>
+      <li><b>Límites</b>: 3 herramientas y 1.600 tokens de contexto por consulta</li>
+    </ul></div>
+    <div class="col img"><img src="../diagramas/svg/06-secuencia-ingesta.svg" alt=""></div>
+  </div>
+  <div class="pie"><span>2.3 Integración de servicios</span><b>Nicolás</b></div>
+</section>
+
+<section class="d">
+  <h2>Contenedores, orquestación y balanceo</h2>
+  <p class="bajada">Desplegado y funcionando en AWS us-east-1.</p>
+  <div class="cuerpo">
+    <div class="col"><table>
+      <tr><th>Pieza</th><th>Configuración</th></tr>
+      <tr><td>Imágenes</td><td>Multi-etapa, sin root, HEALTHCHECK · build en EC2 temporal</td></tr>
+      <tr><td>ASG API</td><td>mín 2 · máx 4 · CPU 60 % · 2 zonas</td></tr>
+      <tr><td>ASG worker</td><td>1 réplica fija (sin ingestas duplicadas)</td></tr>
+      <tr><td>CloudFront</td><td>HTTPS (TLS 1.2+) delante del ALB, sin caché</td></tr>
+      <tr><td>ALB</td><td>/api/v1/eventos/* → worker · /api/* → API · /* → web</td></tr>
+      <tr><td>Health checks</td><td>/health cada 5 s · 2 OK / 2 fallos · drenaje 30 s</td></tr>
+      <tr><td>Despliegues</td><td>Rolling: una réplica a la vez, con drenaje (instance refresh bloqueado en el lab)</td></tr>
+    </table></div>
+    <div class="col"><ul>
+      <li><b>Seguridad</b>: JWT (JWKS), SG encadenados, RDS privado con TLS, AES-256, IMDSv2</li>
+      <li><b>Secretos</b>: generados al desplegar, cifrados en S3 privado</li>
+      <li><b>Monitoreo</b>: dashboard CloudWatch + 5 alarmas → SNS</li>
+    </ul></div>
+  </div>
+  <div class="pie"><span>2.3 Orquestación, balanceo, seguridad y monitoreo</span><b>Nicolás</b></div>
+</section>
+
+<section class="d">
+  <h2>Optimización con métricas reales</h2>
+  <p class="bajada">Medido contra el despliegue en AWS (prueba de carga y failover).</p>
+  <div class="kpis">
+    <div class="kpi"><b>43,9</b><span>req/s del catálogo, 0 errores (22× el pico)</span></div>
+    <div class="kpi"><b>0,95 s</b><span>latencia p95 del catálogo (meta &lt; 2 s)</span></div>
+    <div class="kpi"><b>100 %</b><span>disponibilidad al retirar una réplica</span></div>
+    <div class="kpi"><b>USD 178</b><span>al mes (AWS 122 + Gemini 55) · AWS Pricing Calculator</span></div>
+  </div>
+  <div class="cuerpo"><div class="col"><ul>
+    <li>Cuello de botella medido: CPU de la API 54 %, RDS 15 % → escalar la API, no la base</li>
+    <li>Autocuración en 219 s; caída abrupta: 502 solo en la ventana del health check</li>
+    <li>Reglas antes que IA en el matching (SKU/MPN/GTIN) · menos tokens y menos alucinaciones</li>
+    <li>Contexto RAG acotado a 1.600 tokens y caché con TTL</li>
+    <li>2 workers de Uvicorn por réplica y pool de conexiones con pre-ping</li>
+  </ul></div><div class="col"><ul>
+    <li>Escalar solo lo que crece: API por CPU, worker fijo</li>
+    <li>Siguiente paso: Savings Plans (−30 a −40 %) y VPC endpoints sin IPv4 públicas</li>
+  </ul></div></div>
+  <div class="pie"><span>2.4 Optimización</span><b>Diego</b></div>
+</section>
+
+<section class="d">
+  <h2>Conclusiones</h2>
+  <p class="bajada">Una arquitectura que se defiende con evidencia, no solo con diagramas.</p>
+  <div class="cuerpo"><div class="col"><ul>
+    <li>Corregimos lo que faltó en la EP1: recursos (GPU vs. API) e integración</li>
+    <li>Tres servicios que escalan por separado, con eventos para la ingesta</li>
+    <li>Alta disponibilidad demostrada: una réplica cayó y el servicio siguió</li>
+    <li>Seguridad por capas y monitoreo con alarmas</li>
+    <li>Camino a producción: ECS Fargate, SQS, Secrets Manager, Cognito, Multi-AZ y Bedrock</li>
+  </ul></div></div>
+  <div class="pie"><span>¿Preguntas?</span><b>Equipo 1</b></div>
+</section>
+
+</body>
+</html>

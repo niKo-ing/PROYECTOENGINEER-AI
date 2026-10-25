@@ -1,0 +1,60 @@
+@startuml 05-despliegue-aws
+title TodoBarato AI · Despliegue en AWS (us-east-1, 2 zonas de disponibilidad)
+skinparam shadowing false
+skinparam defaultFontName "DejaVu Sans"
+skinparam nodesep 25
+skinparam ranksep 35
+
+actor "Usuarios" as U
+cloud "Internet" as NET
+node "Amazon CloudFront\nHTTPS *.cloudfront.net · TLS 1.2+\nsin caché · timeout de origen 60 s" as CF #FFF4E0
+
+rectangle "Región us-east-1 · VPC 172.31.0.0/16" #F4F7FB {
+  node "Application Load Balancer\nSG tb-ep2-alb: 80 desde 0.0.0.0/0\nalgoritmo: least outstanding requests\nidle timeout 180 s" as ALB #DDEBFF
+
+  rectangle "Zona us-east-1a · subred pública" as AZA #FFFFFF {
+    node "EC2 t3.small · ASG tb-ep2-api\nDocker: web :3000 + api :8000" as A1
+    node "EC2 t3.small · ASG tb-ep2-worker\nDocker: api + scheduler" as W1
+    database "RDS PostgreSQL 17\ndb.t4g.micro · primaria\ncifrado · backup diario" as RDS1
+  }
+  rectangle "Zona us-east-1b · subred pública" as AZB #FFFFFF {
+    node "EC2 t3.small · ASG tb-ep2-api\nDocker: web :3000 + api :8000" as A2
+    database "RDS standby síncrona\n(Multi-AZ en producción)" as RDS2 #EEEEEE
+  }
+
+  rectangle "Servicios regionales" #FFFFFF {
+    storage "S3 tb-ep2-artefactos\nimágenes · config (SSE) · logs" as S3
+    queue "EventBridge → SNS" as EV
+    node "CloudWatch\ndashboard + 5 alarmas" as CW
+  }
+}
+cloud "Gemini API\n(alternativa: Bedrock)" as LLM
+cloud "Supabase Auth\n(alternativa: Cognito)" as IDP
+
+U --> NET
+NET --> CF : HTTPS
+CF --> ALB : HTTP
+ALB --> A1 : health /health, /
+ALB --> A2 : health /health, /
+ALB --> W1 : /api/v1/eventos/*
+A1 --> RDS1 : 5432 · TLS\n(SG tb-ep2-db: solo desde tb-ep2-app)
+A2 --> RDS1
+W1 --> RDS1
+RDS1 ..> RDS2 : replicación síncrona\nfailover 60-120 s
+A1 ..> S3 : arranque (rol myS3Role)
+A2 ..> S3
+W1 ..> S3
+EV --> ALB
+CW ..> ALB
+CW ..> RDS1
+A1 --> LLM
+A2 --> LLM
+A1 --> IDP : JWKS
+
+note right of A2
+  Auto Scaling: mín 2 · máx 4 · deseado 2
+  Escala por CPU media 60 % (target tracking)
+  Health check ELB, gracia 300 s
+  Si una zona cae, el ASG repone en la otra.
+end note
+@enduml

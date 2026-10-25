@@ -1,3 +1,5 @@
+import { newId } from "@/lib/utils";
+
 export type AgentMode = "demo" | "real";
 
 export type PlanStep = {
@@ -117,5 +119,5 @@ export async function resetDemo(): Promise<void> {
 }
 
 export function newThreadId(): string {
-  return `web-${crypto.randomUUID().slice(0, 8)}`;
+  return `web-${newId().slice(0, 8)}`;
 }
