@@ -12,8 +12,9 @@ logger = logging.getLogger(__name__)
 
 
 class OpenAIProvider(LLMProvider):
-    def __init__(self, api_key: str, model: str, timeout_seconds: float):
-        self.client = OpenAI(api_key=api_key, timeout=timeout_seconds)
+    def __init__(self, api_key: str, model: str, timeout_seconds: float, base_url: str | None = None):
+        # base_url apunta a un servidor compatible con OpenAI (vLLM u Ollama en el servidor propio).
+        self.client = OpenAI(api_key=api_key or "EMPTY", timeout=timeout_seconds, base_url=base_url or None, max_retries=1)
         self.model = model
 
     def request_tools(self, message: str, tools: list[dict[str, Any]]) -> ProviderResponse:

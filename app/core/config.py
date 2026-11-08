@@ -27,6 +27,28 @@ class Settings:
     gemini_api_key: str = os.getenv("GEMINI_API_KEY", "")
     gemini_model: str = os.getenv("GEMINI_MODEL", "")
     llm_timeout_seconds: float = float(os.getenv("LLM_TIMEOUT_SECONDS", "60"))
+    # Servidor propio: vLLM/Ollama exponen la API de OpenAI en esta dirección (p. ej. http://vllm:8000/v1).
+    openai_base_url: str = os.getenv("OPENAI_BASE_URL", "").strip()
+    # El agente sigue en Gemini salvo que se pida otro proveedor (openai = OpenAI o vLLM con OPENAI_BASE_URL).
+    agent_llm_provider: str = os.getenv("AGENT_LLM_PROVIDER", "gemini").strip().lower()
+    # Proveedor de respaldo cuando la GPU propia está llena o caída (vacío = sin respaldo).
+    llm_fallback_provider: str = os.getenv("LLM_FALLBACK_PROVIDER", "").strip().lower()
+    # Consultas de IA a la vez por proceso de la API (0 = sin tope) y cuánto espera una consulta por un cupo.
+    ai_max_concurrent: int = int(os.getenv("AI_MAX_CONCURRENT", "8"))
+    ai_queue_timeout_seconds: float = float(os.getenv("AI_QUEUE_TIMEOUT_SECONDS", "8"))
+    # Límites por usuario o IP (0 = sin límite).
+    ai_rate_limit_per_hour: int = int(os.getenv("AI_RATE_LIMIT_PER_HOUR", "30"))
+    # Por IP: apagado por defecto, porque detrás del proxy de Next.js todos llegan con la misma IP.
+    # Se activa (p. ej. 120) solo donde la IP real llega a la API (Caddy + uvicorn --proxy-headers).
+    catalog_rate_limit_per_minute: int = int(os.getenv("CATALOG_RATE_LIMIT_PER_MINUTE", "0"))
+    # Caché del catálogo: Redis si hay REDIS_URL; si no, memoria del proceso (0 = sin caché).
+    redis_url: str = os.getenv("REDIS_URL", "").strip()
+    catalog_cache_ttl_seconds: int = int(os.getenv("CATALOG_CACHE_TTL_SECONDS", "300"))
+    # Conexiones a PostgreSQL por proceso: con 8 procesos x (5 + 5) = 80, bajo el máximo de 100.
+    db_pool_size: int = int(os.getenv("DB_POOL_SIZE", "5"))
+    db_max_overflow: int = int(os.getenv("DB_MAX_OVERFLOW", "5"))
+    # Crear tablas al arrancar solo en desarrollo; en producción manda Alembic.
+    db_create_all: bool = os.getenv("DB_CREATE_ALL", "true").strip().lower() in {"1", "true", "yes", "on"}
     ai_max_tool_calls: int = int(os.getenv("AI_MAX_TOOL_CALLS", "3"))
     research_enabled: bool = os.getenv("RESEARCH_ENABLED", "true").strip().lower() in {"1", "true", "yes", "on"}
     # Hard ceilings for any research pass (depth budgets stay below these).

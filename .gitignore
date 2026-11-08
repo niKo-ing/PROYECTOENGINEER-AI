@@ -14,3 +14,4 @@ prueba 1/
 
 # EP2 ITY1102: estado del despliegue (clave de RDS, volcados, imágenes)
 EP2_ITY1102/infra/.salida/
+.env.servidor

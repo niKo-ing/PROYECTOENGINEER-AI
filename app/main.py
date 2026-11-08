@@ -7,6 +7,7 @@ from typing import AsyncGenerator
 from fastapi import FastAPI
 
 from app import models  # noqa: F401 - registers SQLAlchemy models
+from app.core.config import settings
 from app.db import Base, SessionLocal, engine
 from app.routers.products import router as products_router
 from app.routers.categories import router as categories_router
@@ -208,6 +209,9 @@ def create_app() -> FastAPI:
     return app
 
 
-Base.metadata.create_all(bind=engine)
+# En desarrollo se crean las tablas al arrancar; en producción (DB_CREATE_ALL=false) solo Alembic cambia el
+# esquema, así varios procesos que arrancan a la vez no compiten por crear las mismas tablas.
+if settings.db_create_all:
+    Base.metadata.create_all(bind=engine)
 enable_agent_rls(engine)
 app = create_app()

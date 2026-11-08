@@ -1,4 +1,5 @@
 import type { ProductRead, ProductSearchParams, ProductSearchResult } from "@/types/product";
+import { getWithRetry } from "@/lib/api/http";
 
 function toQueryString(params: ProductSearchParams): string {
   const searchParams = new URLSearchParams();
@@ -11,7 +12,7 @@ function toQueryString(params: ProductSearchParams): string {
 }
 
 export async function searchProducts(params: ProductSearchParams): Promise<ProductSearchResult> {
-  const res = await fetch(`/api/v1/products${toQueryString(params)}`, { cache: "no-store" });
+  const res = await getWithRetry(`/api/v1/products${toQueryString(params)}`);
   if (!res.ok) {
     throw new Error(`Error al buscar productos (${res.status})`);
   }
@@ -19,7 +20,7 @@ export async function searchProducts(params: ProductSearchParams): Promise<Produ
 }
 
 export async function fetchProduct(productId: number | string): Promise<ProductRead> {
-  const res = await fetch(`/api/v1/products/${productId}`, { cache: "no-store" });
+  const res = await getWithRetry(`/api/v1/products/${productId}`);
   if (!res.ok) {
     if (res.status === 404) {
       throw new Error("Producto no encontrado");

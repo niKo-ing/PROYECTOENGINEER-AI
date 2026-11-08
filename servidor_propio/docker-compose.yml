@@ -1,0 +1,129 @@
+# TodoBarato AI en servidor propio: el mismo archivo corre en los dos tarros.
+#   Tarro 1:  ROL_TARRO=principal docker compose --env-file .env.servidor up -d
+#   Tarro 2:  ROL_TARRO=respaldo  docker compose --env-file .env.servidor up -d
+# Requiere Docker con NVIDIA Container Toolkit (para la GPU) y el .env.servidor (ver .env.servidor.example).
+name: todobarato
+
+x-backend: &backend
+  build:
+    context: ..
+    dockerfile: EP2_ITY1102/infra/docker/backend.Dockerfile
+  env_file: .env.servidor
+  restart: always
+  depends_on:
+    pgbouncer: { condition: service_started }
+    redis: { condition: service_healthy }
+
+services:
+  # ── Modelo de IA en la GPU (API compatible con OpenAI) ──────────────────────────────────
+  vllm:
+    image: vllm/vllm-openai:v0.10.1
+    restart: always
+    ipc: host
+    command: >
+      --model ${MODELO_IA:-Qwen/Qwen2.5-7B-Instruct}
+      --served-model-name ${OPENAI_MODEL:-qwen2.5-7b}
+      --max-model-len 8192
+      --max-num-seqs 32
+      --gpu-memory-utilization 0.90
+      --enable-prefix-caching
+      --enable-auto-tool-choice --tool-call-parser hermes
+    volumes: [ "modelos:/root/.cache/huggingface" ]
+    deploy:
+      resources:
+        reservations:
+          devices: [ { driver: nvidia, count: all, capabilities: [gpu] } ]
+    healthcheck:
+      test: [ "CMD", "python3", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/health', timeout=3)" ]
+      interval: 10s
+      retries: 30
+
+  # ── Datos ────────────────────────────────────────────────────────────────────────────────
+  postgres:
+    image: postgres:16
+    restart: always
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-todobarato}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?falta POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB:-todobarato}
+    command: >
+      postgres -c max_connections=200 -c shared_buffers=4GB -c effective_cache_size=12GB
+      -c wal_level=replica -c max_wal_senders=5 -c hot_standby=on
+    volumes: [ "pgdata:/var/lib/postgresql/data" ]
+
+  # Reparte pocas conexiones reales a PostgreSQL entre todos los procesos de la API.
+  pgbouncer:
+    image: edoburu/pgbouncer:latest   # fijar la versión vigente al instalar
+    restart: always
+    environment:
+      DATABASE_URL: postgres://${POSTGRES_USER:-todobarato}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-todobarato}
+      POOL_MODE: transaction
+      MAX_CLIENT_CONN: 1000
+      DEFAULT_POOL_SIZE: 40
+      AUTH_TYPE: scram-sha-256
+      MAX_PREPARED_STATEMENTS: 200         # psycopg 3 usa sentencias preparadas
+    depends_on: [ postgres ]
+
+  # Caché del catálogo + límites de uso compartidos por todos los procesos.
+  redis:
+    image: redis:7.4-alpine
+    restart: always
+    command: redis-server --maxmemory 2gb --maxmemory-policy allkeys-lru --save ""
+    healthcheck:
+      test: [ "CMD", "redis-cli", "ping" ]
+      interval: 5s
+
+  # ── Aplicación ───────────────────────────────────────────────────────────────────────────
+  api:
+    <<: *backend
+    environment:
+      UVICORN_WORKERS: ${UVICORN_WORKERS:-8}
+      INGESTION_SCHEDULER_ENABLED: "false"   # solo el worker programa ingestas
+      ROL: api
+      INSTANCIA: ${NOMBRE_TARRO:-tarro}
+    ports: [ "8000:8000" ]                   # el otro tarro también le manda tráfico (red interna)
+
+  worker:
+    <<: *backend
+    profiles: [ principal ]                  # el scraping corre en un solo tarro para no duplicarlo
+    environment:
+      UVICORN_WORKERS: 1
+      INGESTION_SCHEDULER_ENABLED: "true"
+      ROL: worker
+      INSTANCIA: ${NOMBRE_TARRO:-tarro}
+
+  web:
+    build: { context: ../frontend, dockerfile: Dockerfile }
+    env_file: .env.servidor
+    environment:
+      BACKEND_URL: http://api:8000
+    restart: always
+    ports: [ "3000:3000" ]
+
+  # Balanceador local: reparte entre la API de este tarro y la del otro, con chequeos y reintentos.
+  caddy:
+    image: caddy:2.10
+    restart: always
+    ports: [ "80:80" ]
+    env_file: .env.servidor
+    volumes: [ "./Caddyfile:/etc/caddy/Caddyfile:ro" ]
+    depends_on: [ api, web ]
+
+  # Túnel de Cloudflare: los dos tarros abren el mismo túnel; si uno se apaga, Cloudflare usa el otro.
+  cloudflared:
+    image: cloudflare/cloudflared:latest  # fijar la versión vigente al instalar
+    restart: always
+    command: tunnel --no-autoupdate run --token ${CLOUDFLARE_TUNNEL_TOKEN:?falta CLOUDFLARE_TUNNEL_TOKEN}
+    depends_on: [ caddy ]
+
+  # ── Monitoreo ────────────────────────────────────────────────────────────────────────────
+  uptime-kuma:
+    image: louislam/uptime-kuma:1.23.16
+    restart: always
+    ports: [ "3001:3001" ]
+    volumes: [ "kuma:/app/data" ]
+
+volumes:
+  modelos:
+  pgdata:
+  kuma:

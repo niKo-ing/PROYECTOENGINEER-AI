@@ -9,6 +9,7 @@ from pydantic import BaseModel, HttpUrl
 from sqlalchemy.orm import Session, selectinload
 from sqlalchemy import func, select
 
+from app.core.cache import catalog_cache
 from app.core.security import AuthenticatedUser, get_current_admin
 from app.catalog.catalog_quality import CatalogQualityService
 from app.db import SessionLocal, get_db
@@ -345,6 +346,7 @@ def verify_spec_value(value_id: int, payload: VerifySpecValueRequest, user: Curr
         )
     value = ProductSpecValueService(db).verify(value, verified_by=verified_by, note=payload.note, correction=correction)
     value = repository.get(value.id) or value
+    catalog_cache.invalidate()  # la ficha del producto cambió
     return _spec_value_to_admin_schema(value)
 
 

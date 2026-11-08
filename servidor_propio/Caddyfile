@@ -1,0 +1,51 @@
+# Balanceador de cada tarro. API_LOCAL/API_PAR y WEB_LOCAL/WEB_PAR vienen de .env.servidor.
+#
+# Optimización frente a la EP2: el ALB tardaba 10 s (5 s x 2) en sacar una réplica caída y en ese tiempo
+# el usuario veía 502. Aquí, además del chequeo activo cada 2 s, cada solicitud que falla al conectarse
+# se REINTENTA de inmediato en el otro tarro (lb_try_duration), así la caída casi no se nota.
+{
+	admin off
+	# El tráfico llega por el túnel de Cloudflare: la IP real del visitante viene en Cf-Connecting-Ip.
+	# Sin esto, todos los usuarios tendrían la IP del túnel y compartirían el mismo límite por IP.
+	servers {
+		trusted_proxies static private_ranges
+		client_ip_headers Cf-Connecting-Ip X-Forwarded-For
+	}
+}
+
+:80 {
+	encode zstd gzip
+
+	handle /api/* {
+		reverse_proxy {$API_LOCAL} {$API_PAR} {
+			lb_policy least_conn
+			lb_retries 2
+			lb_try_duration 5s
+			lb_try_interval 250ms
+			health_uri /health
+			health_interval 2s
+			health_timeout 1s
+			health_fails 2
+			fail_duration 10s
+			unhealthy_status 5xx
+			transport http {
+				dial_timeout 1s
+				read_timeout 180s
+			}
+		}
+	}
+
+	handle {
+		reverse_proxy {$WEB_LOCAL} {$WEB_PAR} {
+			lb_policy first
+			lb_try_duration 5s
+			lb_try_interval 250ms
+			health_uri /
+			health_interval 5s
+			health_fails 2
+			transport http {
+				dial_timeout 1s
+			}
+		}
+	}
+}

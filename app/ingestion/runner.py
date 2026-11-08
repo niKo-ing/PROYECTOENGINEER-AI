@@ -237,6 +237,7 @@ class IngestionRunner:
         try:
             db.commit()
             db.refresh(run)
+            _invalidate_catalog_cache()
             return run
         except Exception as exc:
             log.exception("Final commit failed for run %s; retrying as error", run.id)
@@ -252,6 +253,7 @@ class IngestionRunner:
         run.finished_at = datetime.now(timezone.utc)
         db.commit()
         db.refresh(run)
+        _invalidate_catalog_cache()
         return run
 
     @staticmethod
@@ -285,3 +287,13 @@ class IngestionRunner:
             db.add(store)
             db.flush()
         return store.id
+
+
+def _invalidate_catalog_cache() -> None:
+    """Terminó una ingesta: precios y ofertas cambiaron, la caché del catálogo deja de servir."""
+    try:
+        from app.core.cache import catalog_cache
+
+        catalog_cache.invalidate()
+    except Exception:
+        log.warning("No se pudo invalidar la caché del catálogo", exc_info=True)

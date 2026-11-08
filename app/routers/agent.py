@@ -11,7 +11,10 @@ from app.agent.memory import LongTermMemory
 from app.agent.service import AgentService, default_checkpointer
 from app.agent.snapshot import snapshot
 from app.ai.rag.embedding import EmbeddingProvider
+from app.ai.llm_router import llm_router
 from app.ai.rag.factory import get_embedding_provider
+from app.core.config import settings
+from app.core.limits import limit_ai
 from app.core.security import AuthenticatedUser, get_current_user
 from app.db import get_db
 
@@ -19,6 +22,7 @@ router = APIRouter(prefix="/agent", tags=["agent"])
 demo_router = APIRouter(prefix="/agent/demo", tags=["agent-demo"])
 DbSession = Annotated[Session, Depends(get_db)]
 CurrentUser = Annotated[AuthenticatedUser, Depends(get_current_user)]
+LimitedUser = Annotated[AuthenticatedUser, Depends(limit_ai)]
 
 
 class AgentRunRequest(BaseModel):
@@ -33,6 +37,17 @@ def get_agent_llm() -> BaseChatModel:
         raise HTTPException(status_code=status.HTTP_503_SERVICE_UNAVAILABLE, detail=str(error)) from error
 
 
+def get_agent_fallback_llm() -> BaseChatModel | None:
+    """Modelo de respaldo del agente (``LLM_FALLBACK_PROVIDER``) o ``None``."""
+    name = settings.llm_fallback_provider
+    if not name or name == settings.agent_llm_provider:
+        return None
+    try:
+        return get_chat_model(provider=name)
+    except AgentNotConfiguredError:
+        return None
+
+
 def get_agent_embedder() -> EmbeddingProvider:
     return get_embedding_provider()
 
@@ -44,19 +59,26 @@ def get_agent_checkpointer() -> Any:
 @router.post("/run")
 def run_agent(
     payload: AgentRunRequest,
-    user: CurrentUser,
+    user: LimitedUser,
     db: DbSession,
     llm: Annotated[BaseChatModel, Depends(get_agent_llm)],
+    fallback: Annotated[BaseChatModel | None, Depends(get_agent_fallback_llm)],
     embedder: Annotated[EmbeddingProvider, Depends(get_agent_embedder)],
     checkpointer: Annotated[Any, Depends(get_agent_checkpointer)],
 ):
     """Ejecuta el agente de ahorro sobre un pedido. Devuelve respuesta, plan, herramientas y traza."""
-    service = AgentService(db, user.id, llm=llm, embedder=embedder, checkpointer=checkpointer)
-    try:
-        return service.run(payload.message, payload.thread_id).as_dict()
-    except AgentLLMError as error:
-        code = status.HTTP_429_TOO_MANY_REQUESTS if error.rate_limited else status.HTTP_503_SERVICE_UNAVAILABLE
-        raise HTTPException(status_code=code, detail=str(error)) from error
+    with llm_router.turn(has_fallback=fallback is not None) as route:
+        chosen = fallback if route == "fallback" and fallback is not None else llm
+        service = AgentService(db, user.id, llm=chosen, embedder=embedder, checkpointer=checkpointer)
+        try:
+            return service.run(payload.message, payload.thread_id).as_dict()
+        except AgentLLMError as error:
+            # El agente escribe alertas y memoria a mitad de camino: no se reintenta, pero si el modelo
+            # propio falló, las próximas consultas van al respaldo mientras se recupera.
+            if route == "primary" and fallback is not None and not error.rate_limited:
+                llm_router.mark_primary_down()
+            code = status.HTTP_429_TOO_MANY_REQUESTS if error.rate_limited else status.HTTP_503_SERVICE_UNAVAILABLE
+            raise HTTPException(status_code=code, detail=str(error)) from error
 
 
 @router.get("/memories")

@@ -24,7 +24,7 @@ class AgentLLMError(RuntimeError):
         self.rate_limited = rate_limited
 
 
-_PROVIDER_PACKAGES = {"langchain_google_genai", "google", "httpx", "httpcore"}
+_PROVIDER_PACKAGES = {"langchain_google_genai", "google", "httpx", "httpcore", "openai", "langchain_openai"}
 
 
 def is_provider_error(error: BaseException) -> bool:
@@ -38,8 +38,23 @@ def as_llm_error(error: BaseException) -> AgentLLMError:
     return AgentLLMError("Se agotó la cuota del modelo; intenta de nuevo en un rato." if limited else f"El modelo no respondió: {text[:200]}", rate_limited=limited)
 
 
-def get_chat_model(cfg: Settings | None = None, *, temperature: float = 0.2) -> BaseChatModel:
+def get_chat_model(cfg: Settings | None = None, *, temperature: float = 0.2, provider: str | None = None) -> BaseChatModel:
+    """Modelo del agente: Gemini por defecto u ``openai`` (OpenAI, o vLLM con ``OPENAI_BASE_URL``)."""
     cfg = cfg or default_settings
+    provider = (provider or cfg.agent_llm_provider or "gemini").lower()
+    if provider == "openai":
+        if not cfg.openai_model or not (cfg.openai_api_key or cfg.openai_base_url):
+            raise AgentNotConfiguredError("OPENAI_MODEL y OPENAI_BASE_URL (o OPENAI_API_KEY) no están configurados")
+        from langchain_openai import ChatOpenAI
+
+        return ChatOpenAI(
+            model=cfg.openai_model,
+            api_key=cfg.openai_api_key or "EMPTY",
+            base_url=cfg.openai_base_url or None,
+            temperature=temperature,
+            timeout=cfg.llm_timeout_seconds,
+            max_retries=1,
+        )
     if not cfg.gemini_api_key:
         raise AgentNotConfiguredError("GEMINI_API_KEY no está configurada")
     if not cfg.gemini_model:
