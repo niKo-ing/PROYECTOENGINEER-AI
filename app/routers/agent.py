@@ -24,6 +24,7 @@ CurrentUser = Annotated[AuthenticatedUser, Depends(get_current_user)]
 class AgentRunRequest(BaseModel):
     message: str = Field(min_length=2, max_length=1200)
     thread_id: str | None = Field(default=None, max_length=64, pattern=r"^[A-Za-z0-9_-]+$")
+    product_id: int | None = Field(default=None, ge=1, description="Producto desde el que se abrió el chat (contexto opcional).")
 
 
 def get_agent_llm() -> BaseChatModel:
@@ -50,10 +51,11 @@ def run_agent(
     embedder: Annotated[EmbeddingProvider, Depends(get_agent_embedder)],
     checkpointer: Annotated[Any, Depends(get_agent_checkpointer)],
 ):
-    """Ejecuta el agente de ahorro sobre un pedido. Devuelve respuesta, plan, herramientas y traza."""
+    """Asistente único: conversa, busca, compara, razona sobre precios y guarda alertas/listas.
+    Devuelve respuesta, tarjetas de producto, plan, herramientas y traza."""
     service = AgentService(db, user.id, llm=llm, embedder=embedder, checkpointer=checkpointer)
     try:
-        return service.run(payload.message, payload.thread_id).as_dict()
+        return service.run(payload.message, payload.thread_id, payload.product_id).as_dict()
     except AgentLLMError as error:
         code = status.HTTP_429_TOO_MANY_REQUESTS if error.rate_limited else status.HTTP_503_SERVICE_UNAVAILABLE
         raise HTTPException(status_code=code, detail=str(error)) from error

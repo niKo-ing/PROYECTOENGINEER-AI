@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import json
 import os
 import re
 import sqlite3
@@ -11,7 +12,7 @@ from functools import lru_cache
 from typing import Any
 
 from langchain_core.language_models import BaseChatModel
-from langchain_core.messages import AIMessage, HumanMessage
+from langchain_core.messages import AIMessage, HumanMessage, ToolMessage
 from langgraph.checkpoint.sqlite import SqliteSaver
 from sqlalchemy.orm import Session
 
@@ -44,9 +45,50 @@ class AgentRunResult:
     memories_used: list[str] = field(default_factory=list)
     steps: int = 0
     trace: list[dict[str, Any]] = field(default_factory=list)
+    products: list[dict[str, Any]] = field(default_factory=list)  # tarjetas que el chat unificado muestra bajo la respuesta
+    comparison: dict[str, Any] | None = None
 
     def as_dict(self) -> dict[str, Any]:
         return asdict(self)
+
+
+MAX_CARDS = 6
+CARD_FIELDS = ("id", "name", "brand", "category", "image_url", "lowest_price", "lowest_price_store", "price_clp", "rating", "offer_count")
+
+
+def collect_products(messages: list[Any]) -> tuple[list[dict[str, Any]], dict[str, Any] | None]:
+    """Tarjetas de producto y comparación de ESTE turno, sacadas de lo que devolvieron las herramientas
+    (search_products / compare_products). Así el chat muestra lo mismo que el agente consultó, sin inventar nada."""
+    start = max((i for i, m in enumerate(messages) if isinstance(m, HumanMessage)), default=-1)
+    cards: dict[int, dict[str, Any]] = {}
+    comparison: dict[str, Any] | None = None
+    for message in messages[start + 1 :]:
+        if not isinstance(message, ToolMessage) or message.name not in ("search_products", "compare_products"):
+            continue
+        try:
+            data = json.loads(_text(message.content))
+        except (ValueError, TypeError):
+            continue
+        if not isinstance(data, dict):
+            continue
+        for item in data.get("items") or data.get("products") or []:
+            if isinstance(item, dict) and isinstance(item.get("id"), int) and "error" not in item:
+                cards.setdefault(item["id"], {key: item.get(key) for key in CARD_FIELDS})
+        if message.name == "compare_products" and data.get("comparison"):
+            comparison = data["comparison"]
+    return list(cards.values())[:MAX_CARDS], comparison
+
+
+def product_context(db: Session, product_id: int | None) -> str:
+    """Si el usuario llegó desde la ficha de un producto, el agente lo sabe y puede hablar de «este producto»."""
+    if not product_id:
+        return ""
+    from app.models.catalog import Product
+
+    product = db.get(Product, product_id)
+    if product is None:
+        return ""
+    return f"[Contexto: el usuario está mirando el producto #{product.id} «{product.name}». «Este producto» se refiere a él.]\n"
 
 
 def checkpointer_kind(database_url: str, mode: str = "auto") -> str:
@@ -92,6 +134,7 @@ class AgentService:
         max_steps: int = 10,
         max_replans: int = 2,
     ):
+        self.db = db
         self.user_id = user_id
         self.memory = LongTermMemory(db, user_id, embedder or get_embedding_provider())
         self.context = RunContext()
@@ -112,14 +155,14 @@ class AgentService:
         messages = (snapshot.values or {}).get("messages", [])
         return [{"role": m.type, "content": _text(m.content)} for m in messages if m.type in ("human", "ai") and _text(m.content)]
 
-    def run(self, message: str, thread_id: str | None = None) -> AgentRunResult:
+    def run(self, message: str, thread_id: str | None = None, product_id: int | None = None) -> AgentRunResult:
         thread = thread_id or uuid.uuid4().hex[:12]
         # El hilo se ata al usuario: dos usuarios con el mismo thread_id nunca comparten historial.
         config = {"configurable": {"thread_id": f"{self.user_id}:{thread}"}, "recursion_limit": 80}
         try:
             # durability="exit": el historial se guarda UNA vez al terminar la tarea y no en cada paso. Con una base
             # remota (Supabase, ~150 ms por consulta) escribir en cada paso sumaba segundos a cada respuesta.
-            state = self.graph.invoke({"messages": [HumanMessage(message)]}, config, durability="exit")
+            state = self.graph.invoke({"messages": [HumanMessage(product_context(self.db, product_id) + message)]}, config, durability="exit")
         except Exception as error:  # noqa: BLE001 — solo se traducen los fallos del proveedor; un bug propio sigue subiendo
             if is_provider_error(error):
                 raise as_llm_error(error) from error
@@ -127,6 +170,7 @@ class AgentService:
         turn = state.get("turn", 1)
         trace = [event for event in state.get("trace", []) if event.get("turn") == turn]
         tools_used = [call["tool"] for event in trace if event["node"] == "act" for call in event["tool_calls"]]
+        products, comparison = collect_products(state["messages"])
         final = next((m for m in reversed(state["messages"]) if isinstance(m, AIMessage)), None)
         return AgentRunResult(
             thread_id=thread,
@@ -139,4 +183,6 @@ class AgentService:
             memories_used=state.get("memories", []),
             steps=state.get("steps", 0),
             trace=trace,
+            products=products,
+            comparison=comparison,
         )
