@@ -10,7 +10,7 @@ API REST segura, mensajería con RabbitMQ, dashboard, pruebas de carga y scripts
 | `defensa/` | `EP3_Presentacion_Equipo1.pdf` (6 láminas) |
 | `diagramas/` | Arquitectura, secuencia del flujo asíncrono y despliegue (PlantUML + PNG) |
 | `pruebas/` | `locustfile.py`, `cargar.sh` y `resultados/` (CSV/HTML de Locust, incluida la corrida «antes» de la corrección) |
-| `infra/` | `desplegar.sh`, `destruir.sh`, `intentar_sagemaker.sh`, `docker-compose.aws.yml` |
+| `infra/` | `desplegar.sh`/`destruir.sh` (1 instancia), `desplegar_asg.sh`/`destruir_asg.sh` (ALB + Auto Scaling + RDS + CloudFront), `intentar_sagemaker.sh`, `docker-compose.aws.yml` |
 | `evidencia/` | Capturas (dashboard) y, tras ejecutar los scripts de AWS, CloudWatch y SageMaker |
 
 Código: `ml/` (características, dataset, entrenamiento, servidor), `app/routers/ml.py` (API), `app/messaging/` (RabbitMQ + worker), `app/ml/` (cliente del modelo y dashboard), pruebas en `tests/modelo_ml/`.
@@ -41,6 +41,10 @@ bash EP3_ITY1102/infra/intentar_sagemaker.sh   # documenta si SageMaker se puede
 bash EP3_ITY1102/infra/desplegar.sh            # S3 + EC2 t3.medium + Compose + alarma CloudWatch (~6 min)
 bash EP3_ITY1102/pruebas/cargar.sh http://<IP> aws 50 60
 bash EP3_ITY1102/infra/destruir.sh             # SIEMPRE al terminar
+
+# Versión escalable (~15 min, ≈ USD 0,15–0,25/h): ALB + ASG 2–4 réplicas (CPU 50 %) + RDS + RabbitMQ/worker + CloudFront HTTPS
+bash EP3_ITY1102/infra/desplegar_asg.sh        # imprime las URLs; estado en infra/.salida/asg.env (ignorado por git)
+bash EP3_ITY1102/infra/destruir_asg.sh         # SIEMPRE al terminar (y borrar la distribución CloudFront cuando termine de propagar)
 ```
 
 > **Estado (16-11-2026):** desplegado y medido en AWS Academy (EC2 t3.medium, us-east-1): 0 fallos con 20/50/100 usuarios (≈ 39 → 80 → 102 req/s), CPU máx. 77 % en CloudWatch,

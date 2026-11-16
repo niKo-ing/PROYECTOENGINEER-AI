@@ -22,8 +22,8 @@ c = t["confusion"]; ds = m["dataset"]
 
 page = f"""<!doctype html><html lang="es"><head><meta charset="utf-8"><title>EP3 · TodoBarato AI</title>
 <style>
-@page {{ size: A4; margin: 18mm 16mm }}
-body {{ font: 10.5pt/1.45 'Noto Sans', 'DejaVu Sans', sans-serif; color:#15171c }}
+@page {{ size: A4; margin: 16mm 15mm }}
+body {{ font: 10pt/1.38 'Noto Sans', 'DejaVu Sans', sans-serif; color:#15171c }}
 h1 {{ font-size: 22pt; margin: 0 0 4pt }} h2 {{ font-size: 14pt; border-bottom: 1.5px solid #2f5bea; padding-bottom: 2pt; margin: 18pt 0 6pt; page-break-after: avoid }}
 h3 {{ font-size: 11pt; margin: 10pt 0 3pt; page-break-after: avoid }} p {{ margin: 4pt 0 }} code {{ font-size: 9pt; background:#f0f2f6; padding: 0 2pt }}
 table {{ border-collapse: collapse; width: 100%; font-size: 9pt; margin: 6pt 0 }} th,td {{ border: 1px solid #cfd4dc; padding: 3pt 5pt; text-align: left }} th {{ background:#eef1f7 }}
@@ -45,7 +45,7 @@ y un agente LangGraph; en esta entrega se agrega y se pone a operar un <b>modelo
 con su contenedor, API REST segura, comunicación asíncrona con RabbitMQ, dashboard interactivo, pruebas y un script de despliegue en AWS.</p>
 <p>Además se unificó el chat de IA y el agente en un <b>único asistente</b> (<code>/chat</code>) y se limpió el repositorio.</p>
 <div class="nota"><b>Estado del despliegue en AWS.</b> El sistema está <b>desplegado y medido en AWS Academy</b> (EC2 t3.medium, us-east-1) con <code>EP3_ITY1102/infra/desplegar.sh</code>:
-dashboard <code>http://3.91.93.197/api/v1/ml/dashboard</code>, Swagger <code>http://3.91.93.197/docs</code> (IP vigente al medir; el laboratorio cambia la IP al reiniciarse y la instancia se recrea con el script).
+versión escalable (ALB + Auto Scaling + HTTPS por CloudFront) con <code>infra/desplegar_asg.sh</code> y versión de una instancia con <code>desplegar.sh</code>; las direcciones del laboratorio cambian al recrearse y se recrean con los scripts.
 <b>SageMaker no pudo usarse</b>: <code>CreateModel</code> fue denegado por política IAM del laboratorio (evidencia en la sección 6).</div>
 
 <h2>2. Caso empresarial y arquitectura</h2>
@@ -118,15 +118,20 @@ decisión del modelo en 3 escenarios con razones, lote, autenticación (401), va
 <tr><td colspan="7"><b>AWS (EC2 t3.medium, carga desde otro continente: incluye ≈ 250 ms de red)</b></td></tr>
 {fila('20 usuarios', 'aws_u20')}
 {fila('50 usuarios', 'aws_u50')}
-{fila('100 usuarios', 'aws_u100')}</table>
+{fila('100 usuarios', 'aws_u100')}
+<tr><td colspan="7"><b>AWS con Auto Scaling Group + ALB (2 → 4 réplicas t3.medium)</b></td></tr>
+{fila('150 usuarios · 7 min', 'asg_u150')}</table>
 <p><b>Hallazgo.</b> La primera corrida mostró <b>44 errores 500 (11,4 %) en <code>/ml/match/async</code></b>: <code>pika.BlockingConnection</code> no es seguro entre hilos y FastAPI atiende en un pool de hilos
 (<code>StreamLostError … pop from an empty deque</code>). Se serializó el acceso al canal con un candado, se agregó reconexión y declaración única de colas: con la misma carga, <b>0 fallos en 3 870 peticiones</b>.</p>
 <div class="nota"><b>Cómo leer las cifras.</b> Las filas locales son una línea base: el generador y los servicios compartían un computador con otras tareas (hasta un <code>/ping</code> trivial midió pocas decenas de req/s) y subir la API a 4 workers no cambió el rendimiento.
 Las filas de <b>AWS</b> son la medición válida de capacidad: la latencia incluye ≈ 250 ms de ida y vuelta entre Chile y us-east-1 (p50 de 280 ms con 20 usuarios), y el rendimiento sube con los usuarios (≈ 39 → 80 → 102 req/s) con <b>0 fallos</b>.
-<b>CloudWatch</b> registró, durante la carga, CPU media 54,9 % y máxima 77,2 % en la t3.medium: cerca del límite, por lo que <b>~100 req/s</b> es la capacidad práctica de una instancia (la alarma al 80 % no se alcanzó) y el siguiente paso es escalar horizontalmente (ASG + ALB, diseñado en la EP2).
+<b>CloudWatch</b> registró, durante la carga, CPU media 54,9 % y máxima 77,2 % en la t3.medium: cerca del límite, por lo que <b>~100 req/s</b> es la capacidad práctica de una instancia (la alarma al 80 % no se alcanzó) y por eso se desplegó la versión escalable que sigue.
 Una primera corrida de 20 usuarios mostró 216 errores «conexión rechazada» durante los 5 s iniciales: coincidieron con el reinicio del backend del arranque, no con la carga (se repitió sin fallos; la corrida inicial se conserva como <code>aws_u20_arranque</code>).</div>
 <p><b>Límite de tasa en AWS.</b> 800 peticiones con una sola llave (límite 600/min) dieron <b>547 × 200 y 253 × 429</b>. Al preparar esta prueba se detectó que el límite confiaba en <code>X-Forwarded-For</code>, que un cliente directo puede falsificar para evadirlo;
 se corrigió para limitar por identidad del llamador (usuario o llave) y hay una prueba que lo verifica.</p>
+<p><b>Escalado automático (medido).</b> Con <code>infra/desplegar_asg.sh</code> se creó un <b>ALB</b> (chequeo <code>/ml/health</code>), un <b>Auto Scaling Group</b> (2–4 réplicas, política de seguimiento de CPU al 50 %), RDS PostgreSQL compartido, una instancia de servicios (RabbitMQ + worker) y <b>CloudFront con HTTPS</b>.
+Con 150 usuarios la CPU pasó de 2 % a 95 % y, a las 13:38:41 UTC, la alarma de la política subió la capacidad de <b>2 a 4 instancias</b> (<code>evidencia/asg-escalado.txt</code>). Resultado: <b>96 700 peticiones, 0 fallos, 230 req/s</b> (más del doble de una instancia sola), p50 400 ms, p95 900 ms, p99 1 100 ms desde Chile.
+Límite: la carga se generó desde un solo equipo y la CPU llegó a saturarse (≈ 99 %) hasta que las réplicas nuevas entraron en servicio; con tope de 4 instancias el sistema alcanza su máximo configurado, no el máximo posible.</p>
 <h3>5.3 Latencia del modelo aislado</h3>
 <p>Un par: ≈ 5 ms; lote de 64 pares: ≈ 11 ms (0,17 ms/par). El procesamiento por lotes es la optimización más barata para la ingesta masiva.</p>
 
@@ -140,12 +145,12 @@ Escenarios automatizados con modelo guionado (<code>tests/agent/test_escenarios_
 <tr><td>«Prefiero Samsung y no Huawei…» y, en otro hilo, «Recomiéndame un celular»</td><td>Memoria de largo plazo: relevancia 1,0</td><td>El segundo hilo busca Samsung sin que se lo repitan</td></tr></table>
 <p>La pantalla <code>/chat</code> muestra ese plan (con sus prioridades), los pasos en orden y las tarjetas de los productos consultados.</p>
 
-<h2 class="pb">6. Plataforma AIaaS y costos</h2>
+<h2>6. Plataforma AIaaS y costos</h2>
 <p><b>SageMaker (plan A).</b> Se diseñó el modelo con el contrato de SageMaker (<code>/ping</code>, <code>/invocations</code>, artefacto en <code>/opt/ml/model</code>). En la cuenta del laboratorio las cuotas permiten
 <code>ml.m5.large</code> (30 endpoints), pero el intento real falló: <code>sagemaker:CreateModel</code> → <b>AccessDeniedException</b> («no identity-based policy allows the sagemaker:CreateModel action») y no existe un rol de ejecución utilizable
 (<code>evidencia/sagemaker-intento.txt</code>, generado por <code>infra/intentar_sagemaker.sh</code>). <b>Plan B (el que se despliega):</b> el mismo contenedor en EC2 con Docker Compose, que migra a SageMaker sin cambios de código al contar con un rol.</p>
 <table><tr><th>Opción</th><th>Costo aprox.*</th><th>Escalado</th><th>Flexibilidad</th></tr>
-<tr><td>EC2 t3.medium + Docker (desplegado)</td><td>≈ USD 0,04/h (≈ 30/mes)</td><td>ASG + ALB (diseñado en EP2)</td><td>Alta: cualquier contenedor</td></tr>
+<tr><td>EC2 t3.medium + Docker (desplegado)</td><td>≈ USD 0,04/h por instancia; stack escalable ≈ USD 0,15–0,25/h</td><td>ASG + ALB (medido: 2 → 4 réplicas)</td><td>Alta: cualquier contenedor</td></tr>
 <tr><td>SageMaker ml.m5.large (tiempo real)</td><td>≈ USD 0,12/h (≈ 85/mes)</td><td>Auto-scaling gestionado</td><td>Media: contrato fijo, monitoreo integrado</td></tr>
 <tr><td>SageMaker Serverless Inference</td><td>por invocación</td><td>Automático (con arranque en frío)</td><td>Media</td></tr></table>
 <p class="mut">*Precios de lista aproximados (us-east-1, on-demand); verificar en la calculadora de AWS antes de decidir. Para una carga baja e intermitente como esta, la opción serverless o EC2 pequeño es la económica; SageMaker en tiempo real se justifica cuando se necesita escalado y monitoreo gestionados.</p>
@@ -158,9 +163,9 @@ Escenarios automatizados con modelo guionado (<code>tests/agent/test_escenarios_
 <li><b>Cache de pares repetidos</b> y <b>reentrenamiento programado</b> con las decisiones auditadas de <code>ai_match_decisions</code> (mejora continua).</li>
 <li><b>Asistente unificado:</b> chat y agente comparten una sola ruta de ejecución; la investigación web y la evidencia RAG del chat antiguo quedan como herramientas por migrar.</li></ul>
 
-<h2 class="pb">8. Despliegue y evidencias</h2>
+<h2>8. Despliegue y evidencias</h2>
 <p><b>Reproducir:</b> <code>bash EP3_ITY1102/infra/desplegar.sh</code> (S3 + EC2 + alarma CloudWatch, ≈ 6 min) · <code>bash EP3_ITY1102/pruebas/cargar.sh http://&lt;IP&gt; aws 50 60</code> · <code>bash EP3_ITY1102/infra/destruir.sh</code>.</p>
-<div class="fig"><img src="../evidencia/dashboard-aws.png" style="max-height:140mm"><br>Figura 4. Dashboard interactivo servido desde EC2 en AWS.</div>
+<div class="fig"><img src="../evidencia/dashboard-aws.png" style="max-height:95mm"><br>Figura 4. Dashboard interactivo servido desde EC2 en AWS.</div>
 <table><tr><th>Evidencia</th><th>Estado</th></tr>
 <tr><td>Dashboard, API y Swagger en AWS (<code>evidencia/dashboard-aws.png</code>, <code>swagger-aws.png</code>)</td><td>Hecho</td></tr>
 <tr><td>Flujo API → RabbitMQ → worker → modelo → BD en AWS (decisiones guardadas, cola en 0)</td><td>Hecho</td></tr>
@@ -171,7 +176,7 @@ Escenarios automatizados con modelo guionado (<code>tests/agent/test_escenarios_
 
 <h2>9. Conclusiones</h2>
 <p>Se entregó un modelo propio, interpretable y medible, integrado a un servicio con API segura, mensajería asíncrona, dashboard y pruebas; la prueba de carga encontró y permitió corregir un defecto real de concurrencia, y la revisión de seguridad otro (límite de tasa evadible).
-Los límites quedan explícitos: datos sintéticos de una sola tienda sin validación con pares reales, una sola instancia sin auto-scaling y SageMaker bloqueado por el laboratorio.</p>
+Los límites quedan explícitos: datos sintéticos de una sola tienda sin validación con pares reales, prueba de escalado desde un único generador de carga y SageMaker bloqueado por el laboratorio.</p>
 
 <h2>Referencias (APA)</h2>
 <p>Breiman, L. (2001). Random forests. <i>Machine Learning, 45</i>(1), 5–32. https://doi.org/10.1023/A:1010933404324</p>
