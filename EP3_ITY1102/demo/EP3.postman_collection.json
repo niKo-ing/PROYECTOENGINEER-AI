@@ -1,0 +1,329 @@
+{
+  "info": {
+    "name": "TodoBarato AI · EP3",
+    "description": "Variables: base_url (https://<cloudfront>.cloudfront.net o http://<alb>) y api_key.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://localhost:8000"
+    },
+    {
+      "key": "api_key",
+      "value": "demo-key"
+    }
+  ],
+  "item": [
+    {
+      "name": "1. Salud del servicio",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/api/v1/ml/health",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "api",
+            "v1",
+            "ml",
+            "health"
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('200 y ok',()=>{pm.response.to.have.status(200);pm.expect(pm.response.json().status).to.eql('ok')});"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "2. Métricas del modelo",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/api/v1/ml/metrics",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "api",
+            "v1",
+            "ml",
+            "metrics"
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('hay F1',()=>pm.expect(pm.response.json().prueba.f1).to.be.above(0.8));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "3. Match: mismo producto",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "X-API-Key",
+            "value": "{{api_key}}"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/api/v1/ml/match",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "api",
+            "v1",
+            "ml",
+            "match"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"a\": \"Samsung Galaxy A54 128GB Negro\",\n  \"b\": \"Celular Galaxy A54 5G 128 GB Negro\"\n}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('match',()=>pm.expect(pm.response.json().decision).to.eql('match'));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "4. Match: otra capacidad (variante)",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "X-API-Key",
+            "value": "{{api_key}}"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/api/v1/ml/match",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "api",
+            "v1",
+            "ml",
+            "match"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"a\": \"Apple iPhone 13 128GB Negro\",\n  \"b\": \"Apple iPhone 13 256GB Negro\"\n}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('no_match',()=>pm.expect(pm.response.json().decision).to.eql('no_match'));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "5. Sin llave → 401",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/api/v1/ml/match",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "api",
+            "v1",
+            "ml",
+            "match"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"a\": \"Samsung Galaxy A54 128GB Negro\",\n  \"b\": \"Celular Galaxy A54 5G 128 GB Negro\"\n}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('401',()=>pm.response.to.have.status(401));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "6. Validación → 422",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "X-API-Key",
+            "value": "{{api_key}}"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/api/v1/ml/match",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "api",
+            "v1",
+            "ml",
+            "match"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"a\": \"x\"\n}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('422',()=>pm.response.to.have.status(422));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "7. Encolar (RabbitMQ) → 202",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "X-API-Key",
+            "value": "{{api_key}}"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/api/v1/ml/match/async",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "api",
+            "v1",
+            "ml",
+            "match",
+            "async"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"a\": \"Samsung Galaxy A54 128GB Negro\",\n  \"b\": \"Apple iPhone 15 Pro 256GB\"\n}"
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('202',()=>pm.response.to.have.status(202));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "8. Decisiones guardadas + cola",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "X-API-Key",
+            "value": "{{api_key}}"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/api/v1/ml/decisions?limit=5",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "api",
+            "v1",
+            "ml",
+            "decisions?limit=5"
+          ]
+        }
+      }
+    }
+  ]
+}
