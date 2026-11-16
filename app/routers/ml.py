@@ -6,6 +6,7 @@ de tasa por llamador. TLS lo termina CloudFront/ALB.
 
 from __future__ import annotations
 
+import hashlib
 import hmac
 import json
 import os
@@ -19,7 +20,7 @@ from pydantic import BaseModel, Field
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from app.core.ratelimit import rate_limit
+from app.core.ratelimit import enforce
 from app.core.security import AuthenticatedUser, bearer_scheme, validate_supabase_token
 from app.db import get_db
 from app.messaging.broker import MATCH_QUEUE, Broker, InMemoryBroker, get_broker
@@ -30,14 +31,13 @@ from app.models.catalog import AiMatchDecision
 router = APIRouter(prefix="/ml", tags=["ml"])
 METRICS_PATH = Path(os.getenv("MATCH_METRICS_PATH", Path(__file__).resolve().parents[2] / "EP3_ITY1102" / "modelo" / "metrics.json"))
 DbSession = Annotated[Session, Depends(get_db)]
-limited = Depends(rate_limit("ml", "ML_RATE_LIMIT_PER_MINUTE", 60))
 
 
 def caller(credentials=Depends(bearer_scheme), x_api_key: Annotated[str | None, Header()] = None) -> str:
     """Quién llama: un usuario con sesión o un cliente con llave de API."""
     keys = [k.strip() for k in os.getenv("ML_API_KEYS", "").split(",") if k.strip()]
     if x_api_key and any(hmac.compare_digest(x_api_key, key) for key in keys):
-        return "api-key"
+        return "key:" + hashlib.sha256(x_api_key.encode()).hexdigest()[:12]
     if credentials is not None:
         user: AuthenticatedUser = validate_supabase_token(credentials.credentials)
         return user.id
@@ -45,6 +45,14 @@ def caller(credentials=Depends(bearer_scheme), x_api_key: Annotated[str | None, 
 
 
 Caller = Annotated[str, Depends(caller)]
+
+
+def per_caller_limit(who: Caller) -> None:
+    """Límite por identidad (usuario o llave de API), no por IP: no depende de cabeceras que el cliente controle."""
+    enforce("ml", "ML_RATE_LIMIT_PER_MINUTE", 60, who)
+
+
+limited = Depends(per_caller_limit)
 
 
 def get_model_scorer() -> Scorer:

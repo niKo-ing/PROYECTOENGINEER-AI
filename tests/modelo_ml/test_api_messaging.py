@@ -53,11 +53,14 @@ def test_input_validation(client, payload):
     assert client.post("/api/v1/ml/match", json=payload, headers=KEY).status_code == 422
 
 
-def test_rate_limit_returns_429_with_retry_after(client, monkeypatch):
+def test_rate_limit_is_per_caller_and_ignores_spoofed_forwarded_for(client, monkeypatch):
     monkeypatch.setenv("ML_RATE_LIMIT_PER_MINUTE", "2")
-    codes = [client.post("/api/v1/ml/match", json=PAIR, headers={"X-API-Key": "llave-de-prueba", "x-forwarded-for": "9.9.9.9"}).status_code for _ in range(4)]
-    assert codes[:2] == [200, 200] and codes[2:] == [429, 429]
-    assert client.post("/api/v1/ml/match", json=PAIR, headers=KEY).headers.get("retry-after") or True
+    monkeypatch.setenv("ML_API_KEYS", "llave-de-prueba,otra-llave")
+    first = lambda: client.post("/api/v1/ml/match", json=PAIR, headers={"X-API-Key": "llave-de-prueba", "x-forwarded-for": str(__import__("random").random())})
+    codes = [first().status_code for _ in range(4)]
+    assert codes[:2] == [200, 200] and codes[2:] == [429, 429]  # cambiar X-Forwarded-For no evita el límite
+    assert first().headers["retry-after"]
+    assert client.post("/api/v1/ml/match", json=PAIR, headers={"X-API-Key": "otra-llave"}).status_code == 200  # otro llamador, su propio cupo
 
 
 def test_sliding_window_frees_after_the_window():

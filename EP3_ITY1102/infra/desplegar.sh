@@ -8,7 +8,8 @@ REGION=${AWS_DEFAULT_REGION:-us-east-1}; export AWS_DEFAULT_REGION=$REGION AWS_P
 CUENTA=$(aws sts get-caller-identity --query Account --output text)
 BUCKET=todobarato-ep3-$CUENTA
 NOMBRE=todobarato-ep3
-ML_API_KEYS=${ML_API_KEYS:-$(openssl rand -hex 12)}
+# varias llaves (el límite de tasa es por llave): para la prueba de carga se generan 40 y cada usuario virtual usa una
+ML_API_KEYS=${ML_API_KEYS:-$(for i in $(seq 1 40); do printf "%s," "$(openssl rand -hex 8)"; done | sed "s/,$//")}
 mkdir -p infra/.salida
 
 echo "1/5 Empaquetando el código (git archive + modelo + datos)…"
@@ -62,8 +63,9 @@ aws cloudwatch put-metric-alarm --alarm-name "$NOMBRE-cpu-alta" --namespace AWS/
 cat > infra/.salida/estado.env <<OUT
 INSTANCIA=$ID
 IP=$IP
-API_KEY=$ML_API_KEYS
+API_KEYS=$ML_API_KEYS
+API_KEY=${ML_API_KEYS%%,*}
 OUT
 echo
 echo "Instancia $ID · http://$IP/api/v1/ml/dashboard  (la pila tarda ~6 min en construir las imágenes)"
-echo "Docs Swagger:  http://$IP/docs      Llave de API: $ML_API_KEYS  (también en infra/.salida/estado.env, ignorado por git)"
+echo "Docs Swagger:  http://$IP/docs      Llave de API: ${ML_API_KEYS%%,*}  (+ 39 más; también en infra/.salida/estado.env, ignorado por git)"

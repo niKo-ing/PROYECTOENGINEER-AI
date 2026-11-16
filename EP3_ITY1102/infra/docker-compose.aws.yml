@@ -16,7 +16,7 @@ services:
       RABBITMQ_URL: amqp://guest:guest@rabbitmq:5672/%2F
       MATCH_MODEL_URL: http://modelo:8080
       ML_API_KEYS: ${ML_API_KEYS}
-      ML_RATE_LIMIT_PER_MINUTE: "600"
+      ML_RATE_LIMIT_PER_MINUTE: "600"   # por llave
       INGESTION_SCHEDULER_ENABLED: "false"
       APP_ENV: production
     volumes: ["datos:/data"]

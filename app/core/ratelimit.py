@@ -36,18 +36,23 @@ class SlidingWindowLimiter:
 _limiters: dict[str, SlidingWindowLimiter] = {}
 
 
+def enforce(name: str, env_var: str, default: int, key: str) -> None:
+    """Aplica el límite de ``name`` a ``key`` (identidad del llamador) o responde 429 con ``Retry-After``."""
+    limit = int(os.getenv(env_var, str(default)))
+    limiter = _limiters.get(name)
+    if limiter is None or limiter.limit != limit:
+        limiter = _limiters[name] = SlidingWindowLimiter(limit)
+    wait = limiter.check(key)
+    if wait is not None:
+        raise HTTPException(status.HTTP_429_TOO_MANY_REQUESTS, "Demasiadas solicitudes. Intenta de nuevo en unos segundos.", headers={"Retry-After": str(int(wait) + 1)})
+
+
 def rate_limit(name: str, env_var: str, default: int):
-    """Crea una dependencia que responde 429 con ``Retry-After`` al pasarse del límite."""
+    """Dependencia que limita por IP de la conexión. ``X-Forwarded-For`` solo se respeta con ``TRUSTED_PROXY=1``
+    (detrás de un balanceador); expuesto directo, un cliente podría falsificarlo para saltarse el límite."""
 
     def dependency(request: Request) -> None:
-        limit = int(os.getenv(env_var, str(default)))
-        limiter = _limiters.get(name)
-        if limiter is None or limiter.limit != limit:
-            limiter = _limiters[name] = SlidingWindowLimiter(limit)
-        forwarded = request.headers.get("x-forwarded-for", "").split(",")[0].strip()
-        key = request.headers.get("authorization", "")[-24:] or forwarded or (request.client.host if request.client else "anon")
-        wait = limiter.check(key)
-        if wait is not None:
-            raise HTTPException(status.HTTP_429_TOO_MANY_REQUESTS, "Demasiadas solicitudes. Intenta de nuevo en unos segundos.", headers={"Retry-After": str(int(wait) + 1)})
+        forwarded = request.headers.get("x-forwarded-for", "").split(",")[0].strip() if os.getenv("TRUSTED_PROXY") == "1" else ""
+        enforce(name, env_var, default, forwarded or (request.client.host if request.client else "anon"))
 
     return dependency

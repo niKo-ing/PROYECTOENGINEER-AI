@@ -3,7 +3,7 @@
     locust -f EP3_ITY1102/pruebas/locustfile.py --headless -u 20 -r 5 -t 60s --host http://localhost:8000 \
            --csv EP3_ITY1102/pruebas/resultados/api --html EP3_ITY1102/pruebas/resultados/api.html
 
-La llave de API va en ``ML_API_KEY``. Mezcla realista: 70 % consulta síncrona, 20 % métricas, 10 % encolado asíncrono.
+Las llaves van en ``ML_API_KEYS`` (separadas por coma; cada usuario virtual usa una y el límite de tasa es por llave). Mezcla realista: 70 % consulta síncrona, 20 % métricas, 10 % encolado asíncrono.
 """
 
 import os
@@ -11,7 +11,7 @@ import random
 
 from locust import HttpUser, between, task
 
-KEY = {"X-API-Key": os.getenv("ML_API_KEY", "demo-key")}
+KEYS = [k for k in os.getenv("ML_API_KEYS", os.getenv("ML_API_KEY", "demo-key")).split(",") if k]  # un cupo de límite de tasa por llave
 PARES = [
     ("Samsung Galaxy A54 128GB Negro", "Celular Galaxy A54 5G 128 GB Negro"),
     ("Apple iPhone 13 128GB Negro", "Apple iPhone 13 256GB Negro"),
@@ -24,13 +24,16 @@ PARES = [
 class Cliente(HttpUser):
     wait_time = between(0.05, 0.3)
 
+    def on_start(self):
+        self.key = {"X-API-Key": random.choice(KEYS)}
+
     def par(self):
         a, b = random.choice(PARES)
         return {"a": a, "b": b}
 
     @task(7)
     def match(self):
-        self.client.post("/api/v1/ml/match", json=self.par(), headers=KEY, name="POST /ml/match")
+        self.client.post("/api/v1/ml/match", json=self.par(), headers=self.key, name="POST /ml/match")
 
     @task(2)
     def metrics(self):
@@ -38,4 +41,4 @@ class Cliente(HttpUser):
 
     @task(1)
     def match_async(self):
-        self.client.post("/api/v1/ml/match/async", json=self.par(), headers=KEY, name="POST /ml/match/async")
+        self.client.post("/api/v1/ml/match/async", json=self.par(), headers=self.key, name="POST /ml/match/async")
