@@ -43,5 +43,6 @@ bash EP3_ITY1102/pruebas/cargar.sh http://<IP> aws 50 60
 bash EP3_ITY1102/infra/destruir.sh             # SIEMPRE al terminar
 ```
 
-> **Estado:** los scripts de AWS están escritos y con la sintaxis verificada, pero todavía **no se ejecutaron** contra la cuenta del laboratorio.
-> Todo lo demás (modelo, API, cola, worker, dashboard, carga) se ejecutó y midió en Docker local.
+> **Estado (16-11-2026):** desplegado y medido en AWS Academy (EC2 t3.medium, us-east-1): 0 fallos con 20/50/100 usuarios (≈ 39 → 80 → 102 req/s), CPU máx. 77 % en CloudWatch,
+> límite de tasa verificado (547 × 200 / 253 × 429). **SageMaker:** `CreateModel` denegado por IAM del laboratorio (`evidencia/sagemaker-intento.txt`); se usa el mismo contenedor en EC2.
+> La IP cambia al reiniciar el laboratorio: ejecutar `desplegar.sh` ~20 min antes de la defensa y `destruir.sh` al terminar.

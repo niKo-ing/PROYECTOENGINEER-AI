@@ -44,9 +44,9 @@ un error aquí mezcla precios de productos distintos y la recomendación pierde 
 y un agente LangGraph; en esta entrega se agrega y se pone a operar un <b>modelo propio de clasificación</b> (Random Forest, scikit-learn)
 con su contenedor, API REST segura, comunicación asíncrona con RabbitMQ, dashboard interactivo, pruebas y un script de despliegue en AWS.</p>
 <p>Además se unificó el chat de IA y el agente en un <b>único asistente</b> (<code>/chat</code>) y se limpió el repositorio.</p>
-<div class="nota"><b>Estado del despliegue en AWS.</b> El sistema completo funciona y está medido en Docker local (API, RabbitMQ, worker y contenedor del modelo).
-Los scripts de AWS (<code>EP3_ITY1102/infra/</code>) están escritos y revisados, pero <b>aún no se ejecutaron</b> en la cuenta del laboratorio; las URL públicas y las
-capturas de CloudWatch se agregan al ejecutarlos (sección 8). Esto se declara aquí para no presentar como hecho lo que no lo está.</div>
+<div class="nota"><b>Estado del despliegue en AWS.</b> El sistema está <b>desplegado y medido en AWS Academy</b> (EC2 t3.medium, us-east-1) con <code>EP3_ITY1102/infra/desplegar.sh</code>:
+dashboard <code>http://3.91.93.197/api/v1/ml/dashboard</code>, Swagger <code>http://3.91.93.197/docs</code> (IP vigente al medir; el laboratorio cambia la IP al reiniciarse y la instancia se recrea con el script).
+<b>SageMaker no pudo usarse</b>: <code>CreateModel</code> fue denegado por política IAM del laboratorio (evidencia en la sección 6).</div>
 
 <h2>2. Caso empresarial y arquitectura</h2>
 <p><b>Decisión que apoya:</b> qué ofertas se agrupan bajo un mismo producto para calcular el mejor precio y el historial. Hoy el emparejador determinista
@@ -114,19 +114,26 @@ decisión del modelo en 3 escenarios con razones, lote, autenticación (401), va
 {fila('10 usuarios', 'local_u10')}
 {fila('50 usuarios', 'local_u50')}
 {fila('100 usuarios', 'local_u100')}
-{fila('100 usuarios · API con 4 workers', 'w4_u100')}</table>
+{fila('100 usuarios · API con 4 workers', 'w4_u100')}
+<tr><td colspan="7"><b>AWS (EC2 t3.medium, carga desde otro continente: incluye ≈ 250 ms de red)</b></td></tr>
+{fila('20 usuarios', 'aws_u20')}
+{fila('50 usuarios', 'aws_u50')}
+{fila('100 usuarios', 'aws_u100')}</table>
 <p><b>Hallazgo.</b> La primera corrida mostró <b>44 errores 500 (11,4 %) en <code>/ml/match/async</code></b>: <code>pika.BlockingConnection</code> no es seguro entre hilos y FastAPI atiende en un pool de hilos
 (<code>StreamLostError … pop from an empty deque</code>). Se serializó el acceso al canal con un candado, se agregó reconexión y declaración única de colas: con la misma carga, <b>0 fallos en 3 870 peticiones</b>.</p>
-<div class="nota"><b>Cómo leer las cifras.</b> El generador de carga y los servicios compartían un computador de escritorio con otras tareas: hasta un <code>/ping</code> trivial midió pocas decenas de req/s desde un cliente Python,
-y subir la API a 4 workers no cambió el rendimiento. Por eso los números de arriba son una <i>línea base de comportamiento bajo concurrencia</i> (sin errores, latencia creciente con la carga), no la capacidad del servicio.
-La medición válida de capacidad es la corrida contra EC2 desde otra máquina (sección 8).</div>
+<div class="nota"><b>Cómo leer las cifras.</b> Las filas locales son una línea base: el generador y los servicios compartían un computador con otras tareas (hasta un <code>/ping</code> trivial midió pocas decenas de req/s) y subir la API a 4 workers no cambió el rendimiento.
+Las filas de <b>AWS</b> son la medición válida de capacidad: la latencia incluye ≈ 250 ms de ida y vuelta entre Chile y us-east-1 (p50 de 280 ms con 20 usuarios), y el rendimiento sube con los usuarios (≈ 39 → 80 → 102 req/s) con <b>0 fallos</b>.
+<b>CloudWatch</b> registró, durante la carga, CPU media 54,9 % y máxima 77,2 % en la t3.medium: cerca del límite, por lo que <b>~100 req/s</b> es la capacidad práctica de una instancia (la alarma al 80 % no se alcanzó) y el siguiente paso es escalar horizontalmente (ASG + ALB, diseñado en la EP2).
+Una primera corrida de 20 usuarios mostró 216 errores «conexión rechazada» durante los 5 s iniciales: coincidieron con el reinicio del backend del arranque, no con la carga (se repitió sin fallos; la corrida inicial se conserva como <code>aws_u20_arranque</code>).</div>
+<p><b>Límite de tasa en AWS.</b> 800 peticiones con una sola llave (límite 600/min) dieron <b>547 × 200 y 253 × 429</b>. Al preparar esta prueba se detectó que el límite confiaba en <code>X-Forwarded-For</code>, que un cliente directo puede falsificar para evadirlo;
+se corrigió para limitar por identidad del llamador (usuario o llave) y hay una prueba que lo verifica.</p>
 <h3>5.3 Latencia del modelo aislado</h3>
 <p>Un par: ≈ 5 ms; lote de 64 pares: ≈ 11 ms (0,17 ms/par). El procesamiento por lotes es la optimización más barata para la ingesta masiva.</p>
 
 <h2 class="pb">6. Plataforma AIaaS y costos</h2>
 <p><b>SageMaker (plan A).</b> Se diseñó el modelo con el contrato de SageMaker (<code>/ping</code>, <code>/invocations</code>, artefacto en <code>/opt/ml/model</code>). En la cuenta del laboratorio las cuotas permiten
-<code>ml.m5.large</code> (30 endpoints), pero <b>no existe un rol de ejecución</b> (no hay <code>LabRole</code> y IAM no permite crear roles), por lo que <code>create-model</code> debe fallar por permisos;
-<code>infra/intentar_sagemaker.sh</code> deja ese intento como evidencia. <b>Plan B (el que se despliega):</b> el mismo contenedor en EC2 con Docker Compose, que migra a SageMaker sin cambios de código al contar con un rol.</p>
+<code>ml.m5.large</code> (30 endpoints), pero el intento real falló: <code>sagemaker:CreateModel</code> → <b>AccessDeniedException</b> («no identity-based policy allows the sagemaker:CreateModel action») y no existe un rol de ejecución utilizable
+(<code>evidencia/sagemaker-intento.txt</code>, generado por <code>infra/intentar_sagemaker.sh</code>). <b>Plan B (el que se despliega):</b> el mismo contenedor en EC2 con Docker Compose, que migra a SageMaker sin cambios de código al contar con un rol.</p>
 <table><tr><th>Opción</th><th>Costo aprox.*</th><th>Escalado</th><th>Flexibilidad</th></tr>
 <tr><td>EC2 t3.medium + Docker (desplegado)</td><td>≈ USD 0,04/h (≈ 30/mes)</td><td>ASG + ALB (diseñado en EP2)</td><td>Alta: cualquier contenedor</td></tr>
 <tr><td>SageMaker ml.m5.large (tiempo real)</td><td>≈ USD 0,12/h (≈ 85/mes)</td><td>Auto-scaling gestionado</td><td>Media: contrato fijo, monitoreo integrado</td></tr>
@@ -143,16 +150,18 @@ La medición válida de capacidad es la corrida contra EC2 desde otra máquina (
 
 <h2 class="pb">8. Despliegue y evidencias</h2>
 <p><b>Reproducir:</b> <code>bash EP3_ITY1102/infra/desplegar.sh</code> (S3 + EC2 + alarma CloudWatch, ≈ 6 min) · <code>bash EP3_ITY1102/pruebas/cargar.sh http://&lt;IP&gt; aws 50 60</code> · <code>bash EP3_ITY1102/infra/destruir.sh</code>.</p>
-<div class="fig"><img src="../evidencia/dashboard-local.png" style="max-height:150mm"><br>Figura 4. Dashboard interactivo (ejecución local).</div>
+<div class="fig"><img src="../evidencia/dashboard-aws.png" style="max-height:140mm"><br>Figura 4. Dashboard interactivo servido desde EC2 en AWS.</div>
 <table><tr><th>Evidencia</th><th>Estado</th></tr>
-<tr><td>Dashboard, API y Swagger funcionando (local, Docker)</td><td>Hecho (Figura 4; <code>/docs</code>)</td></tr>
-<tr><td>Flujo API → RabbitMQ → worker → modelo → BD</td><td>Hecho y medido</td></tr>
-<tr><td>URL públicas en AWS, CloudWatch (CPU, red), prueba de carga remota</td><td><b>Pendiente</b> de ejecutar <code>desplegar.sh</code></td></tr>
-<tr><td>Endpoint SageMaker</td><td><b>Pendiente</b> del intento de <code>intentar_sagemaker.sh</code>; se espera fallo por IAM</td></tr></table>
+<tr><td>Dashboard, API y Swagger en AWS (<code>evidencia/dashboard-aws.png</code>, <code>swagger-aws.png</code>)</td><td>Hecho</td></tr>
+<tr><td>Flujo API → RabbitMQ → worker → modelo → BD en AWS (decisiones guardadas, cola en 0)</td><td>Hecho</td></tr>
+<tr><td>Prueba de carga remota (CSV/HTML en <code>pruebas/resultados/aws_*</code>) y métricas CloudWatch (<code>evidencia/cloudwatch.txt</code>)</td><td>Hecho</td></tr>
+<tr><td>Límite de tasa (429) y autenticación (401) verificados en AWS</td><td>Hecho</td></tr>
+<tr><td>Endpoint SageMaker</td><td>Intentado; denegado por IAM del laboratorio</td></tr>
+<tr><td>Auto-scaling</td><td>No desplegado (una instancia); diseñado en EP2. Se mide la saturación (CPU 77 % a ≈ 100 req/s)</td></tr></table>
 
 <h2>9. Conclusiones</h2>
-<p>Se entregó un modelo propio, interpretable y medible, integrado a un servicio con API segura, mensajería asíncrona, dashboard y pruebas; la prueba de carga encontró y permitió corregir un defecto real de concurrencia.
-Los límites quedan explícitos: datos sintéticos de una sola tienda, sin validación con pares reales y sin la medición en AWS todavía.</p>
+<p>Se entregó un modelo propio, interpretable y medible, integrado a un servicio con API segura, mensajería asíncrona, dashboard y pruebas; la prueba de carga encontró y permitió corregir un defecto real de concurrencia, y la revisión de seguridad otro (límite de tasa evadible).
+Los límites quedan explícitos: datos sintéticos de una sola tienda sin validación con pares reales, una sola instancia sin auto-scaling y SageMaker bloqueado por el laboratorio.</p>
 
 <h2>Referencias (APA)</h2>
 <p>Breiman, L. (2001). Random forests. <i>Machine Learning, 45</i>(1), 5–32. https://doi.org/10.1023/A:1010933404324</p>
