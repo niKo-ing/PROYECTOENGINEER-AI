@@ -15,6 +15,7 @@ from app.routers.ai import router as ai_router
 from app.agent.security import enable_agent_rls
 from app.routers.agent import demo_router as agent_demo_router, router as agent_router
 from app.routers.admin import router as admin_router
+from app.routers.ml import router as ml_router
 from app.routers.eventos import router as eventos_router
 
 log = logging.getLogger(__name__)
@@ -185,13 +186,14 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
 
 
 def create_app() -> FastAPI:
-    app = FastAPI(title="SoloTodo AI", version="0.1.0", lifespan=lifespan)
+    app = FastAPI(title="SoloTodo AI", version="0.2.0", description="API REST de SoloTodo AI: catálogo, asistente (agente LangGraph) y modelo de emparejamiento de productos (/ml).", lifespan=lifespan)
     app.include_router(products_router, prefix="/api/v1")
     app.include_router(categories_router, prefix="/api/v1")
     app.include_router(user_profile_router, prefix="/api/v1")
     app.include_router(ai_router, prefix="/api/v1")
     app.include_router(agent_router, prefix="/api/v1")
     app.include_router(agent_demo_router, prefix="/api/v1")
+    app.include_router(ml_router, prefix="/api/v1")
     app.include_router(admin_router, prefix="/api/v1")
     app.include_router(eventos_router, prefix="/api/v1")
 

@@ -1,0 +1,127 @@
+{
+  "candidatos": {
+    "logistic_regression": {
+      "mejores_hiperparametros": {
+        "C": 10.0
+      },
+      "f1_validacion_cruzada": 0.9009,
+      "segundos": 2.7
+    },
+    "random_forest": {
+      "mejores_hiperparametros": {
+        "max_depth": 12,
+        "n_estimators": 100
+      },
+      "f1_validacion_cruzada": 0.9104,
+      "segundos": 2.3
+    },
+    "gradient_boosting": {
+      "mejores_hiperparametros": {
+        "learning_rate": 0.05,
+        "max_depth": 2,
+        "n_estimators": 100
+      },
+      "f1_validacion_cruzada": 0.9082,
+      "segundos": 1.5
+    }
+  },
+  "linea_base": {
+    "regla": "similitud_de_caracteres >= 0.65",
+    "accuracy": 0.7629,
+    "precision": 0.7403,
+    "recall": 0.95,
+    "f1": 0.8321,
+    "roc_auc": 0.8291,
+    "confusion": {
+      "tn": 17,
+      "fp": 20,
+      "fn": 3,
+      "tp": 57
+    }
+  },
+  "modelo_elegido": "random_forest",
+  "prueba": {
+    "accuracy": 0.8866,
+    "precision": 0.9153,
+    "recall": 0.9,
+    "f1": 0.9076,
+    "roc_auc": 0.9309,
+    "confusion": {
+      "tn": 32,
+      "fp": 5,
+      "fn": 6,
+      "tp": 54
+    }
+  },
+  "por_tipo_de_par": {
+    "negativo_azar": {
+      "n": 8,
+      "aciertos": 1.0
+    },
+    "negativo_color": {
+      "n": 5,
+      "aciertos": 1.0
+    },
+    "negativo_marca": {
+      "n": 9,
+      "aciertos": 1.0
+    },
+    "negativo_variante": {
+      "n": 15,
+      "aciertos": 0.6667
+    },
+    "positivo": {
+      "n": 60,
+      "aciertos": 0.9
+    }
+  },
+  "tabla_de_umbrales": [
+    {
+      "umbral": 0.5,
+      "precision": 0.915,
+      "cobertura_de_positivos": 0.9
+    },
+    {
+      "umbral": 0.6,
+      "precision": 0.945,
+      "cobertura_de_positivos": 0.867
+    },
+    {
+      "umbral": 0.7,
+      "precision": 0.942,
+      "cobertura_de_positivos": 0.817
+    },
+    {
+      "umbral": 0.8,
+      "precision": 0.953,
+      "cobertura_de_positivos": 0.683
+    },
+    {
+      "umbral": 0.9,
+      "precision": 0.972,
+      "cobertura_de_positivos": 0.583
+    }
+  ],
+  "importancia_caracteristicas": {
+    "jaccard_tokens": 0.2925,
+    "ratio_secuencia": 0.1803,
+    "tokens_extra": 0.1599,
+    "capacidad_en_conflicto": 0.0864,
+    "numeros_en_conflicto": 0.0669,
+    "dif_longitud": 0.0657,
+    "color_en_conflicto": 0.0646,
+    "numeros_en_comun": 0.03,
+    "modelo_igual": 0.0217,
+    "capacidad_igual": 0.017,
+    "modelo_en_conflicto": 0.0077,
+    "marca_igual": 0.0071
+  },
+  "dataset": {
+    "productos": 60,
+    "pares": 554,
+    "entrenamiento": 374,
+    "prueba": 97,
+    "positivos_prueba": 60,
+    "semilla": 7
+  }
+}

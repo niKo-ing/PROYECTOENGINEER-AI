@@ -38,7 +38,7 @@ PARIS_CONFIG: dict = {
     "sync_config": {
         "mode": "discovery",
         "categories": ["Computación", "Celulares"],
-        "max_urls_per_category": 20,
+        "max_urls_per_category": 150,
     },
 }
 
