@@ -1,0 +1,7 @@
+== 2026-11-16T12:59:52Z · cuenta 255708237033
+-- roles utilizables por SageMaker (confianza sagemaker.amazonaws.com):
+-- create-model con el único rol disponible (myS3Role):
+
+An error occurred (AccessDeniedException) when calling the CreateModel operation: User: arn:aws:sts::255708237033:assumed-role/voclabs/user3176393=nic.estefania is not authorized to perform: sagemaker:CreateModel on resource: arn:aws:sagemaker:us-east-1:255708237033:model/todobarato-match because no identity-based policy allows the sagemaker:CreateModel action
+-- cuotas de endpoints ml.m5.large:
+ml.m5.large for endpoint usage	30.0
