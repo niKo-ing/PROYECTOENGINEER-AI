@@ -1,5 +1,7 @@
 # SoloTodo AI
 
+> **Evaluación Parcial 3 (ITY1102):** modelo de emparejamiento de productos, API `/ml`, RabbitMQ, dashboard y despliegue en AWS: ver [`EP3_ITY1102/README.md`](EP3_ITY1102/README.md).
+
 > **Evaluación Parcial 2 (ISY0101) — Agente de ahorro con LangGraph.** Un agente que busca, compara, razona sobre el historial de precios y **escribe** alertas y listas de compra, con memoria de corto y largo plazo y replanificación adaptativa. Arquitectura, diagramas, cómo ejecutarlo y evidencia: [`docs/agente/ARQUITECTURA.md`](docs/agente/ARQUITECTURA.md). Código en `app/agent/`, pruebas en `tests/agent/`, demo con `python scripts/demo_agente.py`.
 
 ### Ejecutar y validar el agente (paso a paso)

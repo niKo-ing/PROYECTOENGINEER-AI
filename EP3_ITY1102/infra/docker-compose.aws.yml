@@ -1,0 +1,31 @@
+# Pila completa en UNA instancia EC2: API + dashboard (puerto 80), modelo, worker y RabbitMQ.
+services:
+  rabbitmq:
+    image: rabbitmq:3.13-management
+    restart: unless-stopped
+    healthcheck: { test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"], interval: 10s, timeout: 5s, retries: 10 }
+  modelo:
+    build: { context: ../.., dockerfile: EP3_ITY1102/modelo/Dockerfile }
+    restart: unless-stopped
+  backend:
+    build: { context: ../.., dockerfile: Dockerfile }
+    restart: unless-stopped
+    ports: ["80:8000"]
+    environment: &env
+      DATABASE_URL: sqlite:////data/ep3.db
+      RABBITMQ_URL: amqp://guest:guest@rabbitmq:5672/%2F
+      MATCH_MODEL_URL: http://modelo:8080
+      ML_API_KEYS: ${ML_API_KEYS}
+      ML_RATE_LIMIT_PER_MINUTE: "600"
+      INGESTION_SCHEDULER_ENABLED: "false"
+      APP_ENV: production
+    volumes: ["datos:/data"]
+    depends_on: { rabbitmq: { condition: service_healthy }, modelo: { condition: service_started } }
+  worker:
+    build: { context: ../.., dockerfile: Dockerfile }
+    restart: unless-stopped
+    command: python -m app.messaging.match_worker
+    environment: *env
+    volumes: ["datos:/data"]
+    depends_on: { rabbitmq: { condition: service_healthy }, backend: { condition: service_started } }
+volumes: { datos: {} }
