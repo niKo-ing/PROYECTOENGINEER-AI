@@ -11,7 +11,7 @@ Requisitos: Python 3.12 y [uv](https://docs.astral.sh/uv/). Para la demo en vivo
 uv venv --python 3.12 .venv
 uv pip install -e '.[dev]'
 
-# 2. Pruebas (sin red, ~10 s): deben dar 124 passed, 5 skipped
+# 2. Pruebas (sin red, ~10 s): deben dar 127 passed, 5 skipped
 #    (si su .env trae un DATABASE_URL de Supabase, anteponga DATABASE_URL=sqlite:///./dev_local.db)
 .venv/bin/python -m pytest tests/agent -q
 
@@ -44,11 +44,11 @@ DATABASE_URL=sqlite:///./dev_local.db .venv/bin/python -m uvicorn app.main:app -
 cd frontend && pnpm install && pnpm dev
 ```
 
-El chat de IA original sigue en **/chat**; el agente es una pantalla adicional en `/agente`.
+**Chat y agente son uno solo (EP3):** el asistente vive en **/chat** (`/agente` redirige ahí). Conversa, compara, razona sobre precios y guarda alertas/listas; bajo cada respuesta muestra las tarjetas de los productos que consultó, y desde la ficha de un producto (`/chat?product=ID`) sabe de cuál se habla. El endpoint `POST /api/v1/ai/chat` quedó deprecado a favor de `POST /api/v1/agent/run`.
 
-Abra **http://localhost:3000/agente** (también está el botón «Agente» en la barra superior). La pantalla usa Gemini real y pide iniciar sesión.
+Abra **http://localhost:3000/chat** (botón «Asistente» en la barra superior). La pantalla usa Gemini real y pide iniciar sesión.
 
-- **Modo Demo**, oculto a los usuarios: se abre solo con **http://localhost:3000/agente?demo=1** (sin login, sin red, sin gastar cuota). Muestra un selector Demo / Gemini real: catálogo de ejemplo y modelo guionado. Pruebe las 5 historias de la pantalla. A la derecha, «Cómo pensó» muestra el plan, cada herramienta y los replanes; «Guardado» muestra alertas, listas y memoria. Tras la historia 2 pulse **Simular baja de precio** y pida «Revisa mis alertas de precio». **Reiniciar demo** deja todo de cero.
+- **Modo Demo**, oculto a los usuarios: se abre solo con **http://localhost:3000/chat?demo=1** (sin login, sin red, sin gastar cuota). Muestra un selector Demo / Gemini real: catálogo de ejemplo y modelo guionado. Pruebe las 5 historias de la pantalla. A la derecha, «Cómo pensó» muestra el plan, cada herramienta y los replanes; «Guardado» muestra alertas, listas y memoria. Tras la historia 2 pulse **Simular baja de precio** y pida «Revisa mis alertas de precio». **Reiniciar demo** deja todo de cero.
 - **Gemini real** (lo normal): requiere iniciar sesión (Supabase) y `GEMINI_API_KEY`; usa el endpoint autenticado `/api/v1/agent/run`. Con una base SQLite vacía no hay productos que buscar: siembre el catálogo de ejemplo con `.venv/bin/python scripts/sembrar_catalogo_demo.py` (solo SQLite local; no hace nada si ya hay productos).
 - El modo demo se apaga solo con `APP_ENV=production`, o con `AGENT_DEMO_ENABLED=false`.
 

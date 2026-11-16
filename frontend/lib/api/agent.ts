@@ -23,6 +23,19 @@ export type TraceEvent =
   | { turn: number; node: "give_up"; max_steps: number }
   | { turn: number; node: "remember"; stored: string[] };
 
+export type AgentProductCard = {
+  id: number;
+  name: string;
+  brand: string | null;
+  category: string | null;
+  image_url: string | null;
+  lowest_price: number | null;
+  lowest_price_store: string | null;
+  price_clp: number | null;
+  rating: number | null;
+  offer_count: number | null;
+};
+
 export type AgentRun = {
   thread_id: string;
   answer: string;
@@ -34,6 +47,8 @@ export type AgentRun = {
   memories_used: string[];
   steps: number;
   trace: TraceEvent[];
+  products?: AgentProductCard[];
+  comparison?: Record<string, unknown> | null;
 };
 
 export type AgentAlert = {
@@ -85,11 +100,11 @@ async function parse<T>(response: Response): Promise<T> {
   return payload as T;
 }
 
-export async function runAgent(mode: AgentMode, message: string, threadId: string, accessToken?: string): Promise<AgentRun> {
+export async function runAgent(mode: AgentMode, message: string, threadId: string, accessToken?: string, productId?: number | null): Promise<AgentRun> {
   const response = await fetch(pathFor(mode, "/run"), {
     method: "POST",
     headers: headersFor(mode, accessToken),
-    body: JSON.stringify({ message, thread_id: threadId }),
+    body: JSON.stringify({ message, thread_id: threadId, ...(productId ? { product_id: productId } : {}) }),
   });
   return parse<AgentRun>(response);
 }

@@ -6,6 +6,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { Bot, MessageSquarePlus, RotateCcw, TrendingDown } from "lucide-react";
 
 import { AgentReasoning } from "@/components/agent/agent-reasoning";
+import { AgentProducts } from "@/components/agent/agent-products";
 import { AgentSaved } from "@/components/agent/agent-saved";
 import { ChatComposer } from "@/components/chat/chat-composer";
 import { MarkdownContent } from "@/components/chat/markdown-content";
@@ -51,7 +52,12 @@ const REAL_STORIES = [
 export function AgentScreen() {
   const { session, isLoading: isLoadingSession } = useSession();
   const [demoAvailable, setDemoAvailable] = useState<boolean | null>(null);
-  const demoRequested = useSearchParams().get("demo") === "1";
+  const searchParams = useSearchParams();
+  const demoRequested = searchParams.get("demo") === "1";
+  // Si el usuario llega desde la ficha de un producto (/chat?product=ID&name=…), el asistente lo sabe.
+  const productParam = searchParams.get("product");
+  const productId = productParam && /^\d+$/.test(productParam) ? Number(productParam) : null;
+  const productName = searchParams.get("name");
   const [chosenMode, setChosenMode] = useState<AgentMode>("demo");
   // El modo Demo no se ofrece a los usuarios: solo existe con ?demo=1 y si el backend lo tiene encendido.
   const showDemo = demoRequested && demoAvailable === true;
@@ -131,7 +137,7 @@ export function AgentScreen() {
     const trimmed = text.trim();
     if (!trimmed || isLoading) return;
     if (mode === "real" && !accessToken) {
-      setError("Inicia sesión para usar el agente.");
+      setError("Inicia sesión para usar el asistente.");
       return;
     }
     setDraft("");
@@ -139,7 +145,7 @@ export function AgentScreen() {
     setIsLoading(true);
     setMessages((current) => [...current, { id: newId(), role: "user", text: trimmed }]);
     try {
-      const run = await runAgent(mode, trimmed, threadId, accessToken);
+      const run = await runAgent(mode, trimmed, threadId, accessToken, productId);
       const id = newId();
       setMessages((current) => [...current, { id, role: "assistant", text: run.answer, run }]);
       setSelectedRunId(id);
@@ -200,8 +206,8 @@ export function AgentScreen() {
             <Bot className="size-4" />
           </div>
           <div className="min-w-0 flex-1">
-            <h1 className="text-base font-semibold tracking-tight">Agente de ahorro</h1>
-            <p className="hidden truncate text-xs text-muted-foreground sm:block">Busca, razona sobre precios y deja alertas y listas guardadas</p>
+            <h1 className="text-base font-semibold tracking-tight">Asistente de ahorro</h1>
+            <p className="hidden truncate text-xs text-muted-foreground sm:block">Conversa, compara, razona sobre precios y deja alertas y listas guardadas</p>
           </div>
           <div className="ml-auto flex flex-wrap items-center gap-2">
             {showDemo ? (
@@ -245,21 +251,23 @@ export function AgentScreen() {
           </div>
         ) : !isLoadingSession && !session ? (
           <div className="shrink-0 border-b bg-amber-500/10 px-4 py-2 text-xs sm:px-6">
-            Para usar el agente necesitas{" "}
-            <Link href="/login?next=/agente" className="font-semibold text-primary underline underline-offset-2">
+            Para usar el asistente necesitas{" "}
+            <Link href="/login" className="font-semibold text-primary underline underline-offset-2">
               iniciar sesión
             </Link>
             .
           </div>
         ) : null}
 
-        <div ref={scrollRef} role="log" aria-live="polite" aria-label="Conversación con el agente" className="min-h-0 min-w-0 flex-1 overflow-y-auto overscroll-contain">
+        <div ref={scrollRef} role="log" aria-live="polite" aria-label="Conversación con el asistente" className="min-h-0 min-w-0 flex-1 overflow-y-auto overscroll-contain">
           <div className={cn("mx-auto flex min-h-full w-full max-w-3xl flex-col px-4 py-6 sm:px-6", hasConversation ? "space-y-4" : "justify-center")}>
             {!hasConversation ? (
               <div className="mx-auto w-full max-w-2xl text-center">
-                <h2 className="text-lg font-semibold tracking-tight">¿Qué quieres comprar y cuánto puedes gastar?</h2>
+                <h2 className="text-lg font-semibold tracking-tight">
+                  {productName ? `¿Qué quieres saber de «${productName}»?` : "¿Qué quieres comprar y cuánto puedes gastar?"}
+                </h2>
                 <p className="mt-2 text-sm leading-6 text-muted-foreground">
-                  El agente planifica, consulta el catálogo, juzga si el precio está inflado y puede dejar una alerta o una lista guardada. Prueba una de estas historias:
+                  El asistente planifica, consulta el catálogo, juzga si el precio está inflado y puede dejar una alerta o una lista guardada. Prueba una de estas historias:
                 </p>
                 <div className="mt-5 grid gap-2 text-left sm:grid-cols-2">
                   {(mode === "demo" ? DEMO_STORIES : REAL_STORIES).map((story, index) => (
@@ -304,6 +312,7 @@ export function AgentScreen() {
                     className={cn("min-w-0 flex-1 [overflow-wrap:anywhere] rounded-2xl rounded-bl-md bg-muted px-4 py-3", selectedRunId === message.id && "ring-2 ring-primary/40")}
                   >
                     <MarkdownContent markdown={message.text} />
+                    {message.run?.products?.length ? <AgentProducts products={message.run.products} /> : null}
                     {message.run ? (
                       <button
                         type="button"

@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Bot, ChevronDown, LayoutGrid, MessageSquareText, Settings, ShoppingBag } from "lucide-react";
+import { ChevronDown, LayoutGrid, MessageSquareText, Settings, ShoppingBag } from "lucide-react";
 import { useState } from "react";
 
 import { Button } from "@/components/ui/button";
@@ -108,13 +108,7 @@ export function SiteHeader() {
           <Button variant="ghost" asChild className="gap-2">
             <Link href="/chat">
               <MessageSquareText className="h-4 w-4" />
-              <span className="hidden sm:inline">Chat IA</span>
-            </Link>
-          </Button>
-          <Button variant="ghost" asChild className="gap-2">
-            <Link href="/agente">
-              <Bot className="h-4 w-4" />
-              <span className="hidden sm:inline">Agente</span>
+              <span className="hidden sm:inline">Asistente</span>
             </Link>
           </Button>
           <Button variant="ghost" asChild className="gap-2">
