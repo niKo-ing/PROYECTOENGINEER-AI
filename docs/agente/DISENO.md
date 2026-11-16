@@ -52,9 +52,9 @@ Reglas de `parse_plan`: acepta JSON dentro de un bloque de código, máximo 8 pa
 
 ```json
 // pedido
-{"message": "Quiero un notebook Lenovo, presupuesto $400.000. Arma una lista.", "thread_id": "demo-1"}
+{"message": "Quiero un notebook Lenovo, presupuesto $400.000. Arma una lista.", "thread_id": "t-1"}
 // respuesta
-{"thread_id": "demo-1", "answer": "...", "plan": [...], "plan_source": "llm",
+{"thread_id": "t-1", "answer": "...", "plan": [...], "plan_source": "llm",
  "tools_used": ["search_products", "..."], "wrote": ["save_shopping_list"],
  "replans": 0, "memories_used": [], "steps": 5, "trace": [...]}
 ```

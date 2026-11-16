@@ -40,7 +40,7 @@ services:
     environment:
       RABBITMQ_URL: amqp://guest:guest@rabbitmq:5672/%2F
       MATCH_MODEL_URL: http://modelo:8080
-      ML_API_KEYS: ${ML_API_KEYS:-demo-key-cambiar}
+      ML_API_KEYS: ${ML_API_KEYS:-CAMBIAR-esta-llave}
     depends_on:
       rabbitmq:
         condition: service_healthy

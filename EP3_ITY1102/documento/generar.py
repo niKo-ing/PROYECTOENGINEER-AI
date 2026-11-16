@@ -130,6 +130,16 @@ se corrigió para limitar por identidad del llamador (usuario o llave) y hay una
 <h3>5.3 Latencia del modelo aislado</h3>
 <p>Un par: ≈ 5 ms; lote de 64 pares: ≈ 11 ms (0,17 ms/par). El procesamiento por lotes es la optimización más barata para la ingesta masiva.</p>
 
+<h2>5.4 Asistente: decisiones trazadas y planificación priorizada</h2>
+<p>El asistente (agente LangGraph, ahora unificado con el chat) arma un plan con <b>prioridades P1–P3</b> (P1: preferencias y búsqueda; P2: ofertas e historial de precio; P3: guardar y responder) y, tras cada herramienta, <i>reflexiona</i>: si cambian las condiciones, <b>replanifica</b> y reordena.
+Escenarios automatizados con modelo guionado (<code>tests/agent/test_escenarios_agente.py</code>, sin red), «entrada → decisión → por qué»:</p>
+<table><tr><th>Entrada</th><th>Qué observó</th><th>Decisión y por qué</th></tr>
+<tr><td>«Notebook Lenovo, presupuesto $400.000. Arma una lista.»</td><td>$349.990; a &lt; 3 % del mínimo histórico</td><td>Plan sin replanes (5 pasos): <b>guarda la lista</b> porque está en el presupuesto y el precio es bueno</td></tr>
+<tr><td>«Notebook gamer, $300.000. Avísame cuando baje.»</td><td>0 resultados → luego el más barato cuesta $349.990 (sobre el presupuesto)</td><td><b>2 replanes</b> (<code>sin_resultados</code>: ampliar términos; <code>sobre_presupuesto</code>: alerta). Crea una alerta a $300.000 e informa que faltan $49.990</td></tr>
+<tr><td>«ASUS TUF, $900.000. Guarda la lista si conviene.»</td><td>$799.990, 9,3 % sobre el promedio histórico ($731.990)</td><td><b>Replan por <code>precio_alto</code></b>: sube a P1 la adaptación, <b>no guarda la lista</b> y deja una alerta a $731.990 («esperar»)</td></tr>
+<tr><td>«Prefiero Samsung y no Huawei…» y, en otro hilo, «Recomiéndame un celular»</td><td>Memoria de largo plazo: relevancia 1,0</td><td>El segundo hilo busca Samsung sin que se lo repitan</td></tr></table>
+<p>La pantalla <code>/chat</code> muestra ese plan (con sus prioridades), los pasos en orden y las tarjetas de los productos consultados.</p>
+
 <h2 class="pb">6. Plataforma AIaaS y costos</h2>
 <p><b>SageMaker (plan A).</b> Se diseñó el modelo con el contrato de SageMaker (<code>/ping</code>, <code>/invocations</code>, artefacto en <code>/opt/ml/model</code>). En la cuenta del laboratorio las cuotas permiten
 <code>ml.m5.large</code> (30 endpoints), pero el intento real falló: <code>sagemaker:CreateModel</code> → <b>AccessDeniedException</b> («no identity-based policy allows the sagemaker:CreateModel action») y no existe un rol de ejecución utilizable

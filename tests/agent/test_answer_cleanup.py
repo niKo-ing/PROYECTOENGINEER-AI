@@ -5,7 +5,7 @@ from langgraph.checkpoint.memory import MemorySaver
 
 from app.agent.graph import ACT_SYSTEM
 from app.agent.service import AgentService, _clean_answer
-from app.agent.testing import ScriptedChatModel
+from modelo_guionado import ScriptedChatModel
 from app.ai.rag.embedding import LocalHashEmbeddingProvider
 
 
@@ -62,11 +62,11 @@ def test_list_intent(pedido, pide_lista):
 def _save(db, goal):
     import json
 
-    from app.agent.demo_data import seed_demo_catalog
+    from catalogo import seed_catalog
     from app.agent.memory import LongTermMemory
     from app.agent.tools import RunContext, build_tools
 
-    ids = seed_demo_catalog(db)
+    ids = seed_catalog(db)
     context = RunContext()
     context.goal = goal
     memory = LongTermMemory(db, USER, LocalHashEmbeddingProvider())

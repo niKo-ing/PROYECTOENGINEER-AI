@@ -10,7 +10,7 @@ from agent_support import USER
 from langgraph.checkpoint.sqlite import SqliteSaver
 
 from app.agent.service import AgentService, checkpointer_kind, make_checkpointer
-from app.agent.testing import AhorroPolicy, ScriptedChatModel
+from modelo_guionado import AhorroPolicy, ScriptedChatModel
 from app.ai.rag.embedding import LocalHashEmbeddingProvider
 
 

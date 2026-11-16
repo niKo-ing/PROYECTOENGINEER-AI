@@ -13,7 +13,7 @@ from app.routers.categories import router as categories_router
 from app.routers.user_profile import router as user_profile_router
 from app.routers.ai import router as ai_router
 from app.agent.security import enable_agent_rls
-from app.routers.agent import demo_router as agent_demo_router, router as agent_router
+from app.routers.agent import router as agent_router
 from app.routers.admin import router as admin_router
 from app.routers.ml import router as ml_router
 from app.routers.eventos import router as eventos_router
@@ -192,7 +192,6 @@ def create_app() -> FastAPI:
     app.include_router(user_profile_router, prefix="/api/v1")
     app.include_router(ai_router, prefix="/api/v1")
     app.include_router(agent_router, prefix="/api/v1")
-    app.include_router(agent_demo_router, prefix="/api/v1")
     app.include_router(ml_router, prefix="/api/v1")
     app.include_router(admin_router, prefix="/api/v1")
     app.include_router(eventos_router, prefix="/api/v1")

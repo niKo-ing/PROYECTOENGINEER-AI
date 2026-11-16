@@ -1,11 +1,11 @@
-"""Modelo de chat guionado para pruebas y demos sin red.
+"""Modelo de chat guionado para las pruebas del agente sin red.
 
 ``ScriptedChatModel`` cumple la interfaz ``BaseChatModel`` de LangChain (incluido
 ``bind_tools``), así que el grafo no sabe que no es Gemini. Su ``policy`` **lee los
 mensajes y las observaciones de las herramientas** y decide la siguiente llamada, como lo
 haría un LLM razonable: no es una lista fija de respuestas. Esto vuelve deterministas las
 pruebas de lo que realmente importa probar (el grafo, la memoria, la replanificación),
-sin gastar cuota ni depender de la red. La demo en vivo (``--live``) usa Gemini.
+sin gastar cuota ni depender de la red. Solo se usa en pruebas: la aplicación siempre usa Gemini.
 """
 
 from __future__ import annotations
@@ -168,3 +168,23 @@ class AhorroPolicy:
             return AIMessage(content=f"{pick['name']} está en {_money(price)}. {trend.get('reason', '')} Te recomiendo esperar: dejé una alerta de precio.")
         tail = " Lo dejé guardado en tu lista." if done("save_shopping_list") else ""
         return AIMessage(content=f"Te recomiendo {pick['name']} a {_money(price)} en {pick.get('lowest_price_store') or 'la mejor tienda'}. {trend.get('reason', '')}{tail}")
+
+
+# Palabra del pedido → búsquedas que intentaría un comprador (la primera con tope de precio).
+_KEYWORDS: list[tuple[re.Pattern[str], list[str]]] = [
+    (re.compile(r"gamer|gaming|juegos"), ["notebook gamer", "notebook"]),
+    (re.compile(r"lenovo|ideapad"), ["Lenovo"]),
+    (re.compile(r"asus|tuf"), ["ASUS TUF"]),
+    (re.compile(r"\bhp\b"), ["HP 250"]),
+    (re.compile(r"samsung|galaxy|celular|smartphone|tel[eé]fono"), ["Samsung"]),
+    (re.compile(r"huawei"), ["Huawei"]),
+    (re.compile(r"notebook|laptop|port[aá]til|universidad|estudi"), ["notebook"]),
+]
+
+
+def queries_from_message(message: str) -> list[str]:
+    text = message.lower()
+    for pattern, queries in _KEYWORDS:
+        if pattern.search(text):
+            return queries
+    return ["notebook"]

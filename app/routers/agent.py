@@ -6,7 +6,6 @@ from pydantic import BaseModel, Field
 from sqlalchemy.orm import Session
 
 from app.agent.llm import AgentLLMError, AgentNotConfiguredError, get_chat_model
-from app.agent.demo_runtime import demo_enabled, get_demo_runtime
 from app.agent.memory import LongTermMemory
 from app.agent.service import AgentService, default_checkpointer
 from app.agent.snapshot import snapshot
@@ -16,7 +15,6 @@ from app.core.security import AuthenticatedUser, get_current_user
 from app.db import get_db
 
 router = APIRouter(prefix="/agent", tags=["agent"])
-demo_router = APIRouter(prefix="/agent/demo", tags=["agent-demo"])
 DbSession = Annotated[Session, Depends(get_db)]
 CurrentUser = Annotated[AuthenticatedUser, Depends(get_current_user)]
 
@@ -72,39 +70,3 @@ def list_memories(user: CurrentUser, db: DbSession, embedder: Annotated[Embeddin
 def agent_state(user: CurrentUser, db: DbSession):
     """Alertas, listas de compra y memorias del usuario autenticado."""
     return snapshot(db, user.id)
-
-
-# -- Modo demo: catálogo de ejemplo en memoria, modelo guionado, sin login ni red ------------------
-def require_demo() -> None:
-    if not demo_enabled():
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="El modo demo está desactivado")
-
-
-DemoOnly = Annotated[None, Depends(require_demo)]
-
-
-@demo_router.get("/disponible")
-def demo_available():
-    return {"enabled": demo_enabled()}
-
-
-@demo_router.post("/run")
-def demo_run(payload: AgentRunRequest, _: DemoOnly):
-    return get_demo_runtime().run(payload.message, payload.thread_id).as_dict()
-
-
-@demo_router.get("/estado")
-def demo_state(_: DemoOnly):
-    return get_demo_runtime().state()
-
-
-@demo_router.post("/bajar-precio")
-def demo_drop_price(_: DemoOnly):
-    """Simula que la tienda baja el Lenovo IdeaPad 3: la próxima revisión de alertas lo detecta."""
-    return get_demo_runtime().drop_price()
-
-
-@demo_router.post("/reiniciar")
-def demo_reset(_: DemoOnly):
-    get_demo_runtime().reset()
-    return {"ok": True}

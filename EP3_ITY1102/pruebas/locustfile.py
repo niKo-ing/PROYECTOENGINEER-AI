@@ -11,7 +11,7 @@ import random
 
 from locust import HttpUser, between, task
 
-KEYS = [k for k in os.getenv("ML_API_KEYS", os.getenv("ML_API_KEY", "demo-key")).split(",") if k]  # un cupo de límite de tasa por llave
+KEYS = [k for k in os.getenv("ML_API_KEYS", os.getenv("ML_API_KEY", "clave-local")).split(",") if k]  # un cupo de límite de tasa por llave
 PARES = [
     ("Samsung Galaxy A54 128GB Negro", "Celular Galaxy A54 5G 128 GB Negro"),
     ("Apple iPhone 13 128GB Negro", "Apple iPhone 13 256GB Negro"),

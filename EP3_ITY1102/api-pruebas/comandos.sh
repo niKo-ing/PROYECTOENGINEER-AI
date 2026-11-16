@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
-# Guion de la demo en vivo con curl.   Uso:  BASE=https://xxxx.cloudfront.net KEY=<llave> bash EP3_ITY1102/demo/comandos.sh
-BASE=${BASE:-http://localhost:8000}; KEY=${KEY:-demo-key}
+# Guion de la demo en vivo con curl.   Uso:  BASE=https://xxxx.cloudfront.net KEY=<llave> bash EP3_ITY1102/api-pruebas/comandos.sh
+BASE=${BASE:-http://localhost:8000}; KEY=${KEY:-clave-local}
 J=(-H "content-type: application/json" -H "x-api-key: $KEY")
 paso() { printf '\n\033[1m# %s\033[0m\n' "$1"; }
 paso "1. Salud y métricas del modelo (públicas)"

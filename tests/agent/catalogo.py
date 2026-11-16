@@ -1,4 +1,4 @@
-"""Catálogo chico y reproducible para pruebas y demos del agente.
+"""Catálogo chico y reproducible para las pruebas del agente.
 
 Cada producto fija un escenario distinto (mínimo histórico, precio inflado, sin stock...).
 No se usa en producción: el agente real consulta el catálogo ingestado de las tiendas.
@@ -41,7 +41,7 @@ def add_product(db: Session, name: str, *, brand: str | None = None, category: s
     return product.id
 
 
-def seed_demo_catalog(db: Session) -> dict[str, int]:
+def seed_catalog(db: Session) -> dict[str, int]:
     return {
         # Precio actual en su mínimo histórico → buen_momento.
         "lenovo": add_product(db, "Notebook Lenovo IdeaPad 3", brand="Lenovo", offers=[("Paris", 349990), ("SP Digital", 359990)], history=[399990, 389990, 379990, 369990, 349990]),

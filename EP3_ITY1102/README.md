@@ -25,11 +25,11 @@ DATABASE_URL=sqlite:///./ep3_data.db .venv/bin/python scripts/seed_taxonomy.py &
 DATABASE_URL=sqlite:///./ep3_data.db .venv/bin/python scripts/repopulate_paris.py      # ~3 min
 DATABASE_URL=sqlite:///./ep3_data.db .venv/bin/python -m ml.train
 # 2. Pila completa
-ML_API_KEYS=demo-key docker compose up --build        # API :8000, modelo :8080, RabbitMQ :15672
+ML_API_KEYS=clave-local docker compose up --build        # API :8000, modelo :8080, RabbitMQ :15672
 ```
 
 - Swagger: <http://localhost:8000/docs> · Dashboard: <http://localhost:8000/api/v1/ml/dashboard>
-- `curl -XPOST localhost:8000/api/v1/ml/match -H 'x-api-key: demo-key' -H 'content-type: application/json' -d '{"a":"Samsung Galaxy A54 128GB Negro","b":"Celular Galaxy A54 5G 128 GB Negro"}'`
+- `curl -XPOST localhost:8000/api/v1/ml/match -H 'x-api-key: clave-local' -H 'content-type: application/json' -d '{"a":"Samsung Galaxy A54 128GB Negro","b":"Celular Galaxy A54 5G 128 GB Negro"}'`
 - Carga: `bash EP3_ITY1102/pruebas/cargar.sh http://localhost:8000 local 20 60`
 - Pruebas: `DATABASE_URL=sqlite:///./dev_local.db .venv/bin/python -m pytest tests -q` (939 pasan; las del modelo: `tests/modelo_ml`)
 
