@@ -2,7 +2,7 @@
 # Despliega la pila en AWS Academy: S3 (código) + EC2 t3.medium con Docker Compose + alarma de CloudWatch.
 # Requisitos: credenciales del lab en el entorno (AWS_ACCESS_KEY_ID/SECRET/SESSION_TOKEN). Cuesta ~USD 0,05/h: usar destruir.sh al terminar.
 set -euo pipefail
-cd "$(dirname "$0")/../.."          # EP3_ITY1102
+cd "$(dirname "$0")/.."          # EP3_ITY1102
 RAIZ=$(cd .. && pwd)
 REGION=${AWS_DEFAULT_REGION:-us-east-1}; export AWS_DEFAULT_REGION=$REGION AWS_PAGER=""
 CUENTA=$(aws sts get-caller-identity --query Account --output text)
