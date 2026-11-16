@@ -1,8 +1,8 @@
 """Modelo de chat del agente.
 
 LangGraph/LangChain solo piden un ``BaseChatModel``: producción usa Gemini (el mismo
-proveedor y las mismas variables ``GEMINI_*`` del resto de la app); las pruebas y la
-demo sin red usan ``ScriptedChatModel`` (ver ``testing.py``).
+proveedor y las mismas variables ``GEMINI_*`` del resto de la app); las
+pruebas sin red usan ``ScriptedChatModel`` (ver ``tests/agent/modelo_guionado.py``).
 """
 
 from __future__ import annotations

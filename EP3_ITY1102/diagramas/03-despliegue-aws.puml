@@ -1,0 +1,23 @@
+@startuml
+!theme plain
+title Despliegue en AWS Academy
+node "Internet" as I
+node "VPC por defecto · us-east-1" {
+  node "Grupo de seguridad: solo TCP 80" as SG
+  node "EC2 t3.medium (AL2023) · perfil myS3Role" as EC2 {
+    artifact "backend :80" as B
+    artifact "worker" as W
+    artifact "modelo :8080 (interno)" as M
+    artifact "rabbitmq :5672 (interno)" as R
+  }
+}
+database "S3 todobarato-ep3-<cuenta>\nfuente.tgz · ep3.db" as S3
+node "CloudWatch\nalarma CPU > 80 %" as CW
+I --> SG
+SG --> B
+S3 --> EC2 : user-data (aws s3 cp)
+EC2 ..> CW
+note bottom of EC2
+  SageMaker (plan A): create-model bloqueado por IAM\n(sin rol de ejecución). Plan B: mismo contrato\n/ping + /invocations en contenedor propio.
+end note
+@enduml

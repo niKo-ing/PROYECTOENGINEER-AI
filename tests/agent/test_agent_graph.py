@@ -12,7 +12,7 @@ from langgraph.checkpoint.memory import MemorySaver
 from langgraph.checkpoint.sqlite import SqliteSaver
 
 from app.agent.service import AgentService
-from app.agent.testing import AhorroPolicy, ScriptedChatModel
+from modelo_guionado import AhorroPolicy, ScriptedChatModel
 from app.ai.rag.embedding import LocalHashEmbeddingProvider
 from app.models.agent import AgentMemory, PriceAlert, ShoppingList
 from app.models.catalog import StoreOffer

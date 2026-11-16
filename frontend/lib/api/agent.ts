@@ -1,7 +1,5 @@
 import { newId } from "@/lib/utils";
 
-export type AgentMode = "demo" | "real";
-
 export type PlanStep = {
   id: number;
   action: string;
@@ -23,6 +21,19 @@ export type TraceEvent =
   | { turn: number; node: "give_up"; max_steps: number }
   | { turn: number; node: "remember"; stored: string[] };
 
+export type AgentProductCard = {
+  id: number;
+  name: string;
+  brand: string | null;
+  category: string | null;
+  image_url: string | null;
+  lowest_price: number | null;
+  lowest_price_store: string | null;
+  price_clp: number | null;
+  rating: number | null;
+  offer_count: number | null;
+};
+
 export type AgentRun = {
   thread_id: string;
   answer: string;
@@ -34,6 +45,8 @@ export type AgentRun = {
   memories_used: string[];
   steps: number;
   trace: TraceEvent[];
+  products?: AgentProductCard[];
+  comparison?: Record<string, unknown> | null;
 };
 
 export type AgentAlert = {
@@ -61,14 +74,8 @@ export const EMPTY_STATE: AgentState = { alerts: [], lists: [], memories: [] };
 
 const BASE = "/api/v1/agent";
 
-function pathFor(mode: AgentMode, route: string) {
-  return mode === "demo" ? `${BASE}/demo${route}` : `${BASE}${route}`;
-}
-
-function headersFor(mode: AgentMode, accessToken?: string): HeadersInit {
-  const headers: Record<string, string> = { "Content-Type": "application/json" };
-  if (mode === "real" && accessToken) headers.Authorization = `Bearer ${accessToken}`;
-  return headers;
+function headersFor(accessToken: string): HeadersInit {
+  return { "Content-Type": "application/json", Authorization: `Bearer ${accessToken}` };
 }
 
 async function parse<T>(response: Response): Promise<T> {
@@ -85,37 +92,18 @@ async function parse<T>(response: Response): Promise<T> {
   return payload as T;
 }
 
-export async function runAgent(mode: AgentMode, message: string, threadId: string, accessToken?: string): Promise<AgentRun> {
-  const response = await fetch(pathFor(mode, "/run"), {
+export async function runAgent(message: string, threadId: string, accessToken: string, productId?: number | null): Promise<AgentRun> {
+  const response = await fetch(`${BASE}/run`, {
     method: "POST",
-    headers: headersFor(mode, accessToken),
-    body: JSON.stringify({ message, thread_id: threadId }),
+    headers: headersFor(accessToken),
+    body: JSON.stringify({ message, thread_id: threadId, ...(productId ? { product_id: productId } : {}) }),
   });
   return parse<AgentRun>(response);
 }
 
-export async function fetchAgentState(mode: AgentMode, accessToken?: string): Promise<AgentState> {
-  const response = await fetch(pathFor(mode, "/estado"), { headers: headersFor(mode, accessToken), cache: "no-store" });
+export async function fetchAgentState(accessToken: string): Promise<AgentState> {
+  const response = await fetch(`${BASE}/estado`, { headers: headersFor(accessToken), cache: "no-store" });
   return parse<AgentState>(response);
-}
-
-export async function isDemoAvailable(): Promise<boolean> {
-  try {
-    const response = await fetch(`${BASE}/demo/disponible`, { cache: "no-store" });
-    if (!response.ok) return false;
-    const payload = (await response.json()) as { enabled?: boolean };
-    return payload.enabled === true;
-  } catch {
-    return false;
-  }
-}
-
-export async function dropDemoPrice(): Promise<{ product: string; before_clp: number; after_clp: number }> {
-  return parse(await fetch(`${BASE}/demo/bajar-precio`, { method: "POST" }));
-}
-
-export async function resetDemo(): Promise<void> {
-  await parse(await fetch(`${BASE}/demo/reiniciar`, { method: "POST" }));
 }
 
 export function newThreadId(): string {

@@ -22,6 +22,7 @@ def execute_tool(payload: ToolExecutionRequest, user: CurrentUser, db: DbSession
     return AIEngine(db, user).execute(payload)
 
 
-@router.post("/chat", response_model=ChatResponse)
+@router.post("/chat", response_model=ChatResponse, deprecated=True)
 def chat(payload: ChatRequest, user: CurrentUser, db: DbSession, provider: Annotated[LLMProvider, Depends(get_llm_provider)]):
+    """DEPRECADO: el chat y el agente se unificaron en POST /api/v1/agent/run. Se conserva por compatibilidad."""
     return ChatService(db, user, provider).chat(payload.message, product_id=payload.product_id, history=payload.history)

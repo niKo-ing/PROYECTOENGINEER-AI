@@ -68,7 +68,7 @@ function EventRow({ event, index }: { event: TraceEvent; index: number }) {
     case "recall":
       return (
         <Row index={index} icon={<Database className="size-4" />}>
-          <p className="font-medium">Recordó {event.memories.length === 0 ? "nada relevante" : `${event.memories.length} cosa${event.memories.length > 1 ? "s" : ""}`}</p>
+          <p className="font-medium">{event.memories.length === 0 ? "No había nada relevante en su memoria" : `Recordó ${event.memories.length} cosa${event.memories.length > 1 ? "s" : ""}`}</p>
           {event.budget_clp ? <p className="text-xs text-muted-foreground">Presupuesto detectado: ${event.budget_clp.toLocaleString("es-CL")}</p> : null}
         </Row>
       );

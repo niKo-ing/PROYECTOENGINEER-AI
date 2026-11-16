@@ -14,3 +14,16 @@ prueba 1/
 
 # EP2 ITY1102: estado del despliegue (clave de RDS, volcados, imágenes)
 EP2_ITY1102/infra/.salida/
+
+# Basura de herramientas y bases locales
+*.db-shm
+*.db-wal
+*.tsbuildinfo
+.opencode/
+.plan
+=*
+"?"/
+EP2_ITY1102/diagramas/?/
+.java/
+EP3_ITY1102/infra/.salida/
+ep3_data.db

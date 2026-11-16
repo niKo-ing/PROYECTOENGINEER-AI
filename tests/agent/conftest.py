@@ -8,7 +8,7 @@ from sqlalchemy.orm import sessionmaker
 from sqlalchemy.pool import StaticPool
 
 from app import models  # noqa: F401
-from app.agent.demo_data import seed_demo_catalog
+from catalogo import seed_catalog
 from app.db import Base
 
 
@@ -27,5 +27,5 @@ def db(session_factory):
 
 @pytest.fixture()
 def catalog(db):
-    """Catálogo de prueba (ver ``app/agent/demo_data.py``): cada producto fija un escenario."""
-    return seed_demo_catalog(db)
+    """Catálogo de prueba (ver ``catalogo.py``): cada producto fija un escenario."""
+    return seed_catalog(db)

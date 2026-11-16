@@ -3,44 +3,25 @@
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { Bot, MessageSquarePlus, RotateCcw, TrendingDown } from "lucide-react";
+import { Bot, MessageSquarePlus } from "lucide-react";
 
 import { AgentReasoning } from "@/components/agent/agent-reasoning";
+import { AgentProducts } from "@/components/agent/agent-products";
 import { AgentSaved } from "@/components/agent/agent-saved";
 import { ChatComposer } from "@/components/chat/chat-composer";
 import { MarkdownContent } from "@/components/chat/markdown-content";
 import { TypingIndicator } from "@/components/chat/typing-indicator";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import {
-  EMPTY_STATE,
-  dropDemoPrice,
-  fetchAgentState,
-  isDemoAvailable,
-  newThreadId,
-  resetDemo,
-  runAgent,
-  type AgentMode,
-  type AgentRun,
-  type AgentState,
-} from "@/lib/api/agent";
-import { formatCLP, newId } from "@/lib/utils";
+import { EMPTY_STATE, fetchAgentState, newThreadId, runAgent, type AgentRun, type AgentState } from "@/lib/api/agent";
+import { newId } from "@/lib/utils";
 import { useSession } from "@/lib/supabase/use-session";
 import { cn } from "@/lib/utils";
 
-type Message = { id: string; role: "user" | "assistant" | "notice"; text: string; run?: AgentRun };
+type Message = { id: string; role: "user" | "assistant"; text: string; run?: AgentRun };
 
-// Modo demo: catálogo de ejemplo (notebooks, un celular Samsung y uno Huawei).
-const DEMO_STORIES = [
-  { title: "Compra con lista", prompt: "Quiero un notebook Lenovo para la universidad, presupuesto $400.000. Arma una lista de compra." },
-  { title: "Sin resultados → cambia de plan", prompt: "Quiero un notebook gamer, presupuesto $300.000. Avísame cuando baje." },
-  { title: "El historial dice «esperar»", prompt: "Necesito el notebook ASUS TUF, presupuesto $900.000. Guarda la lista si conviene." },
-  { title: "Memoria entre conversaciones", prompt: "Prefiero Samsung y no quiero Huawei. Busco un celular, presupuesto $400.000." },
-  { title: "Revisar alertas", prompt: "Revisa mis alertas de precio." },
-] as const;
-
-// Modo real: pensadas para el catálogo ingestado (celulares, notebooks, tarjetas de video, procesadores y placas madre).
-const REAL_STORIES = [
+// Ideas para empezar, pensadas para el catálogo ingestado (celulares, notebooks, tarjetas de video, procesadores y placas madre).
+const SUGGESTIONS = [
   { title: "Compra con lista", prompt: "Quiero un celular Samsung o Xiaomi, presupuesto $320.000. Arma una lista de compra." },
   { title: "Sobre el presupuesto → alerta", prompt: "Quiero el notebook HP Victus 15 con RTX 2050, mi presupuesto es $1.000.000. Avísame cuando baje a ese precio." },
   { title: "Dónde comprar más barato", prompt: "Compara el Xiaomi Redmi Note 15 Pro entre las tiendas y dime dónde conviene comprarlo." },
@@ -50,12 +31,11 @@ const REAL_STORIES = [
 
 export function AgentScreen() {
   const { session, isLoading: isLoadingSession } = useSession();
-  const [demoAvailable, setDemoAvailable] = useState<boolean | null>(null);
-  const demoRequested = useSearchParams().get("demo") === "1";
-  const [chosenMode, setChosenMode] = useState<AgentMode>("demo");
-  // El modo Demo no se ofrece a los usuarios: solo existe con ?demo=1 y si el backend lo tiene encendido.
-  const showDemo = demoRequested && demoAvailable === true;
-  const mode: AgentMode = showDemo ? chosenMode : "real";
+  const searchParams = useSearchParams();
+  // Si el usuario llega desde la ficha de un producto (/chat?product=ID&name=…), el asistente lo sabe.
+  const productParam = searchParams.get("product");
+  const productId = productParam && /^\d+$/.test(productParam) ? Number(productParam) : null;
+  const productName = searchParams.get("name");
   const [messages, setMessages] = useState<Message[]>([]);
   const [selectedRunId, setSelectedRunId] = useState<string | null>(null);
   const [state, setState] = useState<AgentState>(EMPTY_STATE);
@@ -69,56 +49,33 @@ export function AgentScreen() {
   const accessToken = session?.access_token;
   const selectedRun = messages.find((message) => message.id === selectedRunId)?.run ?? null;
 
-  useEffect(() => {
-    let cancelled = false;
-    void isDemoAvailable().then((enabled) => {
-      if (cancelled) return;
-      setDemoAvailable(enabled);
-    });
-    return () => {
-      cancelled = true;
-    };
-  }, []);
-
-  const refreshState = useCallback(
-    async (currentMode: AgentMode) => {
-      if (currentMode === "real" && !accessToken) {
-        setState(EMPTY_STATE);
-        return;
-      }
-      try {
-        setState(await fetchAgentState(currentMode, accessToken));
-      } catch {
-        setState(EMPTY_STATE);
-      }
-    },
-    [accessToken]
-  );
+  const refreshState = useCallback(async () => {
+    if (!accessToken) {
+      setState(EMPTY_STATE);
+      return;
+    }
+    try {
+      setState(await fetchAgentState(accessToken));
+    } catch {
+      setState(EMPTY_STATE);
+    }
+  }, [accessToken]);
 
   useEffect(() => {
-    if (demoAvailable === null || isLoadingSession) return;
+    if (isLoadingSession) return;
     let cancelled = false;
     void (async () => {
-      const next = mode === "real" && !accessToken ? EMPTY_STATE : await fetchAgentState(mode, accessToken).catch(() => EMPTY_STATE);
+      const next = accessToken ? await fetchAgentState(accessToken).catch(() => EMPTY_STATE) : EMPTY_STATE;
       if (!cancelled) setState(next);
     })();
     return () => {
       cancelled = true;
     };
-  }, [mode, demoAvailable, isLoadingSession, accessToken]);
+  }, [isLoadingSession, accessToken]);
 
   useEffect(() => {
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: "smooth" });
   }, [messages, isLoading]);
-
-  function changeMode(next: AgentMode) {
-    if (next === mode) return;
-    setChosenMode(next);
-    setMessages([]);
-    setSelectedRunId(null);
-    setError("");
-    setThreadId(newThreadId());
-  }
 
   function newConversation() {
     setMessages([]);
@@ -130,8 +87,8 @@ export function AgentScreen() {
   async function submit(text = draft) {
     const trimmed = text.trim();
     if (!trimmed || isLoading) return;
-    if (mode === "real" && !accessToken) {
-      setError("Inicia sesión para usar el agente.");
+    if (!accessToken) {
+      setError("Inicia sesión para usar el asistente.");
       return;
     }
     setDraft("");
@@ -139,40 +96,15 @@ export function AgentScreen() {
     setIsLoading(true);
     setMessages((current) => [...current, { id: newId(), role: "user", text: trimmed }]);
     try {
-      const run = await runAgent(mode, trimmed, threadId, accessToken);
+      const run = await runAgent(trimmed, threadId, accessToken, productId);
       const id = newId();
       setMessages((current) => [...current, { id, role: "assistant", text: run.answer, run }]);
       setSelectedRunId(id);
-      await refreshState(mode);
+      await refreshState();
     } catch (requestError) {
       setError(requestError instanceof Error ? requestError.message : "No fue posible consultar al agente.");
     } finally {
       setIsLoading(false);
-    }
-  }
-
-  async function simulatePriceDrop() {
-    setError("");
-    try {
-      const drop = await dropDemoPrice();
-      setMessages((current) => [
-        ...current,
-        { id: newId(), role: "notice", text: `Pasaron los días: ${drop.product} bajó de ${formatCLP(drop.before_clp)} a ${formatCLP(drop.after_clp)}. Pídele «Revisa mis alertas de precio».` },
-      ]);
-      await refreshState("demo");
-    } catch (requestError) {
-      setError(requestError instanceof Error ? requestError.message : "No fue posible simular la baja de precio.");
-    }
-  }
-
-  async function resetDemoData() {
-    setError("");
-    try {
-      await resetDemo();
-      newConversation();
-      await refreshState("demo");
-    } catch (requestError) {
-      setError(requestError instanceof Error ? requestError.message : "No fue posible reiniciar la demo.");
     }
   }
 
@@ -200,30 +132,10 @@ export function AgentScreen() {
             <Bot className="size-4" />
           </div>
           <div className="min-w-0 flex-1">
-            <h1 className="text-base font-semibold tracking-tight">Agente de ahorro</h1>
-            <p className="hidden truncate text-xs text-muted-foreground sm:block">Busca, razona sobre precios y deja alertas y listas guardadas</p>
+            <h1 className="text-base font-semibold tracking-tight">Asistente de ahorro</h1>
+            <p className="hidden truncate text-xs text-muted-foreground sm:block">Conversa, compara, razona sobre precios y deja alertas y listas guardadas</p>
           </div>
           <div className="ml-auto flex flex-wrap items-center gap-2">
-            {showDemo ? (
-              <div className="flex rounded-lg border p-0.5 text-xs font-medium" role="group" aria-label="Modo">
-                <button
-                  type="button"
-                  onClick={() => changeMode("demo")}
-                  aria-pressed={mode === "demo"}
-                  className={cn("rounded-md px-2.5 py-1", mode === "demo" ? "bg-primary text-primary-foreground" : "text-muted-foreground")}
-                >
-                  Demo
-                </button>
-                <button
-                  type="button"
-                  onClick={() => changeMode("real")}
-                  aria-pressed={mode === "real"}
-                  className={cn("rounded-md px-2.5 py-1", mode === "real" ? "bg-primary text-primary-foreground" : "text-muted-foreground")}
-                >
-                  Gemini real
-                </button>
-              </div>
-            ) : null}
             <Button type="button" variant="ghost" size="sm" onClick={newConversation} className="gap-1.5">
               <MessageSquarePlus className="size-4" aria-hidden="true" />
               <span className="hidden sm:inline">Nueva conversación</span>
@@ -231,38 +143,28 @@ export function AgentScreen() {
           </div>
         </header>
 
-        {mode === "demo" ? (
-          <div className="flex shrink-0 flex-wrap items-center gap-2 border-b bg-muted/40 px-4 py-2 text-xs text-muted-foreground sm:px-6">
-            <span className="hidden min-w-0 flex-1 sm:block">Modo demo: catálogo de ejemplo y modelo guionado. Sin login, sin red y sin gastar cuota.</span>
-            <Button type="button" variant="outline" size="sm" onClick={() => void simulatePriceDrop()} className="gap-1.5">
-              <TrendingDown className="size-3.5" aria-hidden="true" />
-              Simular baja de precio
-            </Button>
-            <Button type="button" variant="ghost" size="sm" onClick={() => void resetDemoData()} className="gap-1.5">
-              <RotateCcw className="size-3.5" aria-hidden="true" />
-              Reiniciar demo
-            </Button>
-          </div>
-        ) : !isLoadingSession && !session ? (
+        {!isLoadingSession && !session ? (
           <div className="shrink-0 border-b bg-amber-500/10 px-4 py-2 text-xs sm:px-6">
-            Para usar el agente necesitas{" "}
-            <Link href="/login?next=/agente" className="font-semibold text-primary underline underline-offset-2">
+            Para usar el asistente necesitas{" "}
+            <Link href="/login" className="font-semibold text-primary underline underline-offset-2">
               iniciar sesión
             </Link>
             .
           </div>
         ) : null}
 
-        <div ref={scrollRef} role="log" aria-live="polite" aria-label="Conversación con el agente" className="min-h-0 min-w-0 flex-1 overflow-y-auto overscroll-contain">
+        <div ref={scrollRef} role="log" aria-live="polite" aria-label="Conversación con el asistente" className="min-h-0 min-w-0 flex-1 overflow-y-auto overscroll-contain">
           <div className={cn("mx-auto flex min-h-full w-full max-w-3xl flex-col px-4 py-6 sm:px-6", hasConversation ? "space-y-4" : "justify-center")}>
             {!hasConversation ? (
               <div className="mx-auto w-full max-w-2xl text-center">
-                <h2 className="text-lg font-semibold tracking-tight">¿Qué quieres comprar y cuánto puedes gastar?</h2>
+                <h2 className="text-lg font-semibold tracking-tight">
+                  {productName ? `¿Qué quieres saber de «${productName}»?` : "¿Qué quieres comprar y cuánto puedes gastar?"}
+                </h2>
                 <p className="mt-2 text-sm leading-6 text-muted-foreground">
-                  El agente planifica, consulta el catálogo, juzga si el precio está inflado y puede dejar una alerta o una lista guardada. Prueba una de estas historias:
+                  El asistente planifica, consulta el catálogo, juzga si el precio está inflado y puede dejar una alerta o una lista guardada. Puede empezar con una de estas sugerencias:
                 </p>
                 <div className="mt-5 grid gap-2 text-left sm:grid-cols-2">
-                  {(mode === "demo" ? DEMO_STORIES : REAL_STORIES).map((story, index) => (
+                  {SUGGESTIONS.map((story, index) => (
                     <button
                       key={story.title}
                       type="button"
@@ -270,17 +172,15 @@ export function AgentScreen() {
                       style={{ animationDelay: `${index * 70}ms` }}
                       className="rounded-2xl border bg-card px-4 py-3 text-sm shadow-sm transition duration-200 hover:-translate-y-0.5 hover:border-primary/40 hover:shadow-md active:translate-y-0 active:scale-[0.99] motion-safe:animate-card-in"
                     >
-                      <span className="text-xs font-semibold text-primary">Historia {index + 1}</span>
+                      <span className="text-xs font-semibold text-primary">Sugerencia {index + 1}</span>
                       <span className="block font-medium">{story.title}</span>
                       <span className="mt-1 block text-xs leading-5 text-muted-foreground">{story.prompt}</span>
                     </button>
                   ))}
                 </div>
-                {mode === "real" ? (
                   <p className="mt-3 text-xs leading-5 text-muted-foreground">
                     Con tu catálogo real: si un producto tiene menos de 3 observaciones de precio, el agente te dirá que no alcanza para juzgar su tendencia. Lo que guarde (alertas, listas, memoria) queda en tu cuenta.
                   </p>
-                ) : null}
               </div>
             ) : null}
 
@@ -291,10 +191,6 @@ export function AgentScreen() {
                     <p className="whitespace-pre-wrap">{message.text}</p>
                   </div>
                 </article>
-              ) : message.role === "notice" ? (
-                <p key={message.id} className="motion-safe:animate-message-in rounded-xl border border-dashed bg-muted/40 px-4 py-2 text-center text-xs text-muted-foreground">
-                  {message.text}
-                </p>
               ) : (
                 <article key={message.id} className="motion-safe:animate-message-in flex items-start gap-2.5">
                   <div className="mt-1 flex size-7 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary" aria-hidden="true">
@@ -304,6 +200,7 @@ export function AgentScreen() {
                     className={cn("min-w-0 flex-1 [overflow-wrap:anywhere] rounded-2xl rounded-bl-md bg-muted px-4 py-3", selectedRunId === message.id && "ring-2 ring-primary/40")}
                   >
                     <MarkdownContent markdown={message.text} />
+                    {message.run?.products?.length ? <AgentProducts products={message.run.products} /> : null}
                     {message.run ? (
                       <button
                         type="button"

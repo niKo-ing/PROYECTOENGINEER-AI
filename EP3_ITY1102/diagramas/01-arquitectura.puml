@@ -1,0 +1,36 @@
+@startuml
+!theme plain
+skinparam componentStyle rectangle
+skinparam shadowing false
+title Arquitectura de TodoBarato AI (EP3)
+actor Usuario
+actor "Cliente API\n(Postman/curl)" as Cli
+rectangle "EC2 t3.medium · Docker Compose" {
+  component "API REST (FastAPI)\n/docs · /ml/* · /agent/run" as API
+  component "Dashboard\n/ml/dashboard" as Dash
+  component "Asistente (agente LangGraph)\nplan · herramientas · memoria" as Agente
+  queue "RabbitMQ\nmatch.requests (+ .dlq)" as MQ
+  component "Worker de emparejamiento" as W
+  component "Contenedor del modelo\n/ping · /invocations\nRandom Forest (scikit-learn)" as Modelo
+  database "Base de datos\ncatálogo · ai_match_decisions" as DB
+}
+cloud "AWS" {
+  storage "S3\ncódigo y artefactos" as S3
+  component "CloudWatch\nCPU · alarma" as CW
+}
+cloud "Google Gemini" as LLM
+Usuario --> Dash
+Usuario --> API : chat
+Cli --> API : X-API-Key / JWT\nrate limit
+API --> Agente
+Agente --> LLM
+Agente --> DB : herramientas
+API --> Modelo : POST /ml/match (síncrono)
+API --> MQ : POST /ml/match/async
+MQ --> W
+W --> Modelo
+W --> DB : guarda decisión
+Dash --> API
+S3 ..> API : despliegue
+CW ..> API : métricas
+@enduml

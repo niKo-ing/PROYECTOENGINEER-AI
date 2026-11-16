@@ -1,9 +1,49 @@
 services:
+  rabbitmq:
+    image: rabbitmq:3.13-management
+    ports:
+      - "5672:5672"
+      - "15672:15672"   # consola: http://localhost:15672 (guest/guest)
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  modelo:
+    build:
+      context: .
+      dockerfile: EP3_ITY1102/modelo/Dockerfile
+    ports:
+      - "8080:8080"
+
+  worker:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    env_file: .env
+    environment:
+      RABBITMQ_URL: amqp://guest:guest@rabbitmq:5672/%2F
+      MATCH_MODEL_URL: http://modelo:8080
+    command: python -m app.messaging.match_worker
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+      modelo:
+        condition: service_started
+
   backend:
     build:
       context: .
       dockerfile: Dockerfile
     env_file: .env
+    environment:
+      RABBITMQ_URL: amqp://guest:guest@rabbitmq:5672/%2F
+      MATCH_MODEL_URL: http://modelo:8080
+      ML_API_KEYS: ${ML_API_KEYS:-CAMBIAR-esta-llave}
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
     ports:
       - "8000:8000"
     command: sh -c "alembic upgrade head && uvicorn app.main:app --host 0.0.0.0 --port 8000"

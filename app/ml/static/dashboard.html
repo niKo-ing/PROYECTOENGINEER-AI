@@ -1,0 +1,109 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Dashboard · Modelo de emparejamiento</title>
+<style>
+  :root { --bg:#f6f7f9; --card:#fff; --ink:#15171c; --mut:#667085; --line:#e4e7ec; --ok:#12805c; --bad:#c0392b; --warn:#b7791f; --acc:#2f5bea; }
+  @media (prefers-color-scheme: dark) { :root { --bg:#0f1115; --card:#171a21; --ink:#eef0f4; --mut:#9aa3b2; --line:#272c36; --ok:#3ecf8e; --bad:#ff6b5b; --warn:#f0b429; --acc:#7c9cff; } }
+  * { box-sizing:border-box } body { margin:0; background:var(--bg); color:var(--ink); font:15px/1.5 system-ui,sans-serif }
+  main { max-width:1100px; margin:0 auto; padding:24px 16px 48px }
+  h1 { font-size:22px; margin:0 0 4px } h2 { font-size:15px; margin:0 0 12px } p.sub { color:var(--mut); margin:0 0 20px }
+  .grid { display:grid; gap:14px; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); margin-bottom:14px }
+  .card { background:var(--card); border:1px solid var(--line); border-radius:12px; padding:16px }
+  .kpi b { display:block; font-size:26px; font-variant-numeric:tabular-nums } .kpi span { color:var(--mut); font-size:12px }
+  .two { display:grid; gap:14px; grid-template-columns:repeat(auto-fit,minmax(320px,1fr)); margin-bottom:14px }
+  input,button { font:inherit } input { width:100%; padding:9px 10px; border:1px solid var(--line); border-radius:8px; background:var(--bg); color:var(--ink); margin-bottom:8px }
+  button { padding:9px 14px; border:0; border-radius:8px; background:var(--acc); color:#fff; cursor:pointer } button.sec { background:transparent; color:var(--acc); border:1px solid var(--line) }
+  .bar { height:10px; border-radius:5px; background:var(--line); overflow:hidden; margin:3px 0 10px } .bar i { display:block; height:100%; background:var(--acc) }
+  table { width:100%; border-collapse:collapse; font-size:13px } th,td { text-align:left; padding:7px 6px; border-bottom:1px solid var(--line); vertical-align:top } th { color:var(--mut); font-weight:600 }
+  .tag { padding:2px 8px; border-radius:99px; font-size:12px; font-weight:600 } .match { background:#12805c22; color:var(--ok) } .no_match { background:#c0392b22; color:var(--bad) } .ambiguous { background:#b7791f22; color:var(--warn) }
+  .cm { display:grid; grid-template-columns:auto 1fr 1fr; gap:4px; text-align:center; font-variant-numeric:tabular-nums } .cm div { padding:10px; border-radius:8px; background:var(--bg) } .cm .h { background:none; color:var(--mut); font-size:12px }
+  #result { margin-top:10px } .mut { color:var(--mut); font-size:12px }
+</style>
+</head>
+<body>
+<main>
+  <h1>Modelo de emparejamiento de productos</h1>
+  <p class="sub">¿Dos títulos de tiendas distintas son el mismo producto? Métricas de prueba, predicción en vivo y cola de RabbitMQ. <span id="estado" class="mut"></span></p>
+
+  <div class="grid" id="kpis"></div>
+
+  <div class="two">
+    <section class="card">
+      <h2>Predicción en vivo (entrada → modelo → resultado)</h2>
+      <label class="mut">Llave de API (cabecera X-API-Key)</label>
+      <input id="key" type="password" placeholder="demo-key" autocomplete="off">
+      <input id="a" value="Samsung Galaxy A54 128GB Negro">
+      <input id="b" value="Celular Galaxy A54 5G 128 GB Negro">
+      <button id="go">Comparar</button> <button class="sec" id="queue">Encolar (RabbitMQ)</button>
+      <div id="result"></div>
+    </section>
+    <section class="card">
+      <h2>Modelo vs. línea base (conjunto de prueba)</h2>
+      <div id="compare"></div>
+      <h2 style="margin-top:14px">Matriz de confusión</h2>
+      <div class="cm" id="cm"></div>
+    </section>
+  </div>
+
+  <div class="two">
+    <section class="card"><h2>Umbral de decisión (precisión vs. cobertura)</h2><table id="thr"></table></section>
+    <section class="card"><h2>Importancia de las características</h2><div id="imp"></div></section>
+  </div>
+
+  <section class="card">
+    <h2>Últimas decisiones del worker <span class="mut" id="depth"></span></h2>
+    <table id="dec"><thead><tr><th>Par comparado</th><th>Decisión</th><th>P</th><th>Razones</th></tr></thead><tbody></tbody></table>
+  </section>
+</main>
+<script>
+const $ = (id) => document.getElementById(id);
+const API = location.pathname.replace(/\/ml\/dashboard.*$/, "") + "/ml";
+const pct = (x) => (x * 100).toFixed(1) + " %";
+const esc = (s) => String(s ?? "").replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+const headers = () => ({ "Content-Type": "application/json", "X-API-Key": $("key").value || sessionStorage.getItem("key") || "" });
+$("key").value = sessionStorage.getItem("key") || ""; $("key").addEventListener("change", () => sessionStorage.setItem("key", $("key").value));
+
+async function loadMetrics() {
+  const m = await (await fetch(API + "/metrics")).json();
+  const t = m.prueba, b = m.linea_base;
+  $("kpis").innerHTML = [["Accuracy", t.accuracy], ["Precision", t.precision], ["Recall", t.recall], ["F1", t.f1], ["ROC AUC", t.roc_auc]]
+    .map(([k, v]) => `<div class="card kpi"><b>${pct(v)}</b><span>${k} · ${esc(m.modelo_elegido)}</span></div>`).join("");
+  $("compare").innerHTML = ["accuracy", "precision", "recall", "f1"].map((k) =>
+    `<div class="mut">${k}: modelo ${pct(t[k])} · línea base ${pct(b[k])}</div><div class="bar"><i style="width:${t[k] * 100}%"></i></div><div class="bar"><i style="width:${b[k] * 100}%;background:var(--mut)"></i></div>`).join("") +
+    `<p class="mut">Línea base: ${esc(b.regla)}. Datos: ${m.dataset.productos} productos reales, ${m.dataset.pares} pares, ${m.dataset.prueba} en prueba (partición por producto).</p>`;
+  const c = t.confusion;
+  $("cm").innerHTML = `<div class="h"></div><div class="h">pred. distinto</div><div class="h">pred. mismo</div><div class="h">real distinto</div><div>${c.tn}</div><div>${c.fp}</div><div class="h">real mismo</div><div>${c.fn}</div><div>${c.tp}</div>`;
+  $("thr").innerHTML = "<tr><th>Umbral</th><th>Precisión</th><th>Cobertura</th></tr>" + m.tabla_de_umbrales.map((r) => `<tr><td>${r.umbral}</td><td>${r.precision ?? "—"}</td><td>${r.cobertura_de_positivos}</td></tr>`).join("");
+  const imp = Object.entries(m.importancia_caracteristicas), top = imp[0][1] || 1;
+  $("imp").innerHTML = imp.map(([k, v]) => `<div class="mut">${esc(k)} · ${v}</div><div class="bar"><i style="width:${(v / top) * 100}%"></i></div>`).join("");
+}
+
+function render(r, ms) {
+  $("result").innerHTML = `<span class="tag ${r.decision}">${esc(r.decision)}</span> P = <b>${r.probability}</b> <span class="mut">(${ms} ms)</span><ul>${r.reasons.map((x) => `<li>${esc(x)}</li>`).join("")}</ul>`;
+}
+$("go").onclick = async () => {
+  const t0 = performance.now();
+  const res = await fetch(API + "/match", { method: "POST", headers: headers(), body: JSON.stringify({ a: $("a").value, b: $("b").value }) });
+  if (!res.ok) { $("result").textContent = `Error ${res.status}: ${(await res.json().catch(() => ({}))).detail || ""}`; return; }
+  render(await res.json(), Math.round(performance.now() - t0));
+};
+$("queue").onclick = async () => {
+  const res = await fetch(API + "/match/async", { method: "POST", headers: headers(), body: JSON.stringify({ a: $("a").value, b: $("b").value }) });
+  $("result").textContent = res.ok ? "Encolado. Aparece abajo cuando el worker lo procese." : `Error ${res.status}`;
+  setTimeout(loadDecisions, 1500);
+};
+async function loadDecisions() {
+  const res = await fetch(API + "/decisions?limit=12", { headers: headers() });
+  if (!res.ok) { $("depth").textContent = "(ingrese la llave de API para ver las decisiones)"; return; }
+  const d = await res.json();
+  $("depth").textContent = `· cola: ${d.queue_depth} pendientes`;
+  $("dec").tBodies[0].innerHTML = d.decisions.map((r) => `<tr><td>${esc(r.a)}<br><span class="mut">${esc(r.b)}</span></td><td><span class="tag ${r.decision}">${esc(r.decision)}</span></td><td>${r.probability}</td><td class="mut">${esc(r.reason)}</td></tr>`).join("");
+}
+fetch(API + "/health").then((r) => r.json()).then((h) => { $("estado").textContent = `· servicio: ${h.status} (${h.scorer || ""})`; });
+loadMetrics(); loadDecisions(); setInterval(loadDecisions, 5000);
+</script>
+</body>
+</html>

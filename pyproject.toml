@@ -29,6 +29,9 @@ dependencies = [
 
 [project.optional-dependencies]
 dev = ["pytest>=8.0,<9.0"]
+ml = ["scikit-learn>=1.5,<2.0", "joblib>=1.4,<2.0", "numpy>=1.26"]
+mensajeria = ["pika>=1.3,<2.0"]
+carga = ["locust>=2.29,<3.0"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
@@ -38,4 +41,7 @@ markers = [
   "live: tests that call real Gemini (need GEMINI_API_KEY and RUN_LIVE=1)",
 ]
 [tool.setuptools.packages.find]
-include = ["app*"]
+include = ["app*", "ml*"]
+
+[tool.setuptools.package-data]
+app = ["ml/static/*.html"]
