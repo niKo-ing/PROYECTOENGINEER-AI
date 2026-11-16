@@ -14,6 +14,7 @@ from pathlib import Path
 from typing import Annotated, Any
 
 from fastapi import APIRouter, BackgroundTasks, Depends, Header, HTTPException, status
+from fastapi.responses import HTMLResponse
 from pydantic import BaseModel, Field
 from sqlalchemy import select
 from sqlalchemy.orm import Session
@@ -117,3 +118,12 @@ def decisions(who: Caller, db: DbSession, broker: Annotated[Broker, Depends(get_
             for r in rows
         ],
     }
+
+
+DASHBOARD_PATH = Path(__file__).resolve().parents[1] / "ml" / "static" / "dashboard.html"
+
+
+@router.get("/dashboard", response_class=HTMLResponse, include_in_schema=False)
+def dashboard() -> str:
+    """Dashboard interactivo: métricas, predicción en vivo, cola y decisiones. Las llamadas protegidas usan la llave que se escriba."""
+    return DASHBOARD_PATH.read_text()

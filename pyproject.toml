@@ -42,3 +42,6 @@ markers = [
 ]
 [tool.setuptools.packages.find]
 include = ["app*", "ml*"]
+
+[tool.setuptools.package-data]
+app = ["ml/static/*.html"]

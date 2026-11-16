@@ -10,6 +10,7 @@ import json
 import logging
 import os
 import queue
+import threading
 from collections.abc import Callable
 from typing import Any, Protocol
 
@@ -57,6 +58,10 @@ class InMemoryBroker:
 
 
 class RabbitBroker:
+    """``pika.BlockingConnection`` NO es seguro entre hilos y FastAPI atiende en un pool de hilos: la prueba de carga
+    con Locust mostró 11 % de errores 500 («StreamLostError … pop from an empty deque»). Se serializa todo acceso al
+    canal con un candado y se reconecta una vez si la conexión se cayó."""
+
     def __init__(self, url: str | None = None):
         import pika
 
@@ -64,43 +69,66 @@ class RabbitBroker:
         self.url = url or os.getenv("RABBITMQ_URL", "amqp://guest:guest@localhost:5672/%2F")
         self._connection = None
         self._channel = None
+        self._declared: set[str] = set()
+        self._lock = threading.RLock()
 
     def _ch(self):
         if self._connection is None or self._connection.is_closed or self._channel is None or self._channel.is_closed:
             self._connection = self._pika.BlockingConnection(self._pika.URLParameters(self.url))
             self._channel = self._connection.channel()
+            self._declared.clear()
         return self._channel
 
     def _declare(self, name: str) -> None:
-        self._ch().queue_declare(queue=f"{name}.dlq", durable=True)
-        self._ch().queue_declare(queue=name, durable=True)
+        if name not in self._declared:
+            self._ch().queue_declare(queue=f"{name}.dlq", durable=True)
+            self._ch().queue_declare(queue=name, durable=True)
+            self._declared.add(name)
+
+    def _with_retry(self, operation):
+        with self._lock:
+            try:
+                return operation()
+            except (self._pika.exceptions.AMQPError, OSError):
+                log.warning("Conexión con RabbitMQ perdida: reconectando")
+                self._connection = self._channel = None
+                return operation()
 
     def publish(self, queue_name, message):
-        self._declare(queue_name)
-        self._ch().basic_publish(
-            exchange="", routing_key=queue_name, body=json.dumps(message).encode(),
-            properties=self._pika.BasicProperties(delivery_mode=2, content_type="application/json"),
-        )
+        def op():
+            self._declare(queue_name)
+            self._ch().basic_publish(
+                exchange="", routing_key=queue_name, body=json.dumps(message).encode(),
+                properties=self._pika.BasicProperties(delivery_mode=2, content_type="application/json"),
+            )
+
+        self._with_retry(op)
 
     def consume_one(self, queue_name, handler):
-        self._declare(queue_name)
-        method, properties, body = self._ch().basic_get(queue=queue_name, auto_ack=False)
+        def fetch():
+            self._declare(queue_name)
+            return self._ch().basic_get(queue=queue_name, auto_ack=False)
+
+        method, _properties, body = self._with_retry(fetch)
         if method is None:
             return False
         message = json.loads(body)
         attempts = message.get("_attempts", 0) + 1
         try:
-            handler(message)
+            handler(message)  # fuera del candado: puede tardar (llama al modelo)
         except Exception:  # noqa: BLE001
             log.exception("Falló el mensaje (intento %s)", attempts)
             target = f"{queue_name}.dlq" if attempts >= MAX_ATTEMPTS else queue_name
-            self._ch().basic_publish("", target, json.dumps({**message, "_attempts": attempts}).encode(), self._pika.BasicProperties(delivery_mode=2))
-        self._ch().basic_ack(method.delivery_tag)
+            self._with_retry(lambda: self._ch().basic_publish("", target, json.dumps({**message, "_attempts": attempts}).encode(), self._pika.BasicProperties(delivery_mode=2)))
+        self._with_retry(lambda: self._ch().basic_ack(method.delivery_tag))
         return True
 
     def depth(self, queue_name):
-        self._declare(queue_name)
-        return self._ch().queue_declare(queue=queue_name, durable=True, passive=True).method.message_count
+        def op():
+            self._declare(queue_name)
+            return self._ch().queue_declare(queue=queue_name, durable=True, passive=True).method.message_count
+
+        return self._with_retry(op)
 
 
 _broker: Broker | None = None
