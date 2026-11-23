@@ -206,8 +206,10 @@ def markdown(report: dict[str, Any]) -> str:
     lines = [f"# Evaluación de la IA — {report['etiqueta']}", "", f"Fecha: {report['fecha']} · Modelo: `{report['modelo']}` · Escenarios del asistente: {report['escenarios']} · "
              f"Repeticiones: {report['repeticiones']}", "", "## Asistente de armado", "",
              "| Métrica | " + " | ".join(report["modos"]) + " |", "|---|" + "---|" * len(report["modos"])]
-    lines.append("| **Acierto total, conjunto de desarrollo** | " + " | ".join(pct(report["asistente"][m]["exactitud_por_conjunto"].get("desarrollo")) for m in report["modos"]) + " |")
-    lines.append("| **Acierto total, conjunto de prueba (no visto)** | " + " | ".join(pct(report["asistente"][m]["exactitud_por_conjunto"].get("prueba")) for m in report["modos"]) + " |")
+    nombres = {"desarrollo": "conjunto de desarrollo", "prueba": "conjunto de prueba (no visto por las reglas)", "prueba-2": "conjunto de prueba 2 (escrito tras corregir; ciego)"}
+    conjuntos = sorted({k for m in report["modos"] for k in report["asistente"][m]["exactitud_por_conjunto"]}, key=lambda k: list(nombres).index(k) if k in nombres else 99)
+    for conjunto in conjuntos:
+        lines.append(f"| **Acierto total, {nombres.get(conjunto, conjunto)}** | " + " | ".join(pct(report["asistente"][m]["exactitud_por_conjunto"].get(conjunto)) for m in report["modos"]) + " |")
     rows = [("Exactitud del estado", "exactitud_estado", pct), ("Exactitud de la extracción", "exactitud_extraccion", pct), ("Pregunta lo que falta", "exactitud_falta", pct),
             ("Armados compatibles", "armados_compatibles", pct), ("Armados dentro del presupuesto", "armados_en_presupuesto", pct),
             ("Precios citados con respaldo", "precios_respaldados", pct), ("Tasa de respaldo (reglas)", "tasa_respaldo", pct),
@@ -258,8 +260,9 @@ def main() -> None:
     llm = None
     if "gemini" in modes or args.agente:
         from app.agent.llm import get_chat_model
+        from app.core.config import settings
 
-        llm = get_chat_model(temperature=0.2)
+        llm = get_chat_model(temperature=0.2, timeout=settings.assistant_llm_timeout_seconds, max_retries=1)  # igual que la ruta /pc/assistant
 
     db = SessionLocal()
     ensure_seeded(db)

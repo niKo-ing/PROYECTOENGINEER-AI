@@ -27,6 +27,9 @@ class Settings:
     gemini_api_key: str = os.getenv("GEMINI_API_KEY", "")
     gemini_model: str = os.getenv("GEMINI_MODEL", "")
     llm_timeout_seconds: float = float(os.getenv("LLM_TIMEOUT_SECONDS", "60"))
+    # El asistente de armado tiene respaldo por reglas: mejor responder sin Gemini que esperar su cola larga (p99 de 12 a 22 s
+    # en la evaluación del 22-11). Ver evals/resultados/analisis-trazas-2026-11-22.md.
+    assistant_llm_timeout_seconds: float = float(os.getenv("ASSISTANT_LLM_TIMEOUT_SECONDS", "10"))
     ai_max_tool_calls: int = int(os.getenv("AI_MAX_TOOL_CALLS", "3"))
     research_enabled: bool = os.getenv("RESEARCH_ENABLED", "true").strip().lower() in {"1", "true", "yes", "on"}
     # Hard ceilings for any research pass (depth budgets stay below these).

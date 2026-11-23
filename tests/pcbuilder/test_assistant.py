@@ -48,6 +48,10 @@ def extraccion(**datos):
     ("algo chico con wifi para la universidad", {"use_case": "oficina", "small": True, "wifi": True}),
     ("para jugar en 1440p con una rtx", {"use_case": "gaming_1440", "gpu_brand": "NVIDIA"}),
     ("transmitir en twitch mientras juego", {"use_case": "streaming"}),
+    # P05 de la evaluación: «videollamadas» no es edición de video; «videojuegos» tampoco.
+    ("trabajo desde la casa con planillas y videollamadas, tengo medio palo", {"use_case": "oficina"}),
+    ("me gustan los videojuegos de aventura", {"use_case": "gaming_1080"}),
+    ("edito videos para youtube", {"use_case": "edicion"}),
 ])
 def test_reglas_entienden_el_pedido(texto, esperado):
     assert rule_based_needs(texto).items() >= esperado.items()
@@ -210,3 +214,28 @@ def test_revision_directa_con_reglas(env):
         data = PcAssistant(db, user_id, None).review(pc["id"], ReviewIn(budget_clp=200_000))
     assert not data["pc"]["report"]["compatible"] and "Lo más importante" in data["answer"]
     assert any(g["guide"] == "socket-y-chipset" for g in data["guides"])
+
+
+def test_armado_sobre_el_presupuesto_siempre_lo_avisa(env):
+    """P05 de la evaluación: Gemini explicó un armado que se pasaba del presupuesto sin decirlo. Ahora lo agrega el código."""
+    _, Session = env
+    with Session() as db:
+        base = PcAssistant(db, "u1", None).run(turnos("quiero editar videos en premiere, tengo 260 mil"))
+        assert base["state"] == "build" and base["recommendation"]["within_budget"] is False
+        exceso = "$" + f"{base['recommendation']['total_clp'] - 260_000:,}".replace(",", ".")
+        assert exceso in base["answer"]  # la explicación de respaldo ya lo decía
+        modelo = FakeListChatModel(responses=[extraccion(use_case="edicion", budget_clp=260000), "Este equipo rinde bien para editar [Memoria RAM]."])
+        r = PcAssistant(db, "u1", modelo).run(turnos("quiero editar videos en premiere, tengo 260 mil"))
+        run = db.scalar(select(AgentRun).where(AgentRun.run_id == r["run_id"]))
+    assert r["explained_by"] == "llm" and r["answer"].startswith("Ojo: este armado supera tu presupuesto en " + exceso)
+    assert run.quality["aviso_presupuesto_agregado"] is True
+
+
+def test_desacuerdo_entre_reglas_y_modelo_queda_en_la_traza(env):
+    _, Session = env
+    modelo = FakeListChatModel(responses=[extraccion(use_case="streaming", budget_clp=900000), "Buen equipo para lo que buscas [Tarjeta gráfica]."])
+    with Session() as db:
+        r = PcAssistant(db, "u1", modelo).run(turnos("quiero jugar valorant, tengo 900 mil"))
+        run = db.scalar(select(AgentRun).where(AgentRun.run_id == r["run_id"]))
+    assert r["needs"]["use_case"] == "esports"  # mandan las reglas (deterministas)
+    assert run.quality["desacuerdo_reglas_llm"] == {"use_case": {"reglas": "esports", "llm": "streaming"}}

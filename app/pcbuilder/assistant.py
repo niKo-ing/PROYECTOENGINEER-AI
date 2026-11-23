@@ -47,10 +47,11 @@ USE_CASE_RULES: tuple[tuple[str, re.Pattern[str]], ...] = (
     ("gaming_1440", re.compile(r"1440|\b2k\b|qhd|alta resoluci", re.I)),
     ("esports", re.compile(r"valorant|\bcs ?2\b|counter|fortnite|\blol\b|league of legends|e-?sports|competitiv|muchos fps|fps altos", re.I)),
     ("modelado_ia", re.compile(r"\b3d\b|blender|modelad|render 3d|ia local|machine learning|inteligencia artificial|\bllm\b|cuda|deep learning", re.I)),
-    ("edicion", re.compile(r"edici|editar|premiere|davinci|after effects|fotograf|photoshop|video", re.I)),
+    ("edicion", re.compile(r"edici|editar|premiere|davinci|after effects|fotograf|photoshop|video(?!\s*-?(?:llamad|juego|conferen))", re.I)),
     ("programacion", re.compile(r"program|desarroll|c[oó]digo|docker|software|compilar", re.I)),
     ("gaming_1080", re.compile(r"jug|gam|juego|1080|play", re.I)),
-    ("oficina", re.compile(r"oficina|estudi|clases|word|excel|navegar|internet|trabajo b[aá]sico|tareas|universidad|colegio", re.I)),
+    ("oficina", re.compile(r"oficina|estudi|clases|word|excel|planilla|navegar|internet|trabajo b[aá]sico|tareas|universidad|colegio|"
+                           r"videollamad|teletrabaj|home ?office|trabajo desde (?:la )?casa|\bzoom\b|\bteams\b|\bmeet\b", re.I)),
 )
 
 USE_CASE_OPTIONS = [("gaming_1080", "Jugar en 1080p"), ("gaming_1440", "Jugar en 1440p"), ("oficina", "Estudio y oficina"),
@@ -84,6 +85,7 @@ Reglas estrictas:
 - Usa SOLO los datos del JSON (piezas, precios, motivos, reporte de compatibilidad) y los fragmentos de guías. No inventes piezas, precios ni medidas.
 - Si mencionas un precio, cópialo tal cual del JSON (formato $123.456). Di una vez que los precios son referenciales.
 - Si el reporte trae advertencias, menciónalas con lo que conviene hacer.
+- Si "dentro_del_presupuesto" es false, dilo en la primera oración con el monto de "exceso" y que es lo mínimo compatible para ese uso.
 - Cuando uses un dato de una guía, nómbrala entre corchetes, por ejemplo [Memoria RAM: DDR4, DDR5, capacidad y doble canal].
 - No saludes ni te presentes. No uses títulos, listas largas ni markdown."""
 
@@ -230,6 +232,10 @@ class PcAssistant:
                 if "budget_clp" in parsed and not (merged.get("budget_clp") or MENTIONS_AMOUNT.search(user_text)):
                     parsed.pop("budget_clp")
                     trace.set(quality={"presupuesto_inventado_descartado": True})
+                # Desacuerdo entre las reglas y Gemini: hoy mandan las reglas (deterministas); se registra para medir si conviene cambiarlo.
+                disagree = {k: {"reglas": rules[k], "llm": parsed[k]} for k in ("use_case", "budget_clp") if k in rules and k in parsed and rules[k] != parsed[k]}
+                if disagree:
+                    trace.set(quality={"desacuerdo_reglas_llm": disagree})
                 for key, value in parsed.items():
                     merged.setdefault(key, value)
                     if key == "use_case" and key not in rules:
@@ -279,6 +285,11 @@ class PcAssistant:
                 guides = self._guides_for(f"{rec['use_case_label']} " + " ".join(i["message"] for i in rec["report"]["issues"][:3]), issue_codes)
             facts = self._facts(rec)
             answer, grounding, explained_by = self._explain(EXPLAIN_SYSTEM, facts, guides, self._fallback_explanation(rec), trace, [last_user])
+            over = rec["total_clp"] - rec["needs"]["budget_clp"]
+            if not rec["within_budget"] and _fmt(over) not in answer:
+                # Regla en código: Gemini a veces omite que el armado se pasa del presupuesto (visto en la evaluación, caso P05).
+                answer = f"Ojo: este armado supera tu presupuesto en {_fmt(over)}; es lo mínimo compatible para ese uso. {answer}"
+                trace.set(quality={"aviso_presupuesto_agregado": True})
             trace.set(status="ok" if explained_by == "llm" or self.llm is None else "fallback", output_text=answer,
                       quality={"precios": grounding, "compatible": rec["report"]["compatible"], "dentro_presupuesto": rec["within_budget"]},
                       extra={"estado": "armado", "fuente": source, "explicacion": explained_by})
@@ -331,7 +342,7 @@ class PcAssistant:
         report = rec["report"]
         return {
             "uso": rec["use_case_label"], "presupuesto": _fmt(rec["needs"]["budget_clp"]), "total": _fmt(rec["total_clp"]), "sobrante": _fmt(rec["leftover_clp"]),
-            "dentro_del_presupuesto": rec["within_budget"],
+            "dentro_del_presupuesto": rec["within_budget"], "exceso": _fmt(max(0, rec["total_clp"] - rec["needs"]["budget_clp"])),
             "piezas": [{"espacio": SLOT_BY_KEY[i["slot"]].label, "nombre": i["name"], "precio": _fmt(i["price_clp"])} for i in rec["items"]],
             "motivos": rec["reasons"], "compatibilidad": report["summary"],
             "advertencias": [i["message"] for i in report["issues"] if i["level"] == "warning"],

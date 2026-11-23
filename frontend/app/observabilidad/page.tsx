@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { Suspense, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import { Activity, CircleCheck, CircleHelp, CircleX, RefreshCw, ShieldAlert } from "lucide-react";
 
@@ -26,11 +27,20 @@ const pct = (value: number | null | undefined) => (value === null || value === u
 const num = (value: number | null | undefined) => (value === null || value === undefined ? "—" : value.toLocaleString("es-CL", { maximumFractionDigits: 1 }));
 
 export default function ObservabilityPage() {
+  return (
+    <Suspense fallback={<div className="px-4 py-16 text-center text-muted-foreground">Cargando…</div>}>
+      <Observability />
+    </Suspense>
+  );
+}
+
+function Observability() {
+  const params = useSearchParams();
   const { session, isLoading } = useSession();
   const token = session?.access_token ?? "";
   const [hours, setHours] = useState(24 * 7);
   const [includeEval, setIncludeEval] = useState(false);
-  const [runId, setRunId] = useState<string | null>(null);
+  const [runId, setRunId] = useState<string | null>(params.get("run"));  // ?run=<id> abre esa traza (enlace desde el análisis de logs)
   const query = useQuery({ queryKey: ["obs", token, hours, includeEval], queryFn: () => fetchMetrics(token, hours, includeEval), enabled: Boolean(token), placeholderData: keepPreviousData, refetchInterval: 30_000 });
 
   if (isLoading) return <div className="px-4 py-16 text-center text-muted-foreground">Cargando…</div>;
@@ -135,7 +145,7 @@ export default function ObservabilityPage() {
             </Card>
           </div>
           <Breakdown data={data} />
-          <RecentRuns runs={data.recent} onOpen={setRunId} />
+          <RecentRuns runs={data.recent} onOpen={setRunId} withDate={hours > 24} />
         </div>
       )}
 
@@ -164,7 +174,7 @@ function Overview({ data }: { data: Metrics }) {
     { label: "Respuestas con respaldo", value: pct(s.fallback_rate) },
     { label: "Precios con respaldo", value: pct(s.quality.grounded_rate) },
     { label: "Llamadas a Gemini por ejecución", value: num(s.llm.calls_per_run) },
-    { label: "Tokens por ejecución", value: num(s.llm.tokens_per_run) },
+    { label: "Tokens por ejecución", value: s.llm.tokens_per_run === null || s.llm.tokens_per_run === undefined ? "—" : Math.round(s.llm.tokens_per_run).toLocaleString("es-CL") },
     { label: "Intentos de inyección", value: `${s.security.injection_detected} (${s.security.blocked} bloqueados)` },
   ];
   return (
@@ -249,7 +259,9 @@ function Breakdown({ data }: { data: Metrics }) {
         <CardContent>
           <Table head={["Etapa", "n", "p50", "p95"]} rows={Object.entries(s.stages).map(([name, d]) => [name, num(d.n), formatMs(d.p50_ms), formatMs(d.p95_ms)])} />
           <p className="mt-3 text-xs text-muted-foreground">
-            Explicaciones descartadas por precio sin respaldo: {s.quality.explanations_discarded} · presupuestos inventados descartados: {s.quality.invented_budget_discarded} · replanificaciones: {s.quality.replans}
+            Explicaciones descartadas por precio sin respaldo: {s.quality.explanations_discarded} · presupuestos inventados descartados: {s.quality.invented_budget_discarded} · avisos de
+            presupuesto agregados por el código: {s.quality.budget_warning_added} · desacuerdo reglas/Gemini: {s.quality.rules_llm_disagreement} ({pct(s.quality.rules_llm_disagreement_rate)}) ·
+            replanificaciones: {s.quality.replans}
           </p>
         </CardContent>
       </Card>
@@ -292,7 +304,7 @@ function StatusBadge({ status }: { status: RunRow["status"] }) {
   return <Badge variant={variant}>{STATUS_LABEL[status] ?? status}</Badge>;
 }
 
-function RecentRuns({ runs, onOpen }: { runs: RunRow[]; onOpen: (id: string) => void }) {
+function RecentRuns({ runs, onOpen, withDate }: { runs: RunRow[]; onOpen: (id: string) => void; withDate: boolean }) {
   return (
     <Card>
       <CardHeader className="pb-2">
@@ -320,7 +332,9 @@ function RecentRuns({ runs, onOpen }: { runs: RunRow[]; onOpen: (id: string) => 
                 <tr key={run.run_id} className="cursor-pointer border-b last:border-0 hover:bg-muted/50" onClick={() => onOpen(run.run_id)}>
                   <td className="py-2 tabular-nums">
                     <button type="button" className="underline-offset-4 hover:underline" onClick={() => onOpen(run.run_id)}>
-                      {run.started_at ? new Date(run.started_at).toLocaleTimeString("es-CL", { hour: "2-digit", minute: "2-digit" }) : "—"}
+                      {run.started_at
+                        ? new Date(run.started_at).toLocaleString("es-CL", withDate ? { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" } : { hour: "2-digit", minute: "2-digit" })
+                        : "—"}
                     </button>
                   </td>
                   <td className="py-2">{FLOW_LABEL[run.flow] ?? run.flow}</td>

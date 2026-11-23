@@ -108,3 +108,40 @@ def test_planificador_y_diagnostico_para_pedidos_de_pc():
     assert diagnose([bad], None).reason == REASON_INCOMPATIBLE
     over = ToolMessage(json.dumps({"within_budget": False, "total_clp": 420000, "budget_clp": 300000}), tool_call_id="2", name="recommend_pc_build")
     assert diagnose([over], 300000).reason == REASON_PC_OVER_BUDGET
+
+
+
+def test_research_part_web_cita_fuentes_externas(monkeypatch, pc_tools):
+    """Fuente externa del RAG: arma el objetivo con la pieza del catálogo y devuelve las fuentes con su URL."""
+    from app.agent import pc_tools as modulo
+    from app.ai.evidence import Evidence, EvidenceKind, KnowledgeSourceType
+    from app.ai.research.schemas import ResearchReport
+
+    vistos = {}
+
+    class Falso:
+        def research(self, targets, message):
+            vistos["target"], vistos["message"] = targets[0], message
+            evidencia = Evidence(source_type=KnowledgeSourceType.MANUFACTURER, source_name="fabricante.com", source_url="https://fabricante.com/rtx-4060",
+                                 title="Ficha técnica", content="Largo de la tarjeta: 247 mm", confidence=0.9, kind=EvidenceKind.EXTRACTED)
+            return ResearchReport(used=True, evidence=[evidencia], queries_run=1)
+
+    monkeypatch.setattr(modulo, "_web_research", lambda db: Falso())
+    tools, _ = pc_tools
+    gpu = find(tools, "RTX 4060", "gpu")
+    out = call(tools, "research_part_web", product_id=gpu, question="largo en mm")
+    assert out["used"] is True and out["sources"][0]["url"] == "https://fabricante.com/rtx-4060"
+    assert "247 mm" in out["sources"][0]["excerpt"] and out["sources"][0]["type"] == "manufacturer"
+    assert vistos["target"].id == gpu and "RTX 4060" in vistos["target"].name and vistos["message"] == "largo en mm"
+
+
+def test_research_part_web_sin_resultados_y_ids_ajenos(monkeypatch, pc_tools):
+    from app.agent import pc_tools as modulo
+    from app.ai.research.schemas import ResearchReport
+
+    monkeypatch.setattr(modulo, "_web_research", lambda db: type("F", (), {"research": lambda self, t, m: ResearchReport(used=False, note="Sin fuentes.")})())
+    tools, _ = pc_tools
+    out = call(tools, "research_part_web", product_id=find(tools, "RTX 4060", "gpu"), question="largo en mm")
+    assert out == {"used": False, "reason": "Sin fuentes."}
+    with pytest.raises(ToolException, match="no corresponde"):
+        tools["research_part_web"].func(product_id=999_999, question="largo en mm")

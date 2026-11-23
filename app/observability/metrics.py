@@ -112,6 +112,9 @@ def summarize(runs: list[AgentRun], spans: list[AgentSpan]) -> dict[str, Any]:
             "unsupported_prices": sum(len((r.quality or {}).get("precios", {}).get("unsupported") or []) for r in cited),
             "explanations_discarded": sum(1 for r in runs if (r.quality or {}).get("explicacion_descartada")),
             "invented_budget_discarded": sum(1 for r in runs if (r.quality or {}).get("presupuesto_inventado_descartado")),
+            "rules_llm_disagreement": sum(1 for r in runs if (r.quality or {}).get("desacuerdo_reglas_llm")),
+            "rules_llm_disagreement_rate": _rate(sum(1 for r in runs if (r.quality or {}).get("desacuerdo_reglas_llm")), sum(1 for r in runs if r.flow == "asistente_pc" and r.llm_calls)),
+            "budget_warning_added": sum(1 for r in runs if (r.quality or {}).get("aviso_presupuesto_agregado")),
             "replans": sum(r.replans for r in runs), "tool_errors": sum(r.tool_errors for r in runs),
         },
         "security": {
@@ -156,7 +159,8 @@ def timeseries(runs: list[AgentRun], bucket_minutes: int = 60) -> list[dict[str,
 
 
 def run_view(run: AgentRun) -> dict[str, Any]:
-    return {"run_id": run.run_id, "flow": run.flow, "started_at": run.started_at.isoformat() if run.started_at else None, "latency_ms": run.latency_ms,
+    started = run.started_at and (run.started_at if run.started_at.tzinfo else run.started_at.replace(tzinfo=timezone.utc))  # SQLite guarda sin zona: es UTC
+    return {"run_id": run.run_id, "flow": run.flow, "started_at": started.isoformat() if started else None, "latency_ms": run.latency_ms,
             "status": run.status, "error_type": run.error_type, "model": run.model, "llm_calls": run.llm_calls, "input_tokens": run.input_tokens,
             "output_tokens": run.output_tokens, "tool_calls": run.tool_calls, "tool_errors": run.tool_errors, "tools": run.tools, "replans": run.replans,
             "input_preview": run.input_preview, "guardrails": run.guardrails, "quality": run.quality, "eval_tag": run.eval_tag, "user_hash": run.user_hash}

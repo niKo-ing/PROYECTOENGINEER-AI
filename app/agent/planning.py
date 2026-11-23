@@ -87,7 +87,10 @@ class Diagnosis:
 
 
 # -- presupuesto -------------------------------------------------------------------------
-_BUDGET_WORDS = ("presupuesto", "hasta", "maximo", "máximo", "menos de", "bajo", "no mas de", "no más de", "tope", "gastar")
+_BUDGET_WORDS = ("presupuesto", "hasta", "maximo", "máximo", "menos de", "bajo", "no mas de", "no más de", "tope", "gastar", "tengo", "cuento con", "dispongo", "me alcanza", "junté", "junte")
+# Cifras que no son plata: modelos de piezas (RTX 4060, DDR4 3200) y medidas con unidad (750 W, 1440p, 6000 MT/s).
+_MODEL_BEFORE = re.compile(r"(?:rtx|gtx|rx|arc|ryzen\s*\d?|core\s*i\d|i[3579]|ddr\d?|pcie|gen\s*\d?|\d{1,2}\s*gb)[\s-]*$", re.IGNORECASE)
+_UNIT_AFTER = re.compile(r"^\s*(?:mhz|mt/?s|w\b|watts?\b|mm\b|gb\b|tb\b|rpm\b|hz\b|fps\b|p\b|x\d)", re.IGNORECASE)
 _AMOUNT = re.compile(
     r"(?P<sym>\$\s*)?(?P<num>\d{1,3}(?:[.\s]\d{3})+|\d+(?:[.,]\d+)?)\s*(?P<unit>millones|millon|millón|mil|lucas|luca|palos|palo|k)?\b",
     re.IGNORECASE,
@@ -113,13 +116,19 @@ def extract_budget_clp(text: str) -> int | None:
     lowered = text.lower()
     best: tuple[int, int] | None = None  # (distancia a palabra de presupuesto, monto)
     for match in _AMOUNT.finditer(text):
-        amount = _amount_to_clp(match.group("num"), match.group("unit"))
+        unit, num = (match.group("unit") or "").lower(), match.group("num")
+        if unit == "k" and not match.group("sym") and re.fullmatch(r"\d", num):
+            continue  # «4K», «8k»: resolución, no 4.000 pesos
+        if not unit and not match.group("sym") and (_MODEL_BEFORE.search(text[: match.start()]) or _UNIT_AFTER.match(text[match.end():])):
+            continue
+        amount = _amount_to_clp(num, unit)
         if amount is None:
             continue
         start = match.start()
         distances = [start - (lowered.rfind(word, 0, start) + len(word)) for word in _BUDGET_WORDS if lowered.rfind(word, 0, start) != -1]
         distance = min(distances) if distances else 10_000
-        if best is None or distance < best[0]:
+        # Sin palabra de presupuesto cerca, gana el monto mayor (antes ganaba el primero: «4K… 2,5 millones» daba $4.000).
+        if best is None or distance < best[0] or (distance == best[0] and amount > best[1]):
             best = (distance, amount)
     return best[1] if best else None
 

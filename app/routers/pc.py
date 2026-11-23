@@ -9,6 +9,7 @@ from langchain_core.language_models import BaseChatModel
 from pydantic import BaseModel, Field
 from sqlalchemy.orm import Session
 
+from app.core.config import settings
 from app.core.ratelimit import rate_limit
 from app.core.security import AuthenticatedUser, get_current_user
 from app.db import get_db
@@ -31,7 +32,7 @@ ai_limited = Depends(rate_limit("pc_ia", "PC_AI_RATE_LIMIT_PER_MINUTE", 15))
 def get_assistant_llm() -> BaseChatModel | None:
     """Modelo del asistente; sin llave de Gemini devuelve None y el asistente responde solo con reglas."""
     try:
-        return get_chat_model(temperature=0.2)
+        return get_chat_model(temperature=0.2, timeout=settings.assistant_llm_timeout_seconds, max_retries=1)
     except AgentNotConfiguredError:
         return None
 

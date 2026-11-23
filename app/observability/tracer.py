@@ -180,6 +180,7 @@ class RunTracer:
             "steps": int(self.fields.get("steps") or 0), "replans": int(self.fields.get("replans") or 0), "plan_source": self.fields.get("plan_source"),
             "input_chars": len(self.user_text), "output_chars": len(output), "guardrails": self.fields.get("guardrails", {}), "quality": self.fields.get("quality", {}),
             "error_type": self.fields.get("error_type"), "eval_tag": self.eval_tag,
+            "extra": self.fields.get("extra", {}),  # causa del respaldo (llm_error), estado de la respuesta; sin texto del usuario
         }
 
     def __enter__(self) -> "RunTracer":

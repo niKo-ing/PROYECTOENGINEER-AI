@@ -1,6 +1,8 @@
 """Herramientas del agente para el armador de PC.
 
-* **consulta**: ``search_pc_parts``, ``list_my_pcs``, ``search_compatibility_guide`` (RAG sobre las guías);
+* **consulta**: ``search_pc_parts``, ``list_my_pcs``, ``search_compatibility_guide`` (RAG sobre las guías, fuente
+  interna) y ``research_part_web`` (ficha del fabricante o reseñas en la web, fuente externa, con presupuesto de
+  consultas y validación de URL);
 * **razonamiento**: ``check_pc_compatibility`` (motor determinista), ``recommend_pc_build`` y ``suggest_pc_upgrade``
   (recomendador): el modelo no decide compatibilidades ni inventa armados, los explica;
 * **escritura**: ``save_pc_build`` (solo si el usuario pidió guardar o registrar el equipo; regla en código).
@@ -23,7 +25,7 @@ from app.pcbuilder.parts import SLOT_BY_KEY, SLOT_KEYS, Build
 from app.pcbuilder.recommender import USE_CASES, Needs, recommend, suggest_upgrades
 from app.pcbuilder.service import ItemIn, PcIn, PcService, resolve_build
 
-PC_READ_TOOLS = ("search_pc_parts", "check_pc_compatibility", "recommend_pc_build", "list_my_pcs", "suggest_pc_upgrade", "search_compatibility_guide")
+PC_READ_TOOLS = ("search_pc_parts", "check_pc_compatibility", "recommend_pc_build", "list_my_pcs", "suggest_pc_upgrade", "search_compatibility_guide", "research_part_web")
 PC_WRITE_TOOLS = ("save_pc_build",)
 
 # Guardar un equipo es escritura: solo si el pedido lo pide («guarda», «registra», «agrega a mis computadores»…).
@@ -104,6 +106,18 @@ def _report_view(build: Build) -> dict[str, Any]:
     }
 
 
+class ResearchPartInput(BaseModel):
+    product_id: int = Field(ge=1, description="Pieza del armador (id de search_pc_parts)")
+    question: str = Field(min_length=3, max_length=160, description="Qué dato falta, p. ej. 'largo de la tarjeta en mm' o 'soporta Ryzen 9000 con BIOS'")
+
+
+def _web_research(db: Session):
+    """Fábrica del servicio de investigación web (DuckDuckGo + descarga validada); las pruebas la reemplazan."""
+    from app.ai.research.web_research_service import WebResearchService
+
+    return WebResearchService.from_settings(db=db)
+
+
 def build_pc_tools(db: Session, user_id: str, context: Any, tool: Callable) -> list:
     def search_pc_parts(slot: str | None = None, query: str | None = None, max_price_clp: int | None = None, include_discontinued: bool = False, limit: int = 8):
         if slot and slot not in SLOT_BY_KEY:
@@ -171,6 +185,31 @@ def build_pc_tools(db: Session, user_id: str, context: Any, tool: Callable) -> l
         hits = search_guides(db, query, k=3)
         return {"chunks": [{"guide": h["title"], "url": h["url"], "content": h["content"]} for h in hits], "source": "Guías TodoBarato (base de conocimiento interna)"}
 
+    def research_part_web(product_id: int, question: str):
+        from app.ai.research.schemas import ResearchTarget
+        from app.core.config import settings
+
+        part = parts_by_id(db, [product_id]).get(product_id)
+        if part is None:
+            raise ValueError("Ese id no corresponde a una pieza del armador")
+        if not settings.research_enabled:
+            return {"used": False, "reason": "La búsqueda en la web está desactivada; responda solo con el catálogo y las guías."}
+        target = ResearchTarget(id=product_id, name=part.name, brand=part.brand, model=part.name, category=part.slot, specs={k: str(v) for k, v in part.specs.items() if v is not None})
+        report = _web_research(db).research([target], question)
+        if report is None or not report.used:
+            return {"used": False, "reason": (report.note if report else None) or "No se encontraron fuentes externas."}
+        sources = [
+            {"title": e["title"], "url": e["source_url"], "source": e["source_name"], "type": e["source_type"], "confidence": e["confidence"], "excerpt": (e["content"] or "")[:500]}
+            for e in report.sources[:4]
+        ]
+        return {
+            "used": True,
+            "part": part.name,
+            "sources": sources,
+            "queries_run": report.queries_run,
+            "note": "Fuente externa: cite la URL y diga que es información de la web. La compatibilidad la sigue decidiendo check_pc_compatibility; los precios, el catálogo.",
+        }
+
     def save_pc_build(name: str, product_ids: list[int], kind: str = "proyecto", use_case: str | None = None, budget_clp: int | None = None):
         if context is not None and context.goal and not SAVE_PC_INTENT.search(context.goal):
             return {"saved": False, "reason": "El usuario no pidió guardar el equipo. No se guardó: muestre el armado y ofrézcale guardarlo en «Mis computadores»."}
@@ -188,5 +227,6 @@ def build_pc_tools(db: Session, user_id: str, context: Any, tool: Callable) -> l
         tool("list_my_pcs", "Lista los computadores guardados del usuario (propios y proyectos) con sus piezas y si son compatibles.", list_my_pcs, NoArgs),
         tool("suggest_pc_upgrade", "Propone las mejores mejoras para un PC guardado del usuario dentro de un presupuesto (incluye la fuente si la nueva pieza la necesita).", suggest_pc_upgrade, UpgradeInput),
         tool("search_compatibility_guide", "Busca en las guías de compatibilidad de TodoBarato (RAG) para explicar conceptos: socket, chipset, DDR4/DDR5, doble canal, watts de la fuente, formatos, refrigeración, VRAM.", search_compatibility_guide, GuideInput),
+        tool("research_part_web", "Busca en la web (fabricante, reseñas) un dato técnico de una pieza que el catálogo no tiene, p. ej. largo de una tarjeta o soporte de BIOS. Úsela solo si falta el dato; devuelve las fuentes con su URL.", research_part_web, ResearchPartInput),
         tool("save_pc_build", "ESCRIBE en «Mis computadores» del usuario un equipo con las piezas indicadas (propio o proyecto).", save_pc_build, SavePcInput),
     ]

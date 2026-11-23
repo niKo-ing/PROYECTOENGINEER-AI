@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import type { Span } from "@/lib/api/pc";
 import { cn } from "@/lib/utils";
@@ -11,7 +11,6 @@ export function formatMs(ms: number | null | undefined): string {
   return `${Math.round(ms).toLocaleString("es-CL")} ms`;
 }
 
-const W = 640;
 const H = 200;
 const PAD = { top: 12, right: 64, bottom: 24, left: 44 };
 
@@ -28,9 +27,26 @@ function ticks(max: number): number[] {
 
 type Hover = { index: number; x: number } | null;
 
-function Tooltip({ hover, children }: { hover: Hover; children: React.ReactNode }) {
+/** Ancho real del contenedor: el SVG se dibuja a 1 unidad = 1 px y el texto no se achica en el celular. */
+function useWidth(fallback = 640) {
+  const ref = useRef<HTMLDivElement>(null);
+  const [width, setWidth] = useState(fallback);
+  useEffect(() => {
+    const el = ref.current;
+    if (!el || typeof ResizeObserver === "undefined") return;
+    const observer = new ResizeObserver(([entry]) => setWidth(Math.max(280, Math.round(entry.contentRect.width))));
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, []);
+  return [ref, width] as const;
+}
+
+/** Cada cuántas etiquetas del eje x se muestra una, para que no choquen (~90 px por etiqueta). */
+const labelEvery = (count: number, innerW: number) => Math.max(1, Math.ceil(count / Math.max(2, Math.floor(innerW / 90))));
+
+function Tooltip({ hover, width, children }: { hover: Hover; width: number; children: React.ReactNode }) {
   if (!hover) return null;
-  const left = `${(hover.x / W) * 100}%`;
+  const left = `${(hover.x / width) * 100}%`;
   return (
     <div
       className="pointer-events-none absolute top-0 z-10 min-w-36 -translate-x-1/2 rounded-md border bg-popover px-3 py-2 text-xs shadow-md"
@@ -45,22 +61,23 @@ function Tooltip({ hover, children }: { hover: Hover; children: React.ReactNode 
 /** Columnas de una sola serie (p. ej. ejecuciones por hora). */
 export function ColumnChart({ labels, values, valueLabel, details, ariaLabel }: { labels: string[]; values: number[]; valueLabel: (v: number) => string; details?: string[]; ariaLabel: string }) {
   const [hover, setHover] = useState<Hover>(null);
+  const [box, W] = useWidth();
   const max = niceMax(Math.max(0, ...values));
   const innerW = W - PAD.left - PAD.right;
   const innerH = H - PAD.top - PAD.bottom;
   const band = innerW / Math.max(1, values.length);
   const barW = Math.min(24, Math.max(2, band - 2));
   const y = (v: number) => PAD.top + innerH - (v / max) * innerH;
-  const every = Math.ceil(values.length / 8);
+  const every = labelEvery(values.length, innerW);
 
   return (
-    <div className="relative">
+    <div ref={box} className="relative">
       <svg viewBox={`0 0 ${W} ${H}`} className="h-auto w-full" role="img" aria-label={ariaLabel} onPointerLeave={() => setHover(null)}>
         {ticks(max).map((t) => (
           <g key={t}>
             <line x1={PAD.left} x2={W - PAD.right} y1={y(t)} y2={y(t)} stroke="var(--viz-grid)" strokeWidth={1} />
             <text x={PAD.left - 6} y={y(t) + 4} textAnchor="end" className="fill-muted-foreground text-[10px] tabular-nums">
-              {valueLabel(t)}
+              {t === 0 ? "0" : valueLabel(t)}
             </text>
           </g>
         ))}
@@ -95,7 +112,7 @@ export function ColumnChart({ labels, values, valueLabel, details, ariaLabel }: 
           );
         })}
       </svg>
-      <Tooltip hover={hover}>
+      <Tooltip hover={hover} width={W}>
         {hover ? (
           <>
             <p className="text-sm font-semibold tabular-nums">{valueLabel(values[hover.index])}</p>
@@ -113,6 +130,7 @@ type Series = { name: string; color: string; values: (number | null)[] };
 /** Líneas con cursor vertical que sigue al puntero; leyenda y etiqueta al final de cada línea. */
 export function LineChart({ labels, series, valueLabel, ariaLabel }: { labels: string[]; series: Series[]; valueLabel: (v: number) => string; ariaLabel: string }) {
   const [hover, setHover] = useState<Hover>(null);
+  const [box, W] = useWidth();
   const svgRef = useRef<SVGSVGElement>(null);
   const all = series.flatMap((s) => s.values.filter((v): v is number => v !== null));
   const max = niceMax(Math.max(0, ...all));
@@ -120,7 +138,7 @@ export function LineChart({ labels, series, valueLabel, ariaLabel }: { labels: s
   const innerH = H - PAD.top - PAD.bottom;
   const x = (i: number) => PAD.left + (labels.length <= 1 ? innerW / 2 : (i / (labels.length - 1)) * innerW);
   const y = (v: number) => PAD.top + innerH - (v / max) * innerH;
-  const every = Math.ceil(labels.length / 8);
+  const every = labelEvery(labels.length, innerW);
 
   function onMove(event: React.PointerEvent<SVGSVGElement>) {
     const rect = svgRef.current?.getBoundingClientRect();
@@ -141,7 +159,7 @@ export function LineChart({ labels, series, valueLabel, ariaLabel }: { labels: s
   const endY = ends.map((e) => y(e.value as number)).map((v, i, arr) => (i > 0 && Math.abs(v - arr[i - 1]) < 12 ? arr[i - 1] + (v >= arr[i - 1] ? 12 : -12) : v));
 
   return (
-    <div>
+    <div ref={box}>
       <ul className="mb-2 flex flex-wrap gap-4 text-xs text-muted-foreground" aria-label="Leyenda">
         {series.map((s) => (
           <li key={s.name} className="flex items-center gap-1.5">
@@ -156,7 +174,7 @@ export function LineChart({ labels, series, valueLabel, ariaLabel }: { labels: s
             <g key={t}>
               <line x1={PAD.left} x2={W - PAD.right} y1={y(t)} y2={y(t)} stroke="var(--viz-grid)" strokeWidth={1} />
               <text x={PAD.left - 6} y={y(t) + 4} textAnchor="end" className="fill-muted-foreground text-[10px] tabular-nums">
-                {valueLabel(t)}
+                {t === 0 ? "0" : valueLabel(t)}
               </text>
             </g>
           ))}
@@ -194,7 +212,7 @@ export function LineChart({ labels, series, valueLabel, ariaLabel }: { labels: s
             </text>
           ))}
         </svg>
-        <Tooltip hover={hover}>
+        <Tooltip hover={hover} width={W}>
           {hover ? (
             <>
               <p className="mb-1 text-muted-foreground">{labels[hover.index]}</p>

@@ -174,7 +174,7 @@ function AuthRequiredCard({ manualToken, setManualToken, setAccessToken }: { man
       </CardHeader>
       <CardContent className="space-y-4">
         <p className="text-sm text-muted-foreground">
-          Iniciá sesión con Supabase o pegá temporalmente un access token para consultar endpoints protegidos.
+          Inicia sesión con tu cuenta o pega temporalmente un token de acceso para consultar endpoints protegidos.
         </p>
         <div className="flex gap-2">
           <Input value={manualToken} onChange={(event) => setManualToken(event.target.value)} placeholder="Bearer token" />
