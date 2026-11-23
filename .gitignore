@@ -27,3 +27,6 @@ EP2_ITY1102/diagramas/?/
 .java/
 EP3_ITY1102/infra/.salida/
 ep3_data.db
+
+# Trazas locales de la IA (TRACE_LOG_FILE)
+logs/

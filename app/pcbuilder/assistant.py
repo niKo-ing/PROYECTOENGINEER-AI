@@ -35,6 +35,10 @@ from app.pcbuilder.service import PcService
 log = logging.getLogger(__name__)
 
 MIN_BUDGET = 250_000
+MENTIONS_AMOUNT = re.compile(
+    r"\d|\bmil\b|mill[oó]n|millones|\bpalos?\b|\blucas?\b|\bluquitas\b|\bcien\b|cient[oa]s?\b|quinient|novecient|\bmedio\b",
+    re.IGNORECASE,
+)
 MAX_BUDGET = 20_000_000
 
 # Orden importa: lo más específico primero (1440 antes que «jugar», streaming antes que juegos).
@@ -221,8 +225,9 @@ class PcAssistant:
             if parsed:
                 source = "llm"
                 question = parsed.pop("question", None)
-                # Un presupuesto que el usuario no escribió no se acepta (alucinación típica): debe calzar con las reglas o con lo conocido.
-                if "budget_clp" in parsed and not (rules.get("budget_clp") or merged.get("budget_clp") or extract_budget_clp(user_text)):
+                # Un presupuesto que el usuario no escribió no se acepta (alucinación típica): el chat debe nombrar algún monto,
+                # en cifras o en palabras («ochocientos mil», «medio palo»). Si las reglas leyeron una cifra, manda la cifra.
+                if "budget_clp" in parsed and not (merged.get("budget_clp") or MENTIONS_AMOUNT.search(user_text)):
                     parsed.pop("budget_clp")
                     trace.set(quality={"presupuesto_inventado_descartado": True})
                 for key, value in parsed.items():

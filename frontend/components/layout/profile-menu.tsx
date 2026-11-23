@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { LogOut, UserRound } from "lucide-react";
+import { Activity, BookOpen, LogOut, Monitor, UserRound } from "lucide-react";
 import { useState } from "react";
 
 import { Button } from "@/components/ui/button";
@@ -74,6 +74,31 @@ export function ProfileMenu() {
             {session.user.email}
           </span>
         </DropdownMenuLabel>
+        <DropdownMenuSeparator />
+        <DropdownMenuItem asChild>
+          <Link href="/perfil">
+            <UserRound className="size-4" aria-hidden="true" />
+            Mi perfil
+          </Link>
+        </DropdownMenuItem>
+        <DropdownMenuItem asChild>
+          <Link href="/mis-pc">
+            <Monitor className="size-4" aria-hidden="true" />
+            Mis computadores
+          </Link>
+        </DropdownMenuItem>
+        <DropdownMenuItem asChild>
+          <Link href="/guias">
+            <BookOpen className="size-4" aria-hidden="true" />
+            Guías de compatibilidad
+          </Link>
+        </DropdownMenuItem>
+        <DropdownMenuItem asChild>
+          <Link href="/observabilidad">
+            <Activity className="size-4" aria-hidden="true" />
+            Observabilidad de la IA
+          </Link>
+        </DropdownMenuItem>
         <DropdownMenuSeparator />
         <DropdownMenuItem
           disabled={pendingSignOut}

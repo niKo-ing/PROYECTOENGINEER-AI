@@ -19,6 +19,8 @@ from app.routers.ml import router as ml_router
 from app.routers.eventos import router as eventos_router
 from app.routers.auth import router as auth_router
 from app.routers.pc import router as pc_router
+from app.routers.observability import router as observability_router
+from app.routers.privacy import router as privacy_router
 
 log = logging.getLogger(__name__)
 
@@ -200,6 +202,8 @@ def create_app() -> FastAPI:
     app.include_router(auth_router, prefix="/api/v1")
     app.include_router(products_router, prefix="/api/v1")
     app.include_router(pc_router, prefix="/api/v1")
+    app.include_router(privacy_router, prefix="/api/v1")
+    app.include_router(observability_router, prefix="/api/v1")
     app.include_router(categories_router, prefix="/api/v1")
     app.include_router(user_profile_router, prefix="/api/v1")
     app.include_router(ai_router, prefix="/api/v1")

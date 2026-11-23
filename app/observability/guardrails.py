@@ -89,9 +89,9 @@ def price_grounding(answer: str, evidence: list[str] | str, *, tolerance: int = 
     money = set(_amounts(corpus)) | {_to_int(m) for m in _MONEY_FIELD.findall(corpus)} | set(_spoken(corpus))
     budgets = {_to_int(m) for m in _BUDGET_FIELD.findall(corpus)} | set(_spoken(corpus))
     base = sorted(n for n in money if n >= 1000)[:80]
-    total = sum(base)
-    derived = {a + b for a, b in combinations(base, 2)} | {total}
-    derived |= {abs(b - m) for b in budgets for m in [*base, total]}
+    prices = [n for n in base if n not in budgets]  # el presupuesto se compara o se resta, nunca se suma
+    sums = {a + b for a, b in combinations(prices, 2)} | {sum(prices)}
+    derived = sums | {abs(b - m) for b in budgets for m in [*prices, *sums]}
     cited = _amounts(answer)
     unsupported = [c for c in cited if not any(abs(c - a) <= tolerance for a in base) and not any(abs(c - d) <= derived_tolerance for d in derived)]
     return {"cited": len(cited), "supported": len(cited) - len(unsupported), "unsupported": unsupported[:10], "ok": not unsupported}

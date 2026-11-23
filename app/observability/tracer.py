@@ -32,6 +32,26 @@ from sqlalchemy.orm import Session
 from app.observability.redaction import preview, pseudonym, redact
 
 log = logging.getLogger("todobarato.trace")
+_file_lock = threading.Lock()
+
+
+def _ensure_file_log() -> None:
+    """Si ``TRACE_LOG_FILE`` está definido, cada ejecución se escribe como una línea JSON (JSONL, con rotación) que
+    ``scripts/analizar_trazas.py`` o cualquier recolector de logs puede leer."""
+    path = os.getenv("TRACE_LOG_FILE")
+    if not path:
+        return
+    with _file_lock:
+        if any(getattr(h, "todobarato_path", None) == path for h in log.handlers):
+            return
+        from logging.handlers import RotatingFileHandler
+
+        os.makedirs(os.path.dirname(os.path.abspath(path)), exist_ok=True)
+        handler = RotatingFileHandler(path, maxBytes=5_000_000, backupCount=3, encoding="utf-8")
+        handler.setFormatter(logging.Formatter("%(message)s"))
+        handler.todobarato_path = path  # type: ignore[attr-defined]
+        log.addHandler(handler)
+        log.setLevel(logging.INFO)
 
 
 def _usage(response: Any) -> tuple[int | None, int | None, str | None]:
@@ -176,7 +196,8 @@ class RunTracer:
 
     def finish(self) -> None:
         summary = self.summary()
-        log.info(json.dumps({"evento": "ejecucion_ia", **summary}, ensure_ascii=False, default=str))
+        _ensure_file_log()
+        log.info(json.dumps({"evento": "ejecucion_ia", "ts": time.strftime("%Y-%m-%dT%H:%M:%S%z"), **summary}, ensure_ascii=False, default=str))
         if self.db is None or os.getenv("TRACE_PERSIST", "true").lower() in {"0", "false", "no", "off"}:
             return
         self._persist(summary)

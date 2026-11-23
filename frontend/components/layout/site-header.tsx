@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { ChevronDown, LayoutGrid, MessageSquareText, Settings, ShoppingBag } from "lucide-react";
+import { ChevronDown, Cpu, LayoutGrid, MessageSquareText, Settings, ShoppingBag } from "lucide-react";
 import { useState } from "react";
 
 import { Button } from "@/components/ui/button";
@@ -105,6 +105,12 @@ export function SiteHeader() {
             </DropdownMenuContent>
           </DropdownMenu>
 
+          <Button variant="ghost" asChild className="gap-2">
+            <Link href="/armar">
+              <Cpu className="h-4 w-4" />
+              <span className="hidden sm:inline">Arma tu PC</span>
+            </Link>
+          </Button>
           <Button variant="ghost" asChild className="gap-2">
             <Link href="/chat">
               <MessageSquareText className="h-4 w-4" />
