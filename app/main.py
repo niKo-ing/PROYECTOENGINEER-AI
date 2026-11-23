@@ -17,6 +17,8 @@ from app.routers.agent import router as agent_router
 from app.routers.admin import router as admin_router
 from app.routers.ml import router as ml_router
 from app.routers.eventos import router as eventos_router
+from app.routers.auth import router as auth_router
+from app.routers.pc import router as pc_router
 
 log = logging.getLogger(__name__)
 
@@ -179,6 +181,14 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
         log.info("Ingestion scheduler disabled on this replica (INGESTION_SCHEDULER_ENABLED=false)")
     app.state.ingestion_scheduler = scheduler
     threading.Thread(target=_warm_agent_checkpointer, name="agent-warmup", daemon=True).start()
+    if os.getenv("PC_SEED_ON_START", "true").strip().lower() in {"1", "true", "yes", "on"}:
+        try:
+            from app.pcbuilder.catalog import ensure_seeded
+
+            with SessionLocal() as db:
+                ensure_seeded(db)
+        except Exception:
+            log.warning("No se pudo sembrar el catálogo del armador", exc_info=True)
     try:
         yield
     finally:
@@ -187,7 +197,9 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
 
 def create_app() -> FastAPI:
     app = FastAPI(title="SoloTodo AI", version="0.2.0", description="API REST de SoloTodo AI: catálogo, asistente (agente LangGraph) y modelo de emparejamiento de productos (/ml).", lifespan=lifespan)
+    app.include_router(auth_router, prefix="/api/v1")
     app.include_router(products_router, prefix="/api/v1")
+    app.include_router(pc_router, prefix="/api/v1")
     app.include_router(categories_router, prefix="/api/v1")
     app.include_router(user_profile_router, prefix="/api/v1")
     app.include_router(ai_router, prefix="/api/v1")

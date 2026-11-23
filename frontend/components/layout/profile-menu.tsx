@@ -14,8 +14,8 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { createSupabaseBrowserClient } from "@/lib/supabase/client";
-import { useSession } from "@/lib/supabase/use-session";
+import { auth } from "@/lib/auth/client";
+import { useSession } from "@/lib/auth/use-session";
 
 export function ProfileMenu() {
   const router = useRouter();
@@ -30,7 +30,7 @@ export function ProfileMenu() {
   async function signOut() {
     setPendingSignOut(true);
     try {
-      await createSupabaseBrowserClient().auth.signOut();
+      await auth.signOut();
       router.push("/login");
       router.refresh();
     } catch {

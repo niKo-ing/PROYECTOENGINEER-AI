@@ -15,7 +15,7 @@ import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { EMPTY_STATE, fetchAgentState, newThreadId, runAgent, type AgentRun, type AgentState } from "@/lib/api/agent";
 import { newId } from "@/lib/utils";
-import { useSession } from "@/lib/supabase/use-session";
+import { useSession } from "@/lib/auth/use-session";
 import { cn } from "@/lib/utils";
 
 type Message = { id: string; role: "user" | "assistant"; text: string; run?: AgentRun };

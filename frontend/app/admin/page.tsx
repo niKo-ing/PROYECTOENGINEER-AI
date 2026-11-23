@@ -25,7 +25,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { fetchAdminDashboard, fetchSpecReviewQueue, verifySpecValue, type VerifySpecValuePayload } from "@/lib/api/admin";
-import { createSupabaseBrowserClient } from "@/lib/supabase/client";
+import { auth } from "@/lib/auth/client";
 import type { AdminActivityItem, AdminDashboardResponse, AdminSpecValue } from "@/types/admin";
 
 type AdminSection = "dashboard" | "products" | "categories" | "review" | "conflicts" | "stores" | "offers" | "ingestion" | "stats";
@@ -56,7 +56,7 @@ export default function AdminPage() {
     let cancelled = false;
     async function loadSession() {
       try {
-        const { data } = await createSupabaseBrowserClient().auth.getSession();
+        const { data } = await auth.getSession();
         if (!cancelled) setAccessToken(data.session?.access_token ?? null);
       } catch {
         if (!cancelled) setAccessToken(null);

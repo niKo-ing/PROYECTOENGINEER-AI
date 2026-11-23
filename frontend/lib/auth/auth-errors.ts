@@ -83,7 +83,7 @@ export function getFriendlyAuthMessage(error: unknown, mode: AuthMode): string {
     case "user_already_exists":
       return "Ya existe una cuenta con ese correo. Probá iniciar sesión.";
     case "weak_password":
-      return "La contraseña es demasiado débil. Usá al menos 6 caracteres.";
+      return "Revisá los datos: la contraseña necesita al menos 8 caracteres y el correo debe ser válido.";
     case "email_address_invalid":
       return "El correo electrónico ingresado no es válido.";
     case "signup_disabled":
