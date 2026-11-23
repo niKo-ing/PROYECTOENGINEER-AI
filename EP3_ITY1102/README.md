@@ -10,7 +10,7 @@ API REST segura, mensajería con RabbitMQ, dashboard, pruebas de carga y scripts
 | `defensa/` | `EP3_Presentacion_Equipo1.pdf` (6 láminas) |
 | `diagramas/` | Arquitectura, secuencia del flujo asíncrono y despliegue (PlantUML + PNG) |
 | `pruebas/` | `locustfile.py`, `cargar.sh` y `resultados/` (CSV/HTML de Locust, incluida la corrida «antes» de la corrección) |
-| `infra/` | `desplegar.sh`/`destruir.sh` (1 instancia), `desplegar_asg.sh`/`destruir_asg.sh` (ALB + Auto Scaling + RDS + CloudFront), `intentar_sagemaker.sh`, `docker-compose.aws.yml` |
+| `infra/` | `desplegar_todo.sh` (todo con un comando e imprime las URLs), `desplegar.sh`/`destruir.sh` (1 instancia), `desplegar_asg.sh`/`destruir_asg.sh` (ALB + Auto Scaling + RDS + CloudFront), `intentar_sagemaker.sh`, `docker-compose.aws.yml` |
 | `evidencia/` | Capturas (dashboard) y, tras ejecutar los scripts de AWS, CloudWatch y SageMaker |
 
 Código: `ml/` (características, dataset, entrenamiento, servidor), `app/routers/ml.py` (API), `app/messaging/` (RabbitMQ + worker), `app/ml/` (cliente del modelo y dashboard), pruebas en `tests/modelo_ml/`.

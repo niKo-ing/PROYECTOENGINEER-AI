@@ -16,6 +16,18 @@ despliegue (ver «No borrar nada»). Esta guía la levanta desde cero en **una i
 > 23-11-2026 a las 02:49**: `desplegar.sh` + verificador, 15 de 15 en verde en ~8 minutos; `desplegar_asg.sh` con ALB,
 > réplicas sanas y CloudFront respondiendo en ~10 minutos.
 
+## Atajo: un solo comando
+
+Con el laboratorio iniciado («Start Lab», punto verde), en cualquier terminal (también fish):
+
+```bash
+bash EP3_ITY1102/infra/desplegar_todo.sh          # pide el bloque de «AWS Details», el correo y la contraseña
+bash EP3_ITY1102/infra/desplegar_todo.sh --urls   # vuelve a mostrar las URLs y si responden
+```
+
+Hace los pasos 1 a 5 de esta guía (aplicación completa, versión escalable y verificación) y al final imprime todas las
+direcciones. No guarda credenciales ni borra nada. El resto de la guía explica cada paso por separado.
+
 ## 0. Lo que necesitan (una vez)
 
 * AWS CLI v2, `git`, `openssl`, `python3`, `curl` y una terminal **bash** (en fish, escriban `bash` primero).
