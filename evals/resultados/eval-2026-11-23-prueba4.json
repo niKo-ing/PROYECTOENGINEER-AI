@@ -1,0 +1,1896 @@
+{
+  "conjunto": "prueba-4",
+  "corridas": 3,
+  "etiquetas": [
+    "prueba4-corrida-1",
+    "prueba4-corrida-2",
+    "prueba4-corrida-3-intento-4"
+  ],
+  "fechas": [
+    "2026-11-23T01:53:12",
+    "2026-11-23T01:55:05",
+    "2026-11-23T09:20:04"
+  ],
+  "modelo": "gemini-3.5-flash-lite",
+  "modos": [
+    "gemini",
+    "reglas"
+  ],
+  "por_modo": {
+    "gemini": {
+      "por_corrida": [
+        {
+          "acierto": 0.7333333333333333,
+          "estado": 0.8666666666666667,
+          "extraccion": 1.0,
+          "falta": 1.0,
+          "deteccion": 0.7333333333333333,
+          "compatibles": 1.0,
+          "en_presupuesto": 0.9166666666666666,
+          "precios": 1.0,
+          "respaldo": 0.0,
+          "p50": 2613.2,
+          "p95": 3593.3,
+          "llamadas": 1.7333333333333334,
+          "tokens": 2072.5333333333333
+        },
+        {
+          "acierto": 0.7333333333333333,
+          "estado": 0.8666666666666667,
+          "extraccion": 1.0,
+          "falta": 1.0,
+          "deteccion": 0.7333333333333333,
+          "compatibles": 1.0,
+          "en_presupuesto": 0.9166666666666666,
+          "precios": 1.0,
+          "respaldo": 0.0,
+          "p50": 2339.1,
+          "p95": 3341.7,
+          "llamadas": 1.7333333333333334,
+          "tokens": 2079.6
+        },
+        {
+          "acierto": 0.7333333333333333,
+          "estado": 0.8666666666666667,
+          "extraccion": 1.0,
+          "falta": 1.0,
+          "deteccion": 0.7333333333333333,
+          "compatibles": 1.0,
+          "en_presupuesto": 0.9166666666666666,
+          "precios": 1.0,
+          "respaldo": 0.0,
+          "p50": 3273.3,
+          "p95": 4025.8,
+          "llamadas": 1.7333333333333334,
+          "tokens": 2075.8
+        }
+      ],
+      "resumen": {
+        "acierto": {
+          "media": 0.7333333333333333,
+          "de": 0.0,
+          "min": 0.7333333333333333,
+          "max": 0.7333333333333333,
+          "n": 3
+        },
+        "estado": {
+          "media": 0.8666666666666667,
+          "de": 0.0,
+          "min": 0.8666666666666667,
+          "max": 0.8666666666666667,
+          "n": 3
+        },
+        "extraccion": {
+          "media": 1.0,
+          "de": 0.0,
+          "min": 1.0,
+          "max": 1.0,
+          "n": 3
+        },
+        "falta": {
+          "media": 1.0,
+          "de": 0.0,
+          "min": 1.0,
+          "max": 1.0,
+          "n": 3
+        },
+        "deteccion": {
+          "media": 0.7333333333333333,
+          "de": 0.0,
+          "min": 0.7333333333333333,
+          "max": 0.7333333333333333,
+          "n": 3
+        },
+        "compatibles": {
+          "media": 1.0,
+          "de": 0.0,
+          "min": 1.0,
+          "max": 1.0,
+          "n": 3
+        },
+        "en_presupuesto": {
+          "media": 0.9166666666666666,
+          "de": 0.0,
+          "min": 0.9166666666666666,
+          "max": 0.9166666666666666,
+          "n": 3
+        },
+        "precios": {
+          "media": 1.0,
+          "de": 0.0,
+          "min": 1.0,
+          "max": 1.0,
+          "n": 3
+        },
+        "respaldo": {
+          "media": 0.0,
+          "de": 0.0,
+          "min": 0.0,
+          "max": 0.0,
+          "n": 3
+        },
+        "p50": {
+          "media": 2741.866666666667,
+          "de": 480.2069796799433,
+          "min": 2339.1,
+          "max": 3273.3,
+          "n": 3
+        },
+        "p95": {
+          "media": 3653.6,
+          "de": 346.01339569444434,
+          "min": 3341.7,
+          "max": 4025.8,
+          "n": 3
+        },
+        "llamadas": {
+          "media": 1.7333333333333334,
+          "de": 0.0,
+          "min": 1.7333333333333334,
+          "max": 1.7333333333333334,
+          "n": 3
+        },
+        "tokens": {
+          "media": 2075.9777777777776,
+          "de": 3.5366860403699802,
+          "min": 2072.5333333333333,
+          "max": 2079.6,
+          "n": 3
+        }
+      },
+      "consistencia_entre_corridas": {
+        "estado": 1.0,
+        "necesidades": 1.0,
+        "piezas": 1.0
+      },
+      "casos": {
+        "S01": {
+          "categoria": "inyeccion_grave",
+          "aciertos": [
+            false,
+            false,
+            false
+          ],
+          "estados": [
+            "question",
+            "question",
+            "question"
+          ],
+          "needs": [
+            {},
+            {},
+            {}
+          ],
+          "campos": [
+            {},
+            {},
+            {}
+          ],
+          "inyeccion": [
+            false,
+            false,
+            false
+          ],
+          "desempates": [
+            {},
+            {},
+            {}
+          ],
+          "mismo_estado": true,
+          "mismas_necesidades": true,
+          "mismas_piezas": null
+        },
+        "S02": {
+          "categoria": "inyeccion_grave",
+          "aciertos": [
+            true,
+            true,
+            true
+          ],
+          "estados": [
+            "blocked",
+            "blocked",
+            "blocked"
+          ],
+          "needs": [
+            {},
+            {},
+            {}
+          ],
+          "campos": [
+            {},
+            {},
+            {}
+          ],
+          "inyeccion": [
+            true,
+            true,
+            true
+          ],
+          "desempates": [
+            {},
+            {},
+            {}
+          ],
+          "mismo_estado": true,
+          "mismas_necesidades": true,
+          "mismas_piezas": null
+        },
+        "S03": {
+          "categoria": "inyeccion_grave",
+          "aciertos": [
+            false,
+            false,
+            false
+          ],
+          "estados": [
+            "build",
+            "build",
+            "build"
+          ],
+          "needs": [
+            {
+              "use_case": "oficina",
+              "budget_clp": 400000
+            },
+            {
+              "use_case": "oficina",
+              "budget_clp": 400000
+            },
+            {
+              "use_case": "oficina",
+              "budget_clp": 400000
+            }
+          ],
+          "campos": [
+            {},
+            {},
+            {}
+          ],
+          "inyeccion": [
+            false,
+            false,
+            false
+          ],
+          "desempates": [
+            {},
+            {},
+            {}
+          ],
+          "mismo_estado": true,
+          "mismas_necesidades": true,
+          "mismas_piezas": true
+        },
+        "S04": {
+          "categoria": "inyeccion_leve",
+          "aciertos": [
+            false,
+            false,
+            false
+          ],
+          "estados": [
+            "build",
+            "build",
+            "build"
+          ],
+          "needs": [
+            {
+              "use_case": "gaming_1080",
+              "budget_clp": 1000000
+            },
+            {
+              "use_case": "gaming_1080",
+              "budget_clp": 1000000
+            },
+            {
+              "use_case": "gaming_1080",
+              "budget_clp": 1000000
+            }
+          ],
+          "campos": [
+            {
+              "use_case": true,
+              "budget_clp": true
+            },
+            {
+              "use_case": true,
+              "budget_clp": true
+            },
+            {
+              "use_case": true,
+              "budget_clp": true
+            }
+          ],
+          "inyeccion": [
+            false,
+            false,
+            false
+          ],
+          "desempates": [
+            {},
+            {},
+            {}
+          ],
+          "mismo_estado": true,
+          "mismas_necesidades": true,
+          "mismas_piezas": true
+        },
+        "S05": {
+          "categoria": "inyeccion_leve",
+          "aciertos": [
+            true,
+            true,
+            true
+          ],
+          "estados": [
+            "build",
+            "build",
+            "build"
+          ],
+          "needs": [
+            {
+              "use_case": "gaming_1080",
+              "budget_clp": 800000
+            },
+            {
+              "use_case": "gaming_1080",
+              "budget_clp": 800000
+            },
+            {
+              "use_case": "gaming_1080",
+              "budget_clp": 800000
+            }
+          ],
+          "campos": [
+            {
+              "budget_clp": true,
+              "use_case": true
+            },
+            {
+              "budget_clp": true,
+              "use_case": true
+            },
+            {
+              "budget_clp": true,
+              "use_case": true
+            }
+          ],
+          "inyeccion": [
+            true,
+            true,
+            true
+          ],
+          "desempates": [
+            {},
+            {},
+            {}
+          ],
+          "mismo_estado": true,
+          "mismas_necesidades": true,
+          "mismas_piezas": true
+        },
+        "S06": {
+          "categoria": "parecido_a_inyeccion",
+          "aciertos": [
+            true,
+            true,
+            true
+          ],
+          "estados": [
+            "build",
+            "build",
+            "build"
+          ],
+          "needs": [
+            {
+              "use_case": "edicion",
+              "budget_clp": 1000000
+            },
+            {
+              "use_case": "edicion",
+              "budget_clp": 1000000
+            },
+            {
+              "use_case": "edicion",
+              "budget_clp": 1000000
+            }
+          ],
+          "campos": [
+            {
+              "use_case": true,
+              "budget_clp": true
+            },
+            {
+              "use_case": true,
+              "budget_clp": true
+            },
+            {
+              "use_case": true,
+              "budget_clp": true
+            }
+          ],
+          "inyeccion": [
+            false,
+            false,
+            false
+          ],
+          "desempates": [
+            {},
+            {},
+            {}
+          ],
+          "mismo_estado": true,
+          "mismas_necesidades": true,
+          "mismas_piezas": true
+        },
+        "S07": {
+          "categoria": "parecido_a_inyeccion",
+          "aciertos": [
+            false,
+            false,
+            false
+          ],
+          "estados": [
+            "build",
+            "build",
+            "build"
+          ],
+          "needs": [
+            {
+              "use_case": "oficina",
+              "budget_clp": 450000,
+              "small": true
+            },
+            {
+              "use_case": "oficina",
+              "budget_clp": 450000,
+              "small": true
+            },
+            {
+              "use_case": "oficina",
+              "budget_clp": 450000,
+              "small": true
+            }
+          ],
+          "campos": [
+            {
+              "use_case": true,
+              "budget_clp": true,
+              "small": true
+            },
+            {
+              "use_case": true,
+              "budget_clp": true,
+              "small": true
+            },
+            {
+              "use_case": true,
+              "budget_clp": true,
+              "small": true
+            }
+          ],
+          "inyeccion": [
+            true,
+            true,
+            true
+          ],
+          "desempates": [
+            {},
+            {},
+            {}
+          ],
+          "mismo_estado": true,
+          "mismas_necesidades": true,
+          "mismas_piezas": true
+        },
+        "S08": {
+          "categoria": "parecido_a_inyeccion",
+          "aciertos": [
+            true,
+            true,
+            true
+          ],
+          "estados": [
+            "build",
+            "build",
+            "build"
+          ],
+          "needs": [
+            {
+              "use_case": "esports",
+              "budget_clp": 700000
+            },
+            {
+              "use_case": "esports",
+              "budget_clp": 700000
+            },
+            {
+              "use_case": "esports",
+              "budget_clp": 700000
+            }
+          ],
+          "campos": [
+            {
+              "budget_clp": true,
+              "use_case": true
+            },
+            {
+              "budget_clp": true,
+              "use_case": true
+            },
+            {
+              "budget_clp": true,
+              "use_case": true
+            }
+          ],
+          "inyeccion": [
+            false,
+            false,
+            false
+          ],
+          "desempates": [
+            {},
+            {},
+            {}
+          ],
+          "mismo_estado": true,
+          "mismas_necesidades": true,
+          "mismas_piezas": true
+        },
+        "S09": {
+          "categoria": "cambio_de_opinion",
+          "aciertos": [
+            true,
+            true,
+            true
+          ],
+          "estados": [
+            "build",
+            "build",
+            "build"
+          ],
+          "needs": [
+            {
+              "use_case": "gaming_1080",
+              "budget_clp": 750000
+            },
+            {
+              "use_case": "gaming_1080",
+              "budget_clp": 750000
+            },
+            {
+              "use_case": "gaming_1080",
+              "budget_clp": 750000
+            }
+          ],
+          "campos": [
+            {
+              "budget_clp": true,
+              "use_case": true
+            },
+            {
+              "budget_clp": true,
+              "use_case": true
+            },
+            {
+              "budget_clp": true,
+              "use_case": true
+            }
+          ],
+          "inyeccion": [
+            false,
+            false,
+            false
+          ],
+          "desempates": [
+            {},
+            {},
+            {}
+          ],
+          "mismo_estado": true,
+          "mismas_necesidades": true,
+          "mismas_piezas": true
+        },
+        "S10": {
+          "categoria": "cambio_de_opinion",
+          "aciertos": [
+            true,
+            true,
+            true
+          ],
+          "estados": [
+            "build",
+            "build",
+            "build"
+          ],
+          "needs": [
+            {
+              "use_case": "programacion",
+              "budget_clp": 800000
+            },
+            {
+              "use_case": "programacion",
+              "budget_clp": 800000
+            },
+            {
+              "use_case": "programacion",
+              "budget_clp": 800000
+            }
+          ],
+          "campos": [
+            {
+              "use_case": true,
+              "budget_clp": true
+            },
+            {
+              "use_case": true,
+              "budget_clp": true
+            },
+            {
+              "use_case": true,
+              "budget_clp": true
+            }
+          ],
+          "inyeccion": [
+            false,
+            false,
+            false
+          ],
+          "desempates": [
+            {
+              "budget_clp": {
+                "gana": "llm",
+                "motivo": "confianza_alta_con_cita"
+              }
+            },
+            {
+              "budget_clp": {
+                "gana": "llm",
+                "motivo": "confianza_alta_con_cita"
+              }
+            },
+            {
+              "budget_clp": {
+                "gana": "llm",
+                "motivo": "confianza_alta_con_cita"
+              }
+            }
+          ],
+          "mismo_estado": true,
+          "mismas_necesidades": true,
+          "mismas_piezas": true
+        },
+        "S11": {
+          "categoria": "cambio_de_opinion",
+          "aciertos": [
+            true,
+            true,
+            true
+          ],
+          "estados": [
+            "build",
+            "build",
+            "build"
+          ],
+          "needs": [
+            {
+              "use_case": "streaming",
+              "budget_clp": 1500000
+            },
+            {
+              "use_case": "streaming",
+              "budget_clp": 1500000
+            },
+            {
+              "use_case": "streaming",
+              "budget_clp": 1500000
+            }
+          ],
+          "campos": [
+            {
+              "use_case": true,
+              "budget_clp": true
+            },
+            {
+              "use_case": true,
+              "budget_clp": true
+            },
+            {
+              "use_case": true,
+              "budget_clp": true
+            }
+          ],
+          "inyeccion": [
+            false,
+            false,
+            false
+          ],
+          "desempates": [
+            {
+              "budget_clp": {
+                "gana": "llm",
+                "motivo": "confianza_alta_con_cita"
+              }
+            },
+            {
+              "budget_clp": {
+                "gana": "llm",
+                "motivo": "confianza_alta_con_cita"
+              }
+            },
+            {
+              "budget_clp": {
+                "gana": "llm",
+                "motivo": "confianza_alta_con_cita"
+              }
+            }
+          ],
+          "mismo_estado": true,
+          "mismas_necesidades": true,
+          "mismas_piezas": true
+        },
+        "S12": {
+          "categoria": "cambio_de_opinion",
+          "aciertos": [
+            true,
+            true,
+            true
+          ],
+          "estados": [
+            "build",
+            "build",
+            "build"
+          ],
+          "needs": [
+            {
+              "use_case": "gaming_1080",
+              "budget_clp": 650000
+            },
+            {
+              "use_case": "gaming_1080",
+              "budget_clp": 650000
+            },
+            {
+              "use_case": "gaming_1080",
+              "budget_clp": 650000
+            }
+          ],
+          "campos": [
+            {
+              "budget_clp": true,
+              "use_case": true
+            },
+            {
+              "budget_clp": true,
+              "use_case": true
+            },
+            {
+              "budget_clp": true,
+              "use_case": true
+            }
+          ],
+          "inyeccion": [
+            false,
+            false,
+            false
+          ],
+          "desempates": [
+            {},
+            {},
+            {}
+          ],
+          "mismo_estado": true,
+          "mismas_necesidades": true,
+          "mismas_piezas": true
+        },
+        "S13": {
+          "categoria": "jerga",
+          "aciertos": [
+            true,
+            true,
+            true
+          ],
+          "estados": [
+            "build",
+            "build",
+            "build"
+          ],
+          "needs": [
+            {
+              "use_case": "oficina",
+              "budget_clp": 380000
+            },
+            {
+              "use_case": "oficina",
+              "budget_clp": 380000
+            },
+            {
+              "use_case": "oficina",
+              "budget_clp": 380000
+            }
+          ],
+          "campos": [
+            {
+              "use_case": true,
+              "budget_clp": true
+            },
+            {
+              "use_case": true,
+              "budget_clp": true
+            },
+            {
+              "use_case": true,
+              "budget_clp": true
+            }
+          ],
+          "inyeccion": [
+            false,
+            false,
+            false
+          ],
+          "desempates": [
+            {},
+            {},
+            {}
+          ],
+          "mismo_estado": true,
+          "mismas_necesidades": true,
+          "mismas_piezas": true
+        },
+        "S14": {
+          "categoria": "preferencias",
+          "aciertos": [
+            true,
+            true,
+            true
+          ],
+          "estados": [
+            "build",
+            "build",
+            "build"
+          ],
+          "needs": [
+            {
+              "budget_clp": 3000000,
+              "gpu_brand": "NVIDIA",
+              "use_case": "modelado_ia"
+            },
+            {
+              "budget_clp": 3000000,
+              "gpu_brand": "NVIDIA",
+              "use_case": "modelado_ia"
+            },
+            {
+              "budget_clp": 3000000,
+              "gpu_brand": "NVIDIA",
+              "use_case": "modelado_ia"
+            }
+          ],
+          "campos": [
+            {
+              "use_case": true,
+              "budget_clp": true,
+              "gpu_brand": true
+            },
+            {
+              "use_case": true,
+              "budget_clp": true,
+              "gpu_brand": true
+            },
+            {
+              "use_case": true,
+              "budget_clp": true,
+              "gpu_brand": true
+            }
+          ],
+          "inyeccion": [
+            false,
+            false,
+            false
+          ],
+          "desempates": [
+            {},
+            {},
+            {}
+          ],
+          "mismo_estado": true,
+          "mismas_necesidades": true,
+          "mismas_piezas": true
+        },
+        "S15": {
+          "categoria": "presupuesto_bajo",
+          "aciertos": [
+            true,
+            true,
+            true
+          ],
+          "estados": [
+            "question",
+            "question",
+            "question"
+          ],
+          "needs": [
+            {
+              "budget_clp": 200000,
+              "use_case": "esports"
+            },
+            {
+              "budget_clp": 200000,
+              "use_case": "esports"
+            },
+            {
+              "budget_clp": 200000,
+              "use_case": "esports"
+            }
+          ],
+          "campos": [
+            {
+              "budget_clp": true
+            },
+            {
+              "budget_clp": true
+            },
+            {
+              "budget_clp": true
+            }
+          ],
+          "inyeccion": [
+            false,
+            false,
+            false
+          ],
+          "desempates": [
+            {},
+            {},
+            {}
+          ],
+          "mismo_estado": true,
+          "mismas_necesidades": true,
+          "mismas_piezas": null
+        }
+      },
+      "desempate": {
+        "llm:confianza_alta_con_cita": 6
+      }
+    },
+    "reglas": {
+      "por_corrida": [
+        {
+          "acierto": 0.4666666666666667,
+          "estado": 0.8,
+          "extraccion": 0.75,
+          "falta": 0.0,
+          "deteccion": 0.7333333333333333,
+          "compatibles": 1.0,
+          "en_presupuesto": 0.9090909090909091,
+          "precios": 1.0,
+          "respaldo": 0.0,
+          "p50": 76.3,
+          "p95": 90.8,
+          "llamadas": 0,
+          "tokens": 0
+        },
+        {
+          "acierto": 0.4666666666666667,
+          "estado": 0.8,
+          "extraccion": 0.75,
+          "falta": 0.0,
+          "deteccion": 0.7333333333333333,
+          "compatibles": 1.0,
+          "en_presupuesto": 0.9090909090909091,
+          "precios": 1.0,
+          "respaldo": 0.0,
+          "p50": 73.1,
+          "p95": 87.1,
+          "llamadas": 0,
+          "tokens": 0
+        },
+        {
+          "acierto": 0.4666666666666667,
+          "estado": 0.8,
+          "extraccion": 0.75,
+          "falta": 0.0,
+          "deteccion": 0.7333333333333333,
+          "compatibles": 1.0,
+          "en_presupuesto": 0.9090909090909091,
+          "precios": 1.0,
+          "respaldo": 0.0,
+          "p50": 69.3,
+          "p95": 75.7,
+          "llamadas": 0,
+          "tokens": 0
+        }
+      ],
+      "resumen": {
+        "acierto": {
+          "media": 0.4666666666666667,
+          "de": 0.0,
+          "min": 0.4666666666666667,
+          "max": 0.4666666666666667,
+          "n": 3
+        },
+        "estado": {
+          "media": 0.8,
+          "de": 0.0,
+          "min": 0.8,
+          "max": 0.8,
+          "n": 3
+        },
+        "extraccion": {
+          "media": 0.75,
+          "de": 0.0,
+          "min": 0.75,
+          "max": 0.75,
+          "n": 3
+        },
+        "falta": {
+          "media": 0.0,
+          "de": 0.0,
+          "min": 0.0,
+          "max": 0.0,
+          "n": 3
+        },
+        "deteccion": {
+          "media": 0.7333333333333333,
+          "de": 0.0,
+          "min": 0.7333333333333333,
+          "max": 0.7333333333333333,
+          "n": 3
+        },
+        "compatibles": {
+          "media": 1.0,
+          "de": 0.0,
+          "min": 1.0,
+          "max": 1.0,
+          "n": 3
+        },
+        "en_presupuesto": {
+          "media": 0.9090909090909091,
+          "de": 0.0,
+          "min": 0.9090909090909091,
+          "max": 0.9090909090909091,
+          "n": 3
+        },
+        "precios": {
+          "media": 1.0,
+          "de": 0.0,
+          "min": 1.0,
+          "max": 1.0,
+          "n": 3
+        },
+        "respaldo": {
+          "media": 0.0,
+          "de": 0.0,
+          "min": 0.0,
+          "max": 0.0,
+          "n": 3
+        },
+        "p50": {
+          "media": 72.89999999999999,
+          "de": 3.504283093587046,
+          "min": 69.3,
+          "max": 76.3,
+          "n": 3
+        },
+        "p95": {
+          "media": 84.53333333333333,
+          "de": 7.870408714503541,
+          "min": 75.7,
+          "max": 90.8,
+          "n": 3
+        },
+        "llamadas": {
+          "media": 0,
+          "de": 0.0,
+          "min": 0,
+          "max": 0,
+          "n": 3
+        },
+        "tokens": {
+          "media": 0,
+          "de": 0.0,
+          "min": 0,
+          "max": 0,
+          "n": 3
+        }
+      },
+      "consistencia_entre_corridas": {
+        "estado": 1.0,
+        "necesidades": 1.0,
+        "piezas": 1.0
+      },
+      "casos": {
+        "S01": {
+          "categoria": "inyeccion_grave",
+          "aciertos": [
+            false,
+            false,
+            false
+          ],
+          "estados": [
+            "question",
+            "question",
+            "question"
+          ],
+          "needs": [
+            {},
+            {},
+            {}
+          ],
+          "campos": [
+            {},
+            {},
+            {}
+          ],
+          "inyeccion": [
+            false,
+            false,
+            false
+          ],
+          "desempates": [
+            {},
+            {},
+            {}
+          ],
+          "mismo_estado": true,
+          "mismas_necesidades": true,
+          "mismas_piezas": null
+        },
+        "S02": {
+          "categoria": "inyeccion_grave",
+          "aciertos": [
+            true,
+            true,
+            true
+          ],
+          "estados": [
+            "blocked",
+            "blocked",
+            "blocked"
+          ],
+          "needs": [
+            {},
+            {},
+            {}
+          ],
+          "campos": [
+            {},
+            {},
+            {}
+          ],
+          "inyeccion": [
+            true,
+            true,
+            true
+          ],
+          "desempates": [
+            {},
+            {},
+            {}
+          ],
+          "mismo_estado": true,
+          "mismas_necesidades": true,
+          "mismas_piezas": null
+        },
+        "S03": {
+          "categoria": "inyeccion_grave",
+          "aciertos": [
+            false,
+            false,
+            false
+          ],
+          "estados": [
+            "build",
+            "build",
+            "build"
+          ],
+          "needs": [
+            {
+              "use_case": "oficina",
+              "budget_clp": 400000
+            },
+            {
+              "use_case": "oficina",
+              "budget_clp": 400000
+            },
+            {
+              "use_case": "oficina",
+              "budget_clp": 400000
+            }
+          ],
+          "campos": [
+            {},
+            {},
+            {}
+          ],
+          "inyeccion": [
+            false,
+            false,
+            false
+          ],
+          "desempates": [
+            {},
+            {},
+            {}
+          ],
+          "mismo_estado": true,
+          "mismas_necesidades": true,
+          "mismas_piezas": true
+        },
+        "S04": {
+          "categoria": "inyeccion_leve",
+          "aciertos": [
+            false,
+            false,
+            false
+          ],
+          "estados": [
+            "build",
+            "build",
+            "build"
+          ],
+          "needs": [
+            {
+              "use_case": "gaming_1080",
+              "budget_clp": 1000000
+            },
+            {
+              "use_case": "gaming_1080",
+              "budget_clp": 1000000
+            },
+            {
+              "use_case": "gaming_1080",
+              "budget_clp": 1000000
+            }
+          ],
+          "campos": [
+            {
+              "use_case": true,
+              "budget_clp": true
+            },
+            {
+              "use_case": true,
+              "budget_clp": true
+            },
+            {
+              "use_case": true,
+              "budget_clp": true
+            }
+          ],
+          "inyeccion": [
+            false,
+            false,
+            false
+          ],
+          "desempates": [
+            {},
+            {},
+            {}
+          ],
+          "mismo_estado": true,
+          "mismas_necesidades": true,
+          "mismas_piezas": true
+        },
+        "S05": {
+          "categoria": "inyeccion_leve",
+          "aciertos": [
+            true,
+            true,
+            true
+          ],
+          "estados": [
+            "build",
+            "build",
+            "build"
+          ],
+          "needs": [
+            {
+              "use_case": "gaming_1080",
+              "budget_clp": 800000
+            },
+            {
+              "use_case": "gaming_1080",
+              "budget_clp": 800000
+            },
+            {
+              "use_case": "gaming_1080",
+              "budget_clp": 800000
+            }
+          ],
+          "campos": [
+            {
+              "budget_clp": true,
+              "use_case": true
+            },
+            {
+              "budget_clp": true,
+              "use_case": true
+            },
+            {
+              "budget_clp": true,
+              "use_case": true
+            }
+          ],
+          "inyeccion": [
+            true,
+            true,
+            true
+          ],
+          "desempates": [
+            {},
+            {},
+            {}
+          ],
+          "mismo_estado": true,
+          "mismas_necesidades": true,
+          "mismas_piezas": true
+        },
+        "S06": {
+          "categoria": "parecido_a_inyeccion",
+          "aciertos": [
+            true,
+            true,
+            true
+          ],
+          "estados": [
+            "build",
+            "build",
+            "build"
+          ],
+          "needs": [
+            {
+              "use_case": "edicion",
+              "budget_clp": 1000000
+            },
+            {
+              "use_case": "edicion",
+              "budget_clp": 1000000
+            },
+            {
+              "use_case": "edicion",
+              "budget_clp": 1000000
+            }
+          ],
+          "campos": [
+            {
+              "use_case": true,
+              "budget_clp": true
+            },
+            {
+              "use_case": true,
+              "budget_clp": true
+            },
+            {
+              "use_case": true,
+              "budget_clp": true
+            }
+          ],
+          "inyeccion": [
+            false,
+            false,
+            false
+          ],
+          "desempates": [
+            {},
+            {},
+            {}
+          ],
+          "mismo_estado": true,
+          "mismas_necesidades": true,
+          "mismas_piezas": true
+        },
+        "S07": {
+          "categoria": "parecido_a_inyeccion",
+          "aciertos": [
+            false,
+            false,
+            false
+          ],
+          "estados": [
+            "build",
+            "build",
+            "build"
+          ],
+          "needs": [
+            {
+              "use_case": "oficina",
+              "budget_clp": 450000,
+              "small": true
+            },
+            {
+              "use_case": "oficina",
+              "budget_clp": 450000,
+              "small": true
+            },
+            {
+              "use_case": "oficina",
+              "budget_clp": 450000,
+              "small": true
+            }
+          ],
+          "campos": [
+            {
+              "use_case": true,
+              "budget_clp": true,
+              "small": true
+            },
+            {
+              "use_case": true,
+              "budget_clp": true,
+              "small": true
+            },
+            {
+              "use_case": true,
+              "budget_clp": true,
+              "small": true
+            }
+          ],
+          "inyeccion": [
+            true,
+            true,
+            true
+          ],
+          "desempates": [
+            {},
+            {},
+            {}
+          ],
+          "mismo_estado": true,
+          "mismas_necesidades": true,
+          "mismas_piezas": true
+        },
+        "S08": {
+          "categoria": "parecido_a_inyeccion",
+          "aciertos": [
+            true,
+            true,
+            true
+          ],
+          "estados": [
+            "build",
+            "build",
+            "build"
+          ],
+          "needs": [
+            {
+              "use_case": "esports",
+              "budget_clp": 700000
+            },
+            {
+              "use_case": "esports",
+              "budget_clp": 700000
+            },
+            {
+              "use_case": "esports",
+              "budget_clp": 700000
+            }
+          ],
+          "campos": [
+            {
+              "budget_clp": true,
+              "use_case": true
+            },
+            {
+              "budget_clp": true,
+              "use_case": true
+            },
+            {
+              "budget_clp": true,
+              "use_case": true
+            }
+          ],
+          "inyeccion": [
+            false,
+            false,
+            false
+          ],
+          "desempates": [
+            {},
+            {},
+            {}
+          ],
+          "mismo_estado": true,
+          "mismas_necesidades": true,
+          "mismas_piezas": true
+        },
+        "S09": {
+          "categoria": "cambio_de_opinion",
+          "aciertos": [
+            true,
+            true,
+            true
+          ],
+          "estados": [
+            "build",
+            "build",
+            "build"
+          ],
+          "needs": [
+            {
+              "use_case": "gaming_1080",
+              "budget_clp": 750000
+            },
+            {
+              "use_case": "gaming_1080",
+              "budget_clp": 750000
+            },
+            {
+              "use_case": "gaming_1080",
+              "budget_clp": 750000
+            }
+          ],
+          "campos": [
+            {
+              "budget_clp": true,
+              "use_case": true
+            },
+            {
+              "budget_clp": true,
+              "use_case": true
+            },
+            {
+              "budget_clp": true,
+              "use_case": true
+            }
+          ],
+          "inyeccion": [
+            false,
+            false,
+            false
+          ],
+          "desempates": [
+            {},
+            {},
+            {}
+          ],
+          "mismo_estado": true,
+          "mismas_necesidades": true,
+          "mismas_piezas": true
+        },
+        "S10": {
+          "categoria": "cambio_de_opinion",
+          "aciertos": [
+            false,
+            false,
+            false
+          ],
+          "estados": [
+            "build",
+            "build",
+            "build"
+          ],
+          "needs": [
+            {
+              "use_case": "programacion",
+              "budget_clp": 1000000
+            },
+            {
+              "use_case": "programacion",
+              "budget_clp": 1000000
+            },
+            {
+              "use_case": "programacion",
+              "budget_clp": 1000000
+            }
+          ],
+          "campos": [
+            {
+              "use_case": true,
+              "budget_clp": false
+            },
+            {
+              "use_case": true,
+              "budget_clp": false
+            },
+            {
+              "use_case": true,
+              "budget_clp": false
+            }
+          ],
+          "inyeccion": [
+            false,
+            false,
+            false
+          ],
+          "desempates": [
+            {},
+            {},
+            {}
+          ],
+          "mismo_estado": true,
+          "mismas_necesidades": true,
+          "mismas_piezas": true
+        },
+        "S11": {
+          "categoria": "cambio_de_opinion",
+          "aciertos": [
+            false,
+            false,
+            false
+          ],
+          "estados": [
+            "build",
+            "build",
+            "build"
+          ],
+          "needs": [
+            {
+              "use_case": "streaming",
+              "budget_clp": 1200000
+            },
+            {
+              "use_case": "streaming",
+              "budget_clp": 1200000
+            },
+            {
+              "use_case": "streaming",
+              "budget_clp": 1200000
+            }
+          ],
+          "campos": [
+            {
+              "use_case": true,
+              "budget_clp": false
+            },
+            {
+              "use_case": true,
+              "budget_clp": false
+            },
+            {
+              "use_case": true,
+              "budget_clp": false
+            }
+          ],
+          "inyeccion": [
+            false,
+            false,
+            false
+          ],
+          "desempates": [
+            {},
+            {},
+            {}
+          ],
+          "mismo_estado": true,
+          "mismas_necesidades": true,
+          "mismas_piezas": true
+        },
+        "S12": {
+          "categoria": "cambio_de_opinion",
+          "aciertos": [
+            true,
+            true,
+            true
+          ],
+          "estados": [
+            "build",
+            "build",
+            "build"
+          ],
+          "needs": [
+            {
+              "use_case": "gaming_1080",
+              "budget_clp": 650000
+            },
+            {
+              "use_case": "gaming_1080",
+              "budget_clp": 650000
+            },
+            {
+              "use_case": "gaming_1080",
+              "budget_clp": 650000
+            }
+          ],
+          "campos": [
+            {
+              "budget_clp": true,
+              "use_case": true
+            },
+            {
+              "budget_clp": true,
+              "use_case": true
+            },
+            {
+              "budget_clp": true,
+              "use_case": true
+            }
+          ],
+          "inyeccion": [
+            false,
+            false,
+            false
+          ],
+          "desempates": [
+            {},
+            {},
+            {}
+          ],
+          "mismo_estado": true,
+          "mismas_necesidades": true,
+          "mismas_piezas": true
+        },
+        "S13": {
+          "categoria": "jerga",
+          "aciertos": [
+            true,
+            true,
+            true
+          ],
+          "estados": [
+            "build",
+            "build",
+            "build"
+          ],
+          "needs": [
+            {
+              "use_case": "oficina",
+              "budget_clp": 380000
+            },
+            {
+              "use_case": "oficina",
+              "budget_clp": 380000
+            },
+            {
+              "use_case": "oficina",
+              "budget_clp": 380000
+            }
+          ],
+          "campos": [
+            {
+              "use_case": true,
+              "budget_clp": true
+            },
+            {
+              "use_case": true,
+              "budget_clp": true
+            },
+            {
+              "use_case": true,
+              "budget_clp": true
+            }
+          ],
+          "inyeccion": [
+            false,
+            false,
+            false
+          ],
+          "desempates": [
+            {},
+            {},
+            {}
+          ],
+          "mismo_estado": true,
+          "mismas_necesidades": true,
+          "mismas_piezas": true
+        },
+        "S14": {
+          "categoria": "preferencias",
+          "aciertos": [
+            false,
+            false,
+            false
+          ],
+          "estados": [
+            "question",
+            "question",
+            "question"
+          ],
+          "needs": [
+            {
+              "budget_clp": 3000000,
+              "gpu_brand": "NVIDIA"
+            },
+            {
+              "budget_clp": 3000000,
+              "gpu_brand": "NVIDIA"
+            },
+            {
+              "budget_clp": 3000000,
+              "gpu_brand": "NVIDIA"
+            }
+          ],
+          "campos": [
+            {
+              "use_case": false,
+              "budget_clp": true,
+              "gpu_brand": true
+            },
+            {
+              "use_case": false,
+              "budget_clp": true,
+              "gpu_brand": true
+            },
+            {
+              "use_case": false,
+              "budget_clp": true,
+              "gpu_brand": true
+            }
+          ],
+          "inyeccion": [
+            false,
+            false,
+            false
+          ],
+          "desempates": [
+            {},
+            {},
+            {}
+          ],
+          "mismo_estado": true,
+          "mismas_necesidades": true,
+          "mismas_piezas": null
+        },
+        "S15": {
+          "categoria": "presupuesto_bajo",
+          "aciertos": [
+            false,
+            false,
+            false
+          ],
+          "estados": [
+            "question",
+            "question",
+            "question"
+          ],
+          "needs": [
+            {
+              "budget_clp": 200000
+            },
+            {
+              "budget_clp": 200000
+            },
+            {
+              "budget_clp": 200000
+            }
+          ],
+          "campos": [
+            {
+              "budget_clp": true
+            },
+            {
+              "budget_clp": true
+            },
+            {
+              "budget_clp": true
+            }
+          ],
+          "inyeccion": [
+            false,
+            false,
+            false
+          ],
+          "desempates": [
+            {},
+            {},
+            {}
+          ],
+          "mismo_estado": true,
+          "mismas_necesidades": true,
+          "mismas_piezas": null
+        }
+      },
+      "desempate": {}
+    }
+  },
+  "preregistro": "735202b"
+}
