@@ -19,10 +19,12 @@ mkdir -p infra/.salida
 AUTH_JWT_SECRET=${AUTH_JWT_SECRET:-$(openssl rand -hex 32)}   # obligatorio con APP_ENV=production
 [ -n "${GEMINI_API_KEY:-}" ] || echo "AVISO: falta GEMINI_API_KEY: el asistente responderá solo con reglas."
 [ -n "${ADMIN_EMAILS:-}" ] || echo "AVISO: falta ADMIN_EMAILS: en producción nadie podrá abrir /observabilidad."
+# Solo una base Postgres sale hacia la instancia: el .env local suele traer la SQLite de desarrollo, que allá no existe.
+case "${DATABASE_URL:-}" in postgres://*|postgresql://*|postgresql+psycopg://*) BASE_EXTERNA=$DATABASE_URL ;; *) BASE_EXTERNA= ;; esac
 ( umask 077; printf 'GEMINI_API_KEY=%s\nAUTH_JWT_SECRET=%s\nADMIN_EMAILS=%s\n' "${GEMINI_API_KEY:-}" "$AUTH_JWT_SECRET" "${ADMIN_EMAILS:-}" > infra/.salida/secretos.env
   # comillas simples: Compose toma el valor literal (la contraseña puede traer $ u otros símbolos)
-  [ -n "${DATABASE_URL:-}" ] && printf "DATABASE_URL='%s'\n" "$DATABASE_URL" >> infra/.salida/secretos.env || true )
-[ -n "${DATABASE_URL:-}" ] && echo "Base: la de DATABASE_URL (fuera del laboratorio)." || echo "AVISO: sin DATABASE_URL, la base es SQLite en la instancia y se pierde cuando el laboratorio limpia la cuenta."
+  [ -n "$BASE_EXTERNA" ] && printf "DATABASE_URL='%s'\n" "$BASE_EXTERNA" >> infra/.salida/secretos.env || true )
+[ -n "$BASE_EXTERNA" ] && echo "Base: la Postgres de DATABASE_URL (fuera del laboratorio)." || echo "AVISO: sin una DATABASE_URL Postgres, la base es SQLite en la instancia y se pierde cuando el laboratorio limpia la cuenta."
 
 echo "1/5 Empaquetando el código (git archive + modelo + datos)…"
 git -C "$RAIZ" archive --format=tar.gz -o "$PWD/infra/.salida/fuente.tgz" HEAD app ml alembic alembic.ini pyproject.toml README.md Dockerfile frontend EP3_ITY1102/modelo EP3_ITY1102/infra/docker-compose.aws.yml
