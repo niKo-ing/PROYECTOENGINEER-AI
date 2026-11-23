@@ -6,7 +6,7 @@ API REST segura, mensajería con RabbitMQ, dashboard, pruebas de carga y scripts
 | Carpeta | Contenido |
 |---|---|
 | `modelo/` | `match_model.joblib`, `metrics.json` (métricas, hiperparámetros, umbrales), `pares_prueba.csv`, `Dockerfile` y `serve` (contrato `/ping` + `/invocations`) |
-| `documento/` | Informe técnico: `EP3_Equipo1_Informe.pdf` (10 págs.; fuente `generar.py` → `EP3_ITY1102.html`) |
+| `documento/` | Informe técnico: `EP3_Equipo1_Estefania_Tapia_Espinoza.pdf` (10 págs.; fuente `generar.py` → `EP3_ITY1102.html`) |
 | `defensa/` | `EP3_Presentacion_Equipo1.pdf` (6 láminas) |
 | `diagramas/` | Arquitectura, secuencia del flujo asíncrono y despliegue (PlantUML + PNG) |
 | `pruebas/` | `locustfile.py`, `cargar.sh` y `resultados/` (CSV/HTML de Locust, incluida la corrida «antes» de la corrección) |
