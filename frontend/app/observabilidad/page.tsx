@@ -260,7 +260,8 @@ function Breakdown({ data }: { data: Metrics }) {
           <Table head={["Etapa", "n", "p50", "p95"]} rows={Object.entries(s.stages).map(([name, d]) => [name, num(d.n), formatMs(d.p50_ms), formatMs(d.p95_ms)])} />
           <p className="mt-3 text-xs text-muted-foreground">
             Explicaciones descartadas por precio sin respaldo: {s.quality.explanations_discarded} · presupuestos inventados descartados: {s.quality.invented_budget_discarded} · avisos de
-            presupuesto agregados por el código: {s.quality.budget_warning_added} · desacuerdo reglas/Gemini: {s.quality.rules_llm_disagreement} ({pct(s.quality.rules_llm_disagreement_rate)}) ·
+            presupuesto agregados por el código: {s.quality.budget_warning_added} · desacuerdo reglas/Gemini: {s.quality.rules_llm_disagreement} ({pct(s.quality.rules_llm_disagreement_rate)}), en{" "}
+            {s.quality.rules_overridden_by_llm ?? 0} ganó Gemini ·
             replanificaciones: {s.quality.replans}
           </p>
         </CardContent>

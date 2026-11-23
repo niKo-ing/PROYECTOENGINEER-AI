@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
-import { BookOpen, Bot, LoaderCircle, Save, Send, ShieldCheck, Wrench } from "lucide-react";
+import { BookOpen, Bot, LoaderCircle, Save, Scale, Send, ShieldCheck, Wrench } from "lucide-react";
 
 import { LoginNeeded, PartsList, ReportPanel, SavePcDialog } from "@/components/pc/pc-ui";
 import { Badge } from "@/components/ui/badge";
@@ -209,17 +209,27 @@ export default function AssistantPage() {
 function ReplyMeta({ reply }: { reply: AssistantReply }) {
   if (reply.state === "blocked") return <Badge variant="warning">Pedido bloqueado por seguridad</Badge>;
   return (
-    <div className="flex flex-wrap items-center gap-2">
-      {reply.state === "build" ? (
-        <Badge variant={reply.explained_by === "llm" ? "secondary" : "outline"}>{reply.explained_by === "llm" ? "Explicado por IA" : "Explicación automática"}</Badge>
-      ) : null}
-      {reply.guides?.map((guide) => (
-        <Link key={guide.guide} href={guide.url} className="inline-flex items-center gap-1 text-xs text-primary underline-offset-4 hover:underline">
-          <BookOpen className="size-3" aria-hidden="true" />
-          {guide.title}
-        </Link>
+    <>
+      {reply.overrides?.map((override) => (
+        <p key={override.field} className="flex items-start gap-2 rounded-lg border border-dashed px-3 py-2 text-xs text-muted-foreground">
+          <Scale className="mt-0.5 size-3.5 shrink-0" aria-hidden="true" />
+          <span>
+            <span className="font-medium text-foreground">Regla automática corregida por la IA.</span> {override.message}
+          </span>
+        </p>
       ))}
-    </div>
+      <div className="flex flex-wrap items-center gap-2">
+        {reply.state === "build" ? (
+          <Badge variant={reply.explained_by === "llm" ? "secondary" : "outline"}>{reply.explained_by === "llm" ? "Explicado por IA" : "Explicación automática"}</Badge>
+        ) : null}
+        {reply.guides?.map((guide) => (
+          <Link key={guide.guide} href={guide.url} className="inline-flex items-center gap-1 text-xs text-primary underline-offset-4 hover:underline">
+            <BookOpen className="size-3" aria-hidden="true" />
+            {guide.title}
+          </Link>
+        ))}
+      </div>
+    </>
   );
 }
 

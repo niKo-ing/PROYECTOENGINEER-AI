@@ -8,7 +8,7 @@ guarda en tu perfil («Mis computadores»). Cada consulta a la IA queda trazada 
 |---|---|---|
 | **ISY0101 · Evaluación Parcial 3** (observabilidad) | Métricas de precisión, latencia, consistencia, errores y recursos; trazas y análisis de logs; dashboard; recomendaciones; seguridad y privacidad | [`docs/entrega/ISY0101-EP3.md`](docs/entrega/ISY0101-EP3.md) |
 | **ISY0101 · Evaluación Final Transversal** | Caso, prompts, RAG (fuentes internas y externas), arquitectura, agente con herramientas, memoria, planificación, observabilidad y seguridad; notebook de Colab | [`docs/entrega/ISY0101-EFT.md`](docs/entrega/ISY0101-EFT.md) · [`notebooks/EFT_ISY0101.ipynb`](notebooks/EFT_ISY0101.ipynb) |
-| **ITY1102 · Evaluación Parcial 3** (despliegue) | Modelo de emparejamiento, API `/ml`, RabbitMQ, despliegue medido en AWS, pruebas de carga | [`EP3_ITY1102/README.md`](EP3_ITY1102/README.md) |
+| **ITY1102 · Evaluación Parcial 3** (despliegue) | Modelo de emparejamiento, API `/ml`, RabbitMQ, despliegue medido en AWS, pruebas de carga | [`EP3_ITY1102/README.md`](EP3_ITY1102/README.md) · redespliegue para la defensa: [`docs/entrega/DEPLOY_DEFENSA.md`](docs/entrega/DEPLOY_DEFENSA.md) |
 | Matriz de cumplimiento de las tres pautas | Cada indicador con su evidencia (archivo, ruta o página) | [`docs/entrega/matriz-cumplimiento.md`](docs/entrega/matriz-cumplimiento.md) |
 | ISY0101 · Evaluación Parcial 2 (agente) | Arquitectura del agente LangGraph | [`docs/agente/ARQUITECTURA.md`](docs/agente/ARQUITECTURA.md) |
 

@@ -35,7 +35,7 @@ la cuota del plan gratuito de Gemini es limitada y la Ley 21.719 eleva las exige
 
 | Prompt | Archivo | Técnica |
 |---|---|---|
-| `EXTRACT_SYSTEM` | `app/pcbuilder/assistant.py` | Salida JSON con esquema fijo (uso, presupuesto, marcas, wifi, tamaño, pregunta), lista cerrada de usos y regla «no inventes un presupuesto» |
+| `EXTRACT_SYSTEM` | `app/pcbuilder/assistant.py` | Salida JSON con esquema fijo (uso, presupuesto, marcas, wifi, tamaño, pregunta), lista cerrada de usos, regla «no inventes un presupuesto» y, por campo, confianza y cita literal del usuario (para el desempate, §4.2) |
 | `EXPLAIN_SYSTEM` | ídem | Solo datos del JSON y de las guías; precios copiados tal cual; citar la guía entre corchetes; avisar si se pasa del presupuesto; 90–160 palabras |
 | `REVIEW_SYSTEM` | ídem | Revisión de un PC guardado en tres partes: compatibilidad, para qué alcanza, mejor mejora |
 | `ACT_SYSTEM` | `app/agent/graph.py` | Reglas de uso de herramientas: no afirmar compatibilidad sin `check_pc_compatibility`, preguntar si falta uso o presupuesto, guardar solo si se pide |
@@ -104,6 +104,7 @@ flowchart TB
 | Decisión | Alternativa | Motivo (con dato) |
 |---|---|---|
 | Compatibilidad por reglas, no por el LLM | Que Gemini decida | Es verificable y determinista: 100 % de armados compatibles en todas las corridas |
+| En un desacuerdo sobre uso o presupuesto, gana Gemini si tiene confianza alta y una cita verificable | Que siempre manden las reglas, o siempre Gemini | En 6 de 7 desacuerdos acertó Gemini; con la cita verificada por código se acota la alucinación. La compatibilidad física no entra en el desempate |
 | Gemini para entender y explicar | Solo reglas | Las reglas aciertan 40 % con casos nuevos; Gemini, 80–90 % |
 | `gemini-3.5-flash-lite` | Modelos más grandes | p50 de 2,7 s y ~1.800 tokens por consulta; la tarea es extraer y redactar, no razonar en profundidad |
 | Descartar explicaciones con precios sin respaldo | Confiar en el prompt | El prompt no garantiza; la regla en código sí (0 precios sin respaldo) |
@@ -202,6 +203,9 @@ y metodología: `docs/entrega/ISY0101-EP3.md` §2.
 Agente (22-11): 87,5 % de éxito, 100 % de herramientas correctas, p95 de 8,4 s, 3,5 llamadas y 8.707 tokens por
 ejecución.
 
+Con el desempate (23-11, solo Gemini, 1 repetición, `evals/resultados/eval-2026-11-23-desempate.md`): 100 % en prueba y
+100 % en prueba 2, p95 de 4,0 s y 2.062 tokens por consulta (+10 %, por la confianza y la cita que ahora devuelve).
+
 ### 4.2 Análisis de registros y propuesta de mejoras (IE10, IE12)
 
 Las trazas (235 ejecuciones) mostraron siete hallazgos; cada uno tiene su evidencia y su corrección en
@@ -211,15 +215,34 @@ Las trazas (235 ejecuciones) mostraron siete hallazgos; cada uno tiene su eviden
   de 3;
 * más del 98 % de la latencia es espera a Gemini, con colas de hasta 21,9 s: se fijó un límite de 10 s con respaldo;
 * la cuota gratuita produjo 3 respuestas 429;
-* en 6 de 7 desacuerdos entre reglas y Gemini, Gemini tenía razón.
+* en 6 de 7 desacuerdos entre reglas y Gemini, Gemini tenía razón: **ya se implementó el desempate** (abajo).
+
+**Mejora implementada: desempate entre reglas y Gemini** (`resolve_disagreements` en `app/pcbuilder/assistant.py`).
+El motor de reglas sigue siendo el filtro rápido y la barrera de seguridad física. Cuando reglas y Gemini entienden
+distinto el uso o el presupuesto, gana Gemini solo si se cumplen tres condiciones:
+
+* declara confianza «alta»;
+* su cita literal aparece en lo que escribió el usuario (el código la compara sin mayúsculas ni tildes);
+* en el presupuesto, la cita nombra un monto.
+
+Si falta alguna, ganan las reglas. La respuesta muestra qué regla se anuló y por qué. Por ejemplo: «Entendí Juegos en
+1440p por «jugar en 4K»; la regla automática de uso por palabras clave había leído Juegos en 1080p». Cada decisión queda
+en la traza (`desacuerdo_reglas_llm`, con ganador y motivo, y `reglas_anuladas`), y el panel cuenta en cuántos
+desacuerdos ganó Gemini.
+
+Lo que **nunca** se anula es la compatibilidad física: socket, memoria, medidas y watts no pasan por el desempate y los
+decide siempre `check_build`. Pruebas: `tests/pcbuilder/test_assistant.py` (confianza media, cita inventada, cita sin
+monto, marca que no se anula). Medido con Gemini real: P10 («4K») y Q08 («2 millones y medio») pasaron a acertar.
+
+*Límite:* el conjunto prueba 2 ya no es ciego para esta regla, porque Q08 ayudó a decidirla. Para defenderla con rigor
+conviene un conjunto nuevo escrito por el equipo y corrido con 3 repeticiones.
 
 **Mejoras propuestas con su dato:**
 
 1. medir la tasa de respaldo con el límite de 10 s;
 2. cola con reintentos y plan pagado para la cuota;
-3. dar prioridad a Gemini en un desacuerdo, validado con un conjunto ciego nuevo;
-4. ahorrar la llamada de extracción cuando el pedido trae uso y monto en cifras;
-5. caché de explicaciones por armado.
+3. ahorrar la llamada de extracción cuando el pedido trae uso y monto en cifras;
+4. caché de explicaciones por armado.
 
 [EQUIPO: prioricen estas mejoras y justifiquen el orden.]
 

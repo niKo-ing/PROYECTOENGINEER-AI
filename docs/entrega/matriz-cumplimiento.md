@@ -31,12 +31,12 @@ Encargo 20 % (en pareja) · Defensa 80 % (individual). Pesos: encargo / defensa.
 | IE4 Justificación de decisiones de diseño | 1 % / 10 % | `docs/entrega/ISY0101-EFT.md` §2.4 (motor de reglas frente al LLM, modelo flash-lite, SQLite/RDS, Gemini frente a otros). | Borrador; **equipo** |
 | IE5 Agente con herramientas de consulta, escritura y razonamiento | 2 % / 10 % | `app/agent/tools.py` y `pc_tools.py`: 19 herramientas (consulta: catálogo, precios, piezas, guías, web; razonamiento: compatibilidad, recomendación, tendencia; escritura: alertas, listas, memoria, «Mis computadores»). Pruebas: `tests/agent/`. | Listo |
 | IE6 Memoria y recuperación de contexto | 2 % / 5 % | Corto plazo: checkpointer de LangGraph (`agent_checkpoints.db`). Largo plazo: `app/agent/memory.py` (preferencias con embeddings). Necesidades conocidas del asistente (`KnownNeeds`). | Listo |
-| IE7 Planificación y toma de decisiones | 2 % / 10 % | `app/agent/planning.py` (`heuristic_plan`, `pc_plan`, `diagnose` con replanificación por incompatibilidad o presupuesto) y nodos `plan`/`reflect` de `app/agent/graph.py`. El asistente decide entre preguntar, armar o bloquear. | Listo |
+| IE7 Planificación y toma de decisiones | 2 % / 10 % | `app/agent/planning.py` (`heuristic_plan`, `pc_plan`, `diagnose` con replanificación por incompatibilidad o presupuesto) y nodos `plan`/`reflect` de `app/agent/graph.py`. El asistente decide entre preguntar, armar o bloquear, y desempata reglas contra Gemini (`resolve_disagreements`). | Listo |
 | IE8 Documentación de la orquestación | 1 % / 5 % | `docs/agente/ARQUITECTURA.md`, `docs/entrega/ISY0101-EFT.md` §3.4 (diagrama de flujo). | Listo |
 | IE9 Métricas de observabilidad | 1 % / 5 % | Igual que IE1 e IE2 de la EP3. | Listo |
 | IE10 Análisis de registros | 2 % | Igual que IE3 de la EP3. | Listo |
 | IE11 Seguridad y uso responsable | 2 % / 5 % | Igual que IE8 de la EP3. | Listo |
-| IE12 Propuesta de mejoras | 1 % / 5 % | Informe EFT §4.3. | Borrador; **equipo** |
+| IE12 Propuesta de mejoras | 1 % / 5 % | Informe EFT §4.2: el desempate reglas/Gemini ya está implementado y medido (`evals/resultados/eval-2026-11-23-desempate.md`); quedan 4 propuestas con su dato. | Borrador; **equipo**: priorizar |
 | IE13–IE15 Fundamentación, exposición y respuestas | 15 % | Prototipo funcionando + panel. | **Equipo** (defensa individual) |
 | Formato: PDF + código en Jupyter/Colab | — | `notebooks/EFT_ISY0101.ipynb` (clona, instala, prueba, evalúa y grafica). | Listo; **equipo**: exportar el informe a PDF |
 
@@ -50,9 +50,9 @@ Detalle en [`EP3_ITY1102/README.md`](../../EP3_ITY1102/README.md) y en el inform
 | IE2 Consumo de resultados en la aplicación | 10 % | API `/ml`, dashboard `/api/v1/ml/dashboard`; ahora también el armador y el asistente consumen Gemini y el motor de reglas. | Listo |
 | IE3 Contexto y arquitectura (presentación) | 10 % | `EP3_ITY1102/diagramas/`. | **Equipo** |
 | IE4 Plataforma AIaaS (SageMaker) | 5 % | Contenedor con contrato SageMaker (`/ping`, `/invocations`); `CreateModel` denegado por IAM del laboratorio (`EP3_ITY1102/evidencia/sagemaker-intento.txt`). | **Brecha**: pedir al docente un rol con permisos de SageMaker o aceptar la justificación |
-| IE5 Infraestructura mínima y escalabilidad | 5 % | ALB + Auto Scaling 2→4 + RDS + CloudFront; Locust sin fallos (`EP3_ITY1102/pruebas/resultados/`, `evidencia/asg-escalado.txt`, `cloudwatch.txt`). | Listo; **volver a desplegar antes de la defensa** (se destruyó para no gastar créditos) |
+| IE5 Infraestructura mínima y escalabilidad | 5 % | ALB + Auto Scaling 2→4 + RDS + CloudFront; Locust sin fallos (`EP3_ITY1102/pruebas/resultados/`, `evidencia/asg-escalado.txt`, `cloudwatch.txt`). | Listo; **volver a desplegar antes de la defensa** (se destruyó para no gastar créditos): [`DEPLOY_DEFENSA.md`](DEPLOY_DEFENSA.md) |
 | IE7 APIs REST y comunicación entre servicios | 10 % | Swagger `/docs`, RabbitMQ + worker (`app/messaging/`), límite de tasa y TLS por CloudFront. | Listo |
 | IE10 Testing y calidad | 10 % | Pruebas unitarias e integración (`tests/`), Locust, métricas p50/p95/p99 y tasa de error; ahora también la evaluación de la IA. | Listo |
 | IE6, IE8, IE11 Justificaciones (presentación) | 15 % | Informe §Costos y decisiones. | **Equipo** |
-| IE9 Demostración en vivo | 10 % | Requiere el sistema desplegado en AWS. | **Equipo**; redesplegar |
+| IE9 Demostración en vivo | 10 % | Requiere el sistema desplegado en AWS: `desplegar.sh` (API, modelo y frontend) + `verificar_defensa.sh`; guía en [`DEPLOY_DEFENSA.md`](DEPLOY_DEFENSA.md), con plan B local. | **Equipo**; redesplegar |
 | IE12, IE13 Lenguaje técnico y respuestas | 15 % | — | **Equipo** |

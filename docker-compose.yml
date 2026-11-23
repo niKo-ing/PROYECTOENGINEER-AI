@@ -58,6 +58,8 @@ services:
     build:
       context: ./frontend
       dockerfile: Dockerfile
+      args:
+        BACKEND_URL: http://backend:8000   # Next fija los rewrites al compilar
     env_file: .env
     environment:
       BACKEND_URL: http://backend:8000

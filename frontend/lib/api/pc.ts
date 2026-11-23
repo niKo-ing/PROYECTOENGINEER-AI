@@ -64,7 +64,18 @@ export type AssistantReply = {
   guides?: GuideRef[];
   source?: "llm" | "reglas";
   explained_by?: "llm" | "reglas";
+  /** Reglas automáticas que Gemini anuló (uso o presupuesto) con confianza alta y una cita verificada del usuario. */
+  overrides?: AssistantOverride[];
   run_id: string;
+};
+
+export type AssistantOverride = {
+  field: "use_case" | "budget_clp";
+  rule: string;
+  rules_value: string | number;
+  llm_value: string | number;
+  quote: string;
+  message: string;
 };
 
 export type SavedPc = {
@@ -207,7 +218,7 @@ export type Metrics = {
     cpu_ms: Latency;
     tools: Record<string, { calls: number; errors: number; error_rate: number | null; p50_ms: number | null; p95_ms: number | null }>;
     stages: Record<string, { n: number; p50_ms: number | null; p95_ms: number | null }>;
-    quality: { answers_with_prices: number; grounded_rate: number | null; unsupported_prices: number; explanations_discarded: number; invented_budget_discarded: number; rules_llm_disagreement: number; rules_llm_disagreement_rate: number | null; budget_warning_added: number; replans: number; tool_errors: number };
+    quality: { answers_with_prices: number; grounded_rate: number | null; unsupported_prices: number; explanations_discarded: number; invented_budget_discarded: number; rules_llm_disagreement: number; rules_llm_disagreement_rate: number | null; rules_overridden_by_llm: number; budget_warning_added: number; replans: number; tool_errors: number };
     security: { injection_detected: number; blocked: number };
   };
   slo: Slo[];

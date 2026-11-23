@@ -9,7 +9,8 @@ from sqlalchemy import select
 
 from app.main import app
 from app.models.observability import AgentRun, AgentSpan
-from app.pcbuilder.assistant import AssistantIn, PcAssistant, ReviewIn, rule_based_needs
+from app.observability.metrics import dashboard
+from app.pcbuilder.assistant import OVERRIDABLE_FIELDS, AssistantIn, PcAssistant, ReviewIn, resolve_disagreements, rule_based_needs
 from app.routers.pc import get_assistant_llm
 
 from .apoyo import pid, token
@@ -231,11 +232,99 @@ def test_armado_sobre_el_presupuesto_siempre_lo_avisa(env):
     assert run.quality["aviso_presupuesto_agregado"] is True
 
 
-def test_desacuerdo_entre_reglas_y_modelo_queda_en_la_traza(env):
+# ── desempate entre reglas y Gemini (recomendación 3) ──────────────────────────────────────────────────
+
+
+def seguro(**por_campo):
+    """confidence/evidence de la extracción: seguro(use_case=("alta", "cita"))."""
+    return {"confidence": {k: v[0] for k, v in por_campo.items()}, "evidence": {k: v[1] for k, v in por_campo.items()}}
+
+
+def test_desacuerdo_sin_confianza_alta_mandan_las_reglas(env):
     _, Session = env
-    modelo = FakeListChatModel(responses=[extraccion(use_case="streaming", budget_clp=900000), "Buen equipo para lo que buscas [Tarjeta gráfica]."])
+    modelo = FakeListChatModel(responses=[extraccion(use_case="streaming", budget_clp=900000, **seguro(use_case=("media", "jugar valorant"))),
+                                          "Buen equipo para lo que buscas [Tarjeta gráfica]."])
     with Session() as db:
         r = PcAssistant(db, "u1", modelo).run(turnos("quiero jugar valorant, tengo 900 mil"))
         run = db.scalar(select(AgentRun).where(AgentRun.run_id == r["run_id"]))
-    assert r["needs"]["use_case"] == "esports"  # mandan las reglas (deterministas)
-    assert run.quality["desacuerdo_reglas_llm"] == {"use_case": {"reglas": "esports", "llm": "streaming"}}
+    assert r["needs"]["use_case"] == "esports" and r["overrides"] == []
+    assert run.quality["desacuerdo_reglas_llm"] == {"use_case": {"reglas": "esports", "llm": "streaming", "gana": "reglas", "motivo": "confianza_no_alta",
+                                                                 "confianza": "media", "cita": "jugar valorant"}}
+    assert "reglas_anuladas" not in run.quality
+
+
+def test_con_confianza_alta_y_cita_gana_gemini_y_lo_dice(env):
+    """P10 de la evaluación: «4K» es 1440p o más, pero la regla de palabras clave leía «jugar» = 1080p."""
+    _, Session = env
+    texto = "quiero una bestia para jugar en 4K con todo en ultra, tengo 2,5 millones"
+    modelo = FakeListChatModel(responses=[extraccion(use_case="gaming_1440", budget_clp=2500000, **seguro(use_case=("alta", "jugar en 4K con todo en ultra"))),
+                                          "Este equipo mueve juegos en alta resolución [Tarjeta gráfica]."])
+    with Session() as db:
+        r = PcAssistant(db, "u1", modelo).run(turnos(texto))
+        run = db.scalar(select(AgentRun).where(AgentRun.run_id == r["run_id"]))
+        resumen = dashboard(db, hours=24)["summary"]["quality"]
+    assert r["state"] == "build" and r["needs"]["use_case"] == "gaming_1440" and r["recommendation"]["needs"]["use_case"] == "gaming_1440"
+    [anulada] = r["overrides"]
+    assert anulada["field"] == "use_case" and anulada["rule"] == "uso por palabras clave"
+    assert anulada["rules_value"] == "gaming_1080" and anulada["llm_value"] == "gaming_1440"
+    assert "«jugar en 4K con todo en ultra»" in anulada["message"] and "Juegos en 1080p" in anulada["message"]
+    assert run.quality["reglas_anuladas"] == ["use_case"] and run.quality["desacuerdo_reglas_llm"]["use_case"]["gana"] == "llm"
+    assert resumen["rules_llm_disagreement"] == 1 and resumen["rules_overridden_by_llm"] == 1
+    # La compatibilidad no la anula nadie: el reporte sigue saliendo del motor de reglas.
+    assert r["recommendation"]["report"]["compatible"] is True
+
+
+def test_monto_en_palabras_gana_gemini_con_cita_que_nombra_el_monto(env):
+    """Q08: «2 millones y medio» = 2.500.000; la lectura de montos tomaba solo los 2 millones."""
+    _, Session = env
+    texto = "busco entrenar modelos de IA en local con cuda, tengo 2 millones y medio"
+    modelo = FakeListChatModel(responses=[extraccion(use_case="modelado_ia", budget_clp=2500000, **seguro(budget_clp=("alta", "2 millones y medio"))), "Sirve [Memoria RAM]."])
+    with Session() as db:
+        r = PcAssistant(db, "u1", modelo).run(turnos(texto))
+    assert r["needs"]["budget_clp"] == 2_500_000
+    assert [o["field"] for o in r["overrides"]] == ["budget_clp"] and "$2.500.000" in r["overrides"][0]["message"] and "$2.000.000" in r["overrides"][0]["message"]
+
+
+@pytest.mark.parametrize(
+    ("apoyo", "motivo"),
+    [
+        (seguro(use_case=("alta", "quiero hacer streaming")), "cita_no_encontrada"),  # cita inventada: el usuario no lo escribió
+        (seguro(use_case=("alta", None)), "cita_no_encontrada"),
+        ({}, "confianza_no_alta"),  # el modelo no declaró confianza
+    ],
+)
+def test_sin_cita_verificable_mandan_las_reglas(env, apoyo, motivo):
+    _, Session = env
+    modelo = FakeListChatModel(responses=[extraccion(use_case="streaming", budget_clp=900000, **apoyo), "Bien [Tarjeta gráfica]."])
+    with Session() as db:
+        r = PcAssistant(db, "u1", modelo).run(turnos("quiero jugar valorant, tengo 900 mil"))
+        run = db.scalar(select(AgentRun).where(AgentRun.run_id == r["run_id"]))
+    assert r["needs"]["use_case"] == "esports" and r["overrides"] == []
+    assert run.quality["desacuerdo_reglas_llm"]["use_case"]["motivo"] == motivo
+
+
+def test_politica_de_desempate_pura():
+    reglas = {"use_case": "gaming_1080", "budget_clp": 2_000_000, "cpu_brand": "AMD"}
+    gemini = {"use_case": "gaming_1440", "budget_clp": 2_500_000, "cpu_brand": "Intel"}
+    texto = "Quiero jugar en 4K, tengo 2 millones y medio, ojalá AMD"
+    apoyo = {"use_case": {"confianza": "alta", "cita": "jugar en 4k"}, "budget_clp": {"confianza": "alta", "cita": "tengo plata"}}
+    decisiones, anuladas = resolve_disagreements(reglas, gemini, apoyo, texto)
+    assert decisiones["use_case"]["gana"] == "llm"  # la cita se compara sin mayúsculas ni tildes
+    assert decisiones["budget_clp"] == {"reglas": 2_000_000, "llm": 2_500_000, "gana": "reglas", "motivo": "cita_no_encontrada", "confianza": "alta", "cita": "tengo plata"}
+    assert "cpu_brand" not in decisiones  # solo se desempata la interpretación del pedido (uso y presupuesto)
+    assert [o["field"] for o in anuladas] == ["use_case"]
+    texto2 = "tengo harto para gastar, quiero jugar en 4K"
+    apoyo2 = {"use_case": {"confianza": "alta", "cita": "jugar en 4K"}, "budget_clp": {"confianza": "alta", "cita": "tengo harto para gastar"}}
+    decisiones2, _ = resolve_disagreements(reglas, gemini, apoyo2, texto2)
+    assert decisiones2["budget_clp"]["motivo"] == "cita_sin_monto"  # un presupuesto solo se anula con una cita que nombre un monto
+    assert resolve_disagreements(reglas, reglas, apoyo, texto) == ({}, [])  # sin desacuerdo no hay nada que decidir
+    assert OVERRIDABLE_FIELDS == ("use_case", "budget_clp")
+
+
+def test_la_marca_pedida_no_se_anula(env):
+    """Con confianza alta, Gemini solo puede corregir el uso o el presupuesto; la marca que leen las reglas se mantiene."""
+    _, Session = env
+    modelo = FakeListChatModel(responses=[extraccion(use_case="esports", budget_clp=700000, cpu_brand="Intel", **seguro(use_case=("alta", "jugar valorant"))), "Bien [Tarjeta gráfica]."])
+    with Session() as db:
+        r = PcAssistant(db, "u1", modelo).run(turnos("tengo 700 lucas pa jugar valorant, ojalá amd"))
+    assert r["needs"]["cpu_brand"] == "AMD" and r["overrides"] == []

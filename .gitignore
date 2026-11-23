@@ -30,3 +30,6 @@ ep3_data.db
 
 # Trazas locales de la IA (TRACE_LOG_FILE)
 logs/
+
+# Secretos de la app para el despliegue en AWS (los crea desplegar.sh)
+EP3_ITY1102/infra/secretos.env

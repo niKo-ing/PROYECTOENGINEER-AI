@@ -115,6 +115,8 @@ def summarize(runs: list[AgentRun], spans: list[AgentSpan]) -> dict[str, Any]:
             "rules_llm_disagreement": sum(1 for r in runs if (r.quality or {}).get("desacuerdo_reglas_llm")),
             "rules_llm_disagreement_rate": _rate(sum(1 for r in runs if (r.quality or {}).get("desacuerdo_reglas_llm")), sum(1 for r in runs if r.flow == "asistente_pc" and r.llm_calls)),
             "budget_warning_added": sum(1 for r in runs if (r.quality or {}).get("aviso_presupuesto_agregado")),
+            # Desempate: ejecuciones en que Gemini anuló una regla (uso o presupuesto) con confianza alta y cita verificada.
+            "rules_overridden_by_llm": sum(1 for r in runs if (r.quality or {}).get("reglas_anuladas")),
             "replans": sum(r.replans for r in runs), "tool_errors": sum(r.tool_errors for r in runs),
         },
         "security": {

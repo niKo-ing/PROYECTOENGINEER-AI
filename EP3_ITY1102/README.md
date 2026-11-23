@@ -35,10 +35,15 @@ ML_API_KEYS=clave-local docker compose up --build        # API :8000, modelo :80
 
 ## AWS Academy
 
+> **Para la defensa:** guía paso a paso con verificación automática en [`docs/entrega/DEPLOY_DEFENSA.md`](../docs/entrega/DEPLOY_DEFENSA.md).
+> `desplegar.sh` ahora también levanta el frontend (puerto 3000: asistente, armador y panel `/observabilidad`) con los
+> secretos de la app (`GEMINI_API_KEY`, `AUTH_JWT_SECRET`, `ADMIN_EMAILS`) leídos del entorno.
+
 ```bash
 # credenciales del lab en el entorno (nunca en el repo)
 bash EP3_ITY1102/infra/intentar_sagemaker.sh   # documenta si SageMaker se puede usar (suele fallar por IAM)
-bash EP3_ITY1102/infra/desplegar.sh            # S3 + EC2 t3.medium + Compose + alarma CloudWatch (~6 min)
+bash EP3_ITY1102/infra/desplegar.sh            # S3 + EC2 t3.medium + Compose + alarma CloudWatch (~10-12 min)
+bash EP3_ITY1102/infra/verificar_defensa.sh --esperar http://<IP> http://<IP>:3000
 bash EP3_ITY1102/pruebas/cargar.sh http://<IP> aws 50 60
 bash EP3_ITY1102/infra/destruir.sh             # SIEMPRE al terminar
 
