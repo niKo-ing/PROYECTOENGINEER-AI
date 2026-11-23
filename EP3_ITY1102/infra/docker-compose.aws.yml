@@ -14,7 +14,9 @@ services:
     restart: unless-stopped
     ports: ["80:8000"]
     environment: &env
-      DATABASE_URL: sqlite:////data/ep3.db
+      # Sin DATABASE_URL en secretos.env, SQLite en el volumen (se pierde cuando el laboratorio limpia la cuenta);
+      # con la cadena del Session pooler de Supabase, los datos quedan fuera del laboratorio.
+      DATABASE_URL: ${DATABASE_URL:-sqlite:////data/ep3.db}
       RABBITMQ_URL: amqp://guest:guest@rabbitmq:5672/%2F
       MATCH_MODEL_URL: http://modelo:8080
       ML_API_KEYS: ${ML_API_KEYS}

@@ -2,7 +2,7 @@
 # Despliega TodoBarato AI en AWS Academy. Idempotente: si un recurso ya existe, lo reutiliza.
 #   bash EP2_ITY1102/infra/desplegar.sh            # todo
 #   ALERTA_EMAIL=correo@x.cl bash ...desplegar.sh  # además suscribe ese correo a las alarmas
-# Al terminar las pruebas: bash EP2_ITY1102/infra/destruir.sh  (el ALB y RDS cobran por hora)
+# No se destruye al terminar: ver «No borrar nada» en docs/entrega/DEPLOY_DEFENSA.md.
 source "$(dirname "$0")/comun.sh"
 cargar
 
@@ -305,4 +305,4 @@ echo "  App:        http://$ALB_DNS/"
 echo "  Salud:      http://$ALB_DNS/health"
 echo "  Dashboard:  https://$REGION.console.aws.amazon.com/cloudwatch/home?region=$REGION#dashboards/dashboard/$P"
 echo "  Estado:     bash EP2_ITY1102/infra/estado.sh"
-echo "  Al terminar: bash EP2_ITY1102/infra/destruir.sh"
+echo "  No lo destruyan al terminar (docs/entrega/DEPLOY_DEFENSA.md, «No borrar nada»)."

@@ -1,8 +1,9 @@
 #!/usr/bin/env bash
 # Despliega la pila en AWS Academy: S3 (código) + EC2 t3.medium con Docker Compose + alarma de CloudWatch.
 # API y modelo en el puerto 80, frontend (armador, asistente, panel /observabilidad) en el 3000.
-# Requisitos: credenciales del lab en el entorno (AWS_ACCESS_KEY_ID/SECRET/SESSION_TOKEN). Cuesta ~USD 0,05/h: usar destruir.sh al terminar.
+# Requisitos: credenciales del lab en el entorno (AWS_ACCESS_KEY_ID/SECRET/SESSION_TOKEN). Cuesta ~USD 0,05/h. No se destruye al terminar (ver docs/entrega/DEPLOY_DEFENSA.md).
 # Secretos de la app, desde el entorno (nunca en el repo): GEMINI_API_KEY, ADMIN_EMAILS y, si quiere fijarlo, AUTH_JWT_SECRET.
+# DATABASE_URL (opcional): base Postgres fuera del laboratorio (Supabase, Session pooler). Sin ella, SQLite en la instancia.
 # Guía paso a paso: docs/entrega/DEPLOY_DEFENSA.md
 set -euo pipefail
 cd "$(dirname "$0")/.."          # EP3_ITY1102
@@ -18,7 +19,10 @@ mkdir -p infra/.salida
 AUTH_JWT_SECRET=${AUTH_JWT_SECRET:-$(openssl rand -hex 32)}   # obligatorio con APP_ENV=production
 [ -n "${GEMINI_API_KEY:-}" ] || echo "AVISO: falta GEMINI_API_KEY: el asistente responderá solo con reglas."
 [ -n "${ADMIN_EMAILS:-}" ] || echo "AVISO: falta ADMIN_EMAILS: en producción nadie podrá abrir /observabilidad."
-( umask 077; printf 'GEMINI_API_KEY=%s\nAUTH_JWT_SECRET=%s\nADMIN_EMAILS=%s\n' "${GEMINI_API_KEY:-}" "$AUTH_JWT_SECRET" "${ADMIN_EMAILS:-}" > infra/.salida/secretos.env )
+( umask 077; printf 'GEMINI_API_KEY=%s\nAUTH_JWT_SECRET=%s\nADMIN_EMAILS=%s\n' "${GEMINI_API_KEY:-}" "$AUTH_JWT_SECRET" "${ADMIN_EMAILS:-}" > infra/.salida/secretos.env
+  # comillas simples: Compose toma el valor literal (la contraseña puede traer $ u otros símbolos)
+  [ -n "${DATABASE_URL:-}" ] && printf "DATABASE_URL='%s'\n" "$DATABASE_URL" >> infra/.salida/secretos.env || true )
+[ -n "${DATABASE_URL:-}" ] && echo "Base: la de DATABASE_URL (fuera del laboratorio)." || echo "AVISO: sin DATABASE_URL, la base es SQLite en la instancia y se pierde cuando el laboratorio limpia la cuenta."
 
 echo "1/5 Empaquetando el código (git archive + modelo + datos)…"
 git -C "$RAIZ" archive --format=tar.gz -o "$PWD/infra/.salida/fuente.tgz" HEAD app ml alembic alembic.ini pyproject.toml README.md Dockerfile frontend EP3_ITY1102/modelo EP3_ITY1102/infra/docker-compose.aws.yml
@@ -54,6 +58,7 @@ aws s3 cp s3://$BUCKET/fuente.tgz . && tar xzf fuente.tgz
 cd EP3_ITY1102/infra
 export ML_API_KEYS=$ML_API_KEYS
 aws s3 cp s3://$BUCKET/secretos.env secretos.env && chmod 600 secretos.env && aws s3 rm s3://$BUCKET/secretos.env || true
+ln -sf secretos.env .env   # Compose lee .env para \${DATABASE_URL} del docker-compose
 docker compose -f docker-compose.aws.yml up -d --build
 # carga el catálogo de ejemplo en el volumen de datos (si se subió)
 aws s3 cp s3://$BUCKET/ep3.db /tmp/ep3.db || true

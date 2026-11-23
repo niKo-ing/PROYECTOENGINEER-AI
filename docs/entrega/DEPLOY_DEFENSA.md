@@ -1,7 +1,7 @@
 # Redespliegue para la defensa (ITY1102 e ISY0101)
 
-La infraestructura de AWS se destruyó para no gastar créditos. Esta guía la levanta desde cero en **una instancia
-EC2** (`desplegar.sh`) con todo lo que se muestra en las dos defensas:
+La infraestructura de AWS ya no existe: la **plataforma del laboratorio la borró sola** unas 2 horas después de cada
+despliegue (ver «No borrar nada»). Esta guía la levanta desde cero en **una instancia EC2** (`desplegar.sh`) con todo lo que se muestra en las dos defensas:
 
 | Servicio | Dirección |
 |---|---|
@@ -9,7 +9,7 @@ EC2** (`desplegar.sh`) con todo lo que se muestra en las dos defensas:
 | Frontend: asistente, armador, Mis computadores y panel | `http://IP:3000` · `/armar/asistente` · `/mis-pc` · `/observabilidad` |
 
 **Tiempo:** unos 15 minutos (10–12 de compilación en la instancia). Empiecen **40 minutos antes** de la defensa.
-**Costo:** ~USD 0,05 por hora. Al terminar, destruyan todo (paso 6).
+**Costo:** ~USD 0,05 por hora, solo mientras dura la sesión. **No destruyan nada al terminar** (paso 6).
 
 > La pila se probó completa en Docker el 23-11-2026, con el mismo `docker-compose.aws.yml` y el verificador del paso 5:
 > 15 de 15 verificaciones en verde, desde una base vacía y con Gemini respondiendo. Lo que no se pudo probar desde aquí es
@@ -105,11 +105,23 @@ latencias y una protección. Las cifras de la evaluación (235 ejecuciones) est�
 
 Para ITY1102, la prueba de carga: `source EP3_ITY1102/infra/.salida/estado.env && bash EP3_ITY1102/pruebas/cargar.sh "$API" aws 50 60`.
 
-## 6. Al terminar (siempre)
+## 6. No borrar nada
 
-```bash
-bash EP3_ITY1102/infra/destruir.sh      # instancia, alarma, grupo de seguridad y bucket
-```
+**No corran `destruir.sh` ni `destruir_asg.sh`.** Ahora piden `CONFIRMO_BORRAR=si` y, sin eso, no tocan nada.
+
+Por qué: CloudTrail muestra que la cuenta se vació dos veces sin que nadie corriera esos scripts. El 25-10 y el 16-11,
+unas 2 horas después de desplegar, el rol de la plataforma (`vocareum/resource`) terminó las instancias y borró el ALB,
+el Auto Scaling, los buckets y las bases RDS **sin respaldo final** (`skipFinalSnapshot: true`). Registro completo en
+[`EP3_ITY1102/evidencia/limpieza-laboratorio.txt`](../../EP3_ITY1102/evidencia/limpieza-laboratorio.txt).
+
+Consecuencias:
+
+* Lo que viva solo en la cuenta del laboratorio (instancia, volumen, RDS, S3) **se pierde al cerrarse la sesión**,
+  aunque nadie lo borre. Por eso se despliega ~40 minutos antes de cada defensa.
+* Los datos que deben durar (catálogo, cuentas, ejecuciones del panel) van **fuera** del laboratorio: si se exporta
+  `DATABASE_URL` con la cadena del *Session pooler* de Supabase antes de `desplegar.sh`, la instancia usa esa base en
+  vez de SQLite y el panel ya no parte vacío.
+* El código y la evidencia viven en GitHub (`EP3_ITY1102/evidencia/`, `evals/resultados/`).
 
 ## Problemas frecuentes
 
@@ -118,7 +130,7 @@ bash EP3_ITY1102/infra/destruir.sh      # instancia, alarma, grupo de seguridad 
 | `ExpiredToken` o `InvalidClientTokenId` | Venció la sesión del laboratorio (4 h) | Volver a copiar las credenciales (paso 1) |
 | El verificador espera 20 minutos y falla en `/health` | La instancia sigue compilando o falló el arranque | EC2 → la instancia → *Actions → Monitor → Get system log*; buscar el error de `docker compose` |
 | La página se queda en «Cargando…» | Frontend en modo desarrollo | Ya está corregido (`frontend/Dockerfile` compila para producción); desplieguen el último commit |
-| `/observabilidad` responde 403 | Su correo no está en `ADMIN_EMAILS` | `export ADMIN_EMAILS=…`, `destruir.sh` y `desplegar.sh` |
+| `/observabilidad` responde 403 | Su correo no está en `ADMIN_EMAILS` | `export ADMIN_EMAILS=…` y volver a correr `desplegar.sh` (crea otra instancia; la anterior no se borra) |
 | Error 500 al iniciar sesión | Falta `AUTH_JWT_SECRET` | `desplegar.sh` la genera; revisen que el despliegue sea del último commit |
 | «Explicación automática» en el asistente | Sin `GEMINI_API_KEY`, o cuota agotada (429) | Revisar la llave en `.env`; esperar un minuto (cuota gratuita) |
 | La IP cambió | Se reinició el laboratorio | Volver a desplegar: la IP pública no es fija |
@@ -141,8 +153,8 @@ cd EP3_ITY1102/infra && ML_API_KEYS=x docker compose -f docker-compose.aws.yml d
 ## Versión escalable (opcional, solo ITY1102)
 
 `desplegar_asg.sh` levanta ALB, Auto Scaling 2–4, RDS y CloudFront en unos 15 minutos y ~USD 0,15 por hora. Sirve
-**solo la API y el modelo**: no trae frontend, Gemini ni cuentas. Úsenla únicamente para mostrar el escalado (IE5) y
-destrúyanla con `destruir_asg.sh`. La demo completa es la de esta guía.
+**solo la API y el modelo**: no trae frontend, Gemini ni cuentas. Úsenla únicamente para mostrar el escalado (IE5);
+tampoco se destruye. La demo completa es la de esta guía.
 
 ## Checklist del día
 
@@ -154,5 +166,5 @@ destrúyanla con `destruir_asg.sh`. La demo completa es la de esta guía.
 - [ ] 4 o 5 consultas de ejemplo para que el panel muestre datos.
 - [ ] Pestañas abiertas: `/armar/asistente`, `/observabilidad`, `/docs`, `/api/v1/ml/dashboard`.
 - [ ] (SageMaker) `bash EP3_ITY1102/infra/intentar_sagemaker.sh`, para mostrar el error de permisos actual.
-- [ ] Al terminar: `destruir.sh`.
+- [ ] Al terminar: **no borrar nada** (paso 6).
 - [ ] No mostrar en pantalla la terminal con el `.env` ni las credenciales. Si se vieron, cambien la llave de Gemini.

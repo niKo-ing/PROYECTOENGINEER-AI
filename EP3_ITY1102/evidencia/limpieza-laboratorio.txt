@@ -1,0 +1,32 @@
+Quién borró la infraestructura de AWS (CloudTrail, us-east-1, cuenta 255708237033)
+Consultado el 23-11-2026 con `aws cloudtrail lookup-events` (solo lectura; CloudTrail guarda 90 días).
+Horas de Chile (UTC−3). «estudiante» = rol voclabs de la sesión del equipo; «plataforma» = rol vocareum/resource
+(aws-sdk-php, IP de AWS), que maneja el laboratorio de AWS Academy.
+
+== 25-10-2026 (EP2)
+13:53–13:54  estudiante   DeleteAutoScalingGroup, DeleteLoadBalancer, DeleteBucket sonda-borrar-*   (pruebas previas)
+14:11        estudiante   CreateDBInstance tb-ep2-postgres                                           (despliegue de EP2)
+16:47–16:48  plataforma   DeleteAutoScalingGroup ×2, DeleteDBInstance tb-ep2-postgres
+                          {"skipFinalSnapshot": true}, DeleteLoadBalancer
+17:03        plataforma   DeleteBucket tb-ep2-artefactos-255708237033
+
+== 16-11-2026 (EP3)
+10:07        estudiante   DeleteBucket todobarato-ep3-255708237033                                   (antes de redesplegar)
+10:23        estudiante   CreateDBInstance tb-ep3-pg                                                 (despliegue de EP3)
+10:28–10:38  estudiante   RunInstances (y el Auto Scaling lanza réplicas)
+12:24–12:25  plataforma   DeleteAutoScalingGroup tb-ep3-api, DeleteDBInstance tb-ep3-pg
+                          {"skipFinalSnapshot": true}, TerminateInstances ×4 (+2 del Auto Scaling), DeleteLoadBalancer
+12:30–12:39  plataforma   más de 200 llamadas que reconfiguran la cuenta: IAM (GetRole, DetachRolePolicy, PutRolePolicy,
+                          UpdateAssumeRolePolicy) y EventBridge (PutTargets)
+12:35        plataforma   DeleteBucket todobarato-ep3-255708237033
+
+== Estado al 23-11-2026
+Sin instancias EC2, bases ni respaldos RDS, balanceadores, grupos de Auto Scaling ni buckets S3 (us-east-1 y us-west-2).
+
+Conclusión
+* Las bases RDS con datos y el resto de la infraestructura final no las borraron los scripts destruir*.sh: ninguna
+  DeleteDBInstance del estudiante. Las borró la plataforma del laboratorio unas 2 horas después de cada despliegue, sin
+  respaldo final, y luego reconfiguró la cuenta. Coincide con el cierre o el reinicio de la sesión del laboratorio.
+* Por lo tanto, en este laboratorio lo que vive solo en la cuenta se pierde al cerrarse la sesión. Desde el 23-11-2026
+  el equipo no borra nada (los scripts destruir*.sh piden CONFIRMO_BORRAR=si) y los datos que deben durar van fuera del
+  laboratorio (Supabase, vía DATABASE_URL en desplegar.sh).

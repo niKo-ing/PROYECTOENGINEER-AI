@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Despliegue ESCALABLE en AWS Academy: ALB + Auto Scaling Group (2-4 réplicas t3.medium, CPU objetivo 50 %) + RDS PostgreSQL
 # + instancia de servicios (RabbitMQ + worker) + CloudFront (HTTPS). Tarda ~15 min (RDS ~8 y CloudFront ~8 en paralelo).
-# Requisitos: credenciales del lab en el entorno. Cuesta ~USD 0,15/h: usar destruir_asg.sh al terminar.
+# Requisitos: credenciales del lab en el entorno. Cuesta ~USD 0,15/h. No se destruye al terminar (ver docs/entrega/DEPLOY_DEFENSA.md).
 set -euo pipefail
 cd "$(dirname "$0")/.."                      # EP3_ITY1102
 RAIZ=$(cd .. && pwd); INFRA=$PWD/infra; SALIDA=$INFRA/.salida; mkdir -p "$SALIDA"

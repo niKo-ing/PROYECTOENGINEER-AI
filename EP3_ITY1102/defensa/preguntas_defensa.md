@@ -23,7 +23,7 @@ Lo intentamos: `CreateModel` fue **denegado por política IAM** del laboratorio 
 ALB + Auto Scaling Group (2–4 réplicas, objetivo CPU 50 %). Una instancia satura a ≈ 100 req/s con CPU 77 % (CloudWatch). Con el ASG se mide el escalado bajo carga (ver `evidencia/asg-*.txt`). La API es sin estado: la base es RDS compartida y la cola está en un servidor de servicios.
 
 **7. ¿Qué costo tiene?**
-Dos t3.medium + una de servicios + RDS db.t3.micro + ALB ≈ USD 0,15/h. Se destruye con `destruir_asg.sh` al terminar.
+Dos t3.medium + una de servicios + RDS db.t3.micro + ALB ≈ USD 0,15/h, solo mientras dura la sesión del laboratorio: al cerrarse, la plataforma limpia la cuenta (`evidencia/limpieza-laboratorio.txt`). Por eso se despliega antes de cada demo y los datos persistentes van fuera de la cuenta del laboratorio (Supabase).
 
 ## Integración y seguridad (IE7, IE8)
 **8. ¿Por qué RabbitMQ y qué pasa si el worker se cae?**

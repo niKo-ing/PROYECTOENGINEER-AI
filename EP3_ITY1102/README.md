@@ -45,13 +45,12 @@ bash EP3_ITY1102/infra/intentar_sagemaker.sh   # documenta si SageMaker se puede
 bash EP3_ITY1102/infra/desplegar.sh            # S3 + EC2 t3.medium + Compose + alarma CloudWatch (~10-12 min)
 bash EP3_ITY1102/infra/verificar_defensa.sh --esperar http://<IP> http://<IP>:3000
 bash EP3_ITY1102/pruebas/cargar.sh http://<IP> aws 50 60
-bash EP3_ITY1102/infra/destruir.sh             # SIEMPRE al terminar
+# destruir.sh y destruir_asg.sh: NO correrlos (piden CONFIRMO_BORRAR=si). Ver «No borrar nada» en docs/entrega/DEPLOY_DEFENSA.md
 
 # Versión escalable (~15 min, ≈ USD 0,15–0,25/h): ALB + ASG 2–4 réplicas (CPU 50 %) + RDS + RabbitMQ/worker + CloudFront HTTPS
 bash EP3_ITY1102/infra/desplegar_asg.sh        # imprime las URLs; estado en infra/.salida/asg.env (ignorado por git)
-bash EP3_ITY1102/infra/destruir_asg.sh         # SIEMPRE al terminar (y borrar la distribución CloudFront cuando termine de propagar)
 ```
 
 > **Estado (16-11-2026):** desplegado y medido en AWS Academy (EC2 t3.medium, us-east-1): 0 fallos con 20/50/100 usuarios (≈ 39 → 80 → 102 req/s), CPU máx. 77 % en CloudWatch,
 > límite de tasa verificado (547 × 200 / 253 × 429). **SageMaker:** `CreateModel` denegado por IAM del laboratorio (`evidencia/sagemaker-intento.txt`); se usa el mismo contenedor en EC2.
-> La IP cambia al reiniciar el laboratorio: ejecutar `desplegar.sh` ~20 min antes de la defensa y `destruir.sh` al terminar.
+> La IP cambia al reiniciar el laboratorio: ejecutar `desplegar.sh` ~40 min antes de la defensa. **No se destruye al terminar**: la plataforma del laboratorio borró sola la cuenta ~2 h después de cada despliegue (25-10 y 16-11; `evidencia/limpieza-laboratorio.txt`), así que los datos que deban durar van en Supabase, no en la instancia.

@@ -1,5 +1,11 @@
 #!/usr/bin/env bash
 # Borra TODO lo de desplegar_asg.sh: CloudFront, ASG, ALB, plantilla, servicios, RDS, grupos de seguridad y bucket.
+# No borrar nada sin una decisión explícita del equipo (23-11-2026): este script elimina la infraestructura y sus
+# datos sin respaldo. Además, la plataforma del laboratorio ya limpia la cuenta sola (EP3_ITY1102/evidencia/limpieza-laboratorio.txt).
+if [ "${CONFIRMO_BORRAR:-}" != "si" ]; then
+  echo "No se borró nada. Solo si el equipo lo decidió: CONFIRMO_BORRAR=si bash $0" >&2
+  exit 1
+fi
 set -uo pipefail
 export AWS_PAGER="" AWS_DEFAULT_REGION=${AWS_DEFAULT_REGION:-us-east-1}
 cd "$(dirname "$0")"; ENV=.salida/asg.env; [ -f "$ENV" ] && source "$ENV"
