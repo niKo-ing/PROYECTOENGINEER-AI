@@ -214,13 +214,13 @@ def create_app() -> FastAPI:
 
     @app.get("/health", tags=["system"])
     def health() -> dict[str, str]:
-        # INSTANCIA y ZONA las fija el arranque de la EC2: muestran qué réplica respondió detrás del ALB.
-        return {
-            "status": "ok",
-            "instancia": os.getenv("INSTANCIA", "local"),
-            "zona": os.getenv("ZONA", "local"),
-            "rol": os.getenv("ROL", "local"),
-        }
+        # INSTANCIA, ZONA y ROL los fija el arranque de cada EC2 (IMDSv2): muestran qué instancia respondió detrás del
+        # ALB. Fuera de AWS no existen y no se inventan.
+        datos = {"status": "ok"}
+        for clave, variable in (("instancia", "INSTANCIA"), ("zona", "ZONA"), ("rol", "ROL")):
+            if valor := os.getenv(variable):
+                datos[clave] = valor
+        return datos
 
     return app
 

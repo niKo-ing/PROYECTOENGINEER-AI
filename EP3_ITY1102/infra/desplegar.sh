@@ -61,6 +61,10 @@ cd EP3_ITY1102/infra
 export ML_API_KEYS=$ML_API_KEYS
 aws s3 cp s3://$BUCKET/secretos.env secretos.env && chmod 600 secretos.env && aws s3 rm s3://$BUCKET/secretos.env || true
 ln -sf secretos.env .env   # Compose lee .env para \${DATABASE_URL} del docker-compose
+# /health muestra qué instancia respondió (IMDSv2); sin esto no muestra instancia ni zona.
+TOKEN=\$(curl -sX PUT http://169.254.169.254/latest/api/token -H 'X-aws-ec2-metadata-token-ttl-seconds: 300')
+meta() { curl -sH "X-aws-ec2-metadata-token: \$TOKEN" "http://169.254.169.254/latest/meta-data/\$1"; }
+printf 'INSTANCIA=%s\nZONA=%s\nROL=principal\n' "\$(meta instance-id)" "\$(meta placement/availability-zone)" >> secretos.env
 docker compose -f docker-compose.aws.yml up -d --build
 # carga el catálogo de ejemplo en el volumen de datos (si se subió)
 aws s3 cp s3://$BUCKET/ep3.db /tmp/ep3.db || true

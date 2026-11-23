@@ -2,7 +2,7 @@
 
 from sqlalchemy import select
 
-from app.models.catalog import Product
+from app.models.catalog import Product, Store
 from app.pcbuilder.catalog import load_parts, seed_pc_parts
 
 from .apoyo import pid, token
@@ -30,6 +30,21 @@ def test_slots_componentes_y_ficha(env):
     assert len(legacy) > len(cpus)
     ficha = client.get(f"/api/v1/products/{pid(Session, 'Ryzen 5 7600')}").json()
     assert ficha["specs"]["highlights"] and ficha["lowest_price_store"] == "Precio de referencia"
+    ofertas = client.get(f"/api/v1/products/{pid(Session, 'Ryzen 5 7600')}/offers").json()
+    assert ofertas and {o["source"] for o in ofertas} == {"semilla-armador"}
+    assert not any(".local" in o["store"]["domain"] for o in ofertas)
+
+
+def test_semilla_renombra_el_dominio_de_referencia_anterior(env):
+    """Las bases sembradas antes del 23-11 tenían «referencia.todobarato.local»: se renombra, sin duplicar la tienda."""
+    _, Session = env
+    with Session() as db:
+        tienda = db.scalar(select(Store).where(Store.name == "Precio de referencia"))
+        tienda.domain = "referencia.todobarato.local"
+        db.commit()
+        seed_pc_parts(db)
+        tiendas = db.scalars(select(Store).where(Store.name == "Precio de referencia")).all()
+        assert [t.domain for t in tiendas] == ["precio-de-referencia"]
 
 
 def test_compatibilidad_y_opciones(env):

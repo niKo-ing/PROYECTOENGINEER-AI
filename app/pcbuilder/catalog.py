@@ -15,7 +15,9 @@ from app.pcbuilder.parts import CATEGORY_TO_SLOT, SLOT_BY_KEY, Part
 log = logging.getLogger(__name__)
 
 REFERENCE_STORE = "Precio de referencia"
-REFERENCE_DOMAIN = "referencia.todobarato.local"
+REFERENCE_DOMAIN = "precio-de-referencia"  # identificador interno: no es un sitio web y la ficha no lo muestra
+REFERENCE_SOURCE = "semilla-armador"
+_REFERENCE_DOMAIN_ANTERIOR = "referencia.todobarato.local"
 
 
 def part_from_product(product: Product) -> Part | None:
@@ -117,7 +119,9 @@ def _sections(slot: str, pc: dict) -> list[dict]:
 def seed_pc_parts(db: Session) -> dict[str, int]:
     """Crea (o actualiza) las piezas de la semilla y su oferta de referencia. Idempotente."""
     categories = {c.slug: c for c in db.scalars(select(Category))}
-    store = db.scalar(select(Store).where(Store.domain == REFERENCE_DOMAIN))
+    store = db.scalar(select(Store).where(Store.domain.in_((REFERENCE_DOMAIN, _REFERENCE_DOMAIN_ANTERIOR))))
+    if store is not None and store.domain != REFERENCE_DOMAIN:
+        store.domain = REFERENCE_DOMAIN  # bases sembradas antes del 23-11
     if store is None:
         store = Store(name=REFERENCE_STORE, domain=REFERENCE_DOMAIN, country="CL", trust_level=0, store_type="retailer")
         db.add(store)
@@ -148,7 +152,7 @@ def seed_pc_parts(db: Session) -> dict[str, int]:
         offer = db.scalar(select(StoreOffer).where(StoreOffer.product_id == product.id, StoreOffer.store_id == store.id))
         if price and offer is None:
             db.add(StoreOffer(product_id=product.id, store_id=store.id, url=f"https://www.google.com/search?q={quote_plus(name + ' precio Chile')}",
-                              price=int(price), currency="CLP", stock_status="unknown", condition="new", availability=True, source="semilla-armador"))
+                              price=int(price), currency="CLP", stock_status="unknown", condition="new", availability=True, source=REFERENCE_SOURCE))
             offers += 1
         elif price and offer is not None:
             offer.price = int(price)

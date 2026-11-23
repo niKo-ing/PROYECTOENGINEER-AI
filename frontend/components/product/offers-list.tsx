@@ -1,6 +1,6 @@
 "use client";
 
-import { CheckCircle2, ExternalLink, Store, XCircle } from "lucide-react";
+import { CheckCircle2, ExternalLink, Search, Store, Tag, XCircle } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
 import { EmptyState } from "@/components/product/empty-state";
@@ -21,6 +21,10 @@ const CONDITION_LABELS: Record<string, string> = {
   open_box: "Open box",
 };
 
+/** Precio de referencia del armador: no es una tienda, así que no se presenta como una. */
+const REFERENCE_SOURCE = "semilla-armador";
+const isReference = (offer: StoreOfferRead) => offer.source === REFERENCE_SOURCE;
+
 export function OffersList({ offers, isLoading, isError }: { offers: StoreOfferRead[] | undefined; isLoading: boolean; isError: boolean }) {
   if (isLoading) {
     return (
@@ -40,11 +44,14 @@ export function OffersList({ offers, isLoading, isError }: { offers: StoreOfferR
     return <EmptyState title="No hay ofertas disponibles" description="Este producto aún no tiene ofertas en ninguna tienda." />;
   }
 
-  const lowest = Math.min(...offers.map((offer) => offer.price));
+  // «Mejor precio» se compara solo entre tiendas reales.
+  const storeOffers = offers.filter((offer) => !isReference(offer));
+  const lowest = storeOffers.length ? Math.min(...storeOffers.map((offer) => offer.price)) : null;
 
   return (
     <ul className="space-y-3">
       {offers.map((offer) => {
+        if (isReference(offer)) return <ReferenceOffer key={offer.id} offer={offer} />;
         const isLowest = offer.price === lowest;
         const discount = discountPercent(offer.original_price, offer.price);
         const available = availabilityLabel(offer.stock_status, offer.availability);
@@ -114,5 +121,35 @@ export function OffersList({ offers, isLoading, isError }: { offers: StoreOfferR
         );
       })}
     </ul>
+  );
+}
+
+function ReferenceOffer({ offer }: { offer: StoreOfferRead }) {
+  return (
+    <li className="rounded-xl border border-dashed bg-card p-4 sm:p-5">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+        <div className="flex items-start gap-3">
+          <span className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-muted text-foreground">
+            <Tag className="h-5 w-5" />
+          </span>
+          <div>
+            <p className="font-semibold">Precio de referencia</p>
+            <p className="text-xs text-muted-foreground">Estimado para armar tu PC; no es una tienda.</p>
+          </div>
+        </div>
+        <p className="text-xl font-bold tracking-tight sm:text-right">{formatCLP(offer.price)}</p>
+      </div>
+      <div className="mt-3 flex justify-end border-t pt-3">
+        <a
+          href={offer.url}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="inline-flex items-center gap-1.5 rounded-md border px-3 py-2 text-sm font-medium transition-colors hover:bg-muted"
+        >
+          Buscar en tiendas
+          <Search className="h-4 w-4" />
+        </a>
+      </div>
+    </li>
   );
 }
