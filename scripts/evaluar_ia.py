@@ -206,7 +206,8 @@ def markdown(report: dict[str, Any]) -> str:
     lines = [f"# Evaluación de la IA — {report['etiqueta']}", "", f"Fecha: {report['fecha']} · Modelo: `{report['modelo']}` · Escenarios del asistente: {report['escenarios']} · "
              f"Repeticiones: {report['repeticiones']}", "", "## Asistente de armado", "",
              "| Métrica | " + " | ".join(report["modos"]) + " |", "|---|" + "---|" * len(report["modos"])]
-    nombres = {"desarrollo": "conjunto de desarrollo", "prueba": "conjunto de prueba (no visto por las reglas)", "prueba-2": "conjunto de prueba 2 (escrito tras corregir; ciego)"}
+    nombres = {"desarrollo": "conjunto de desarrollo", "prueba": "conjunto de prueba (no visto por las reglas)", "prueba-2": "conjunto de prueba 2 (escrito tras corregir; ciego)",
+              "prueba-3": "conjunto de prueba 3 (ciego, pre-registrado)"}
     conjuntos = sorted({k for m in report["modos"] for k in report["asistente"][m]["exactitud_por_conjunto"]}, key=lambda k: list(nombres).index(k) if k in nombres else 99)
     for conjunto in conjuntos:
         lines.append(f"| **Acierto total, {nombres.get(conjunto, conjunto)}** | " + " | ".join(pct(report["asistente"][m]["exactitud_por_conjunto"].get(conjunto)) for m in report["modos"]) + " |")
