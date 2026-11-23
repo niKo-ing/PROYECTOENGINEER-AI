@@ -3,6 +3,7 @@
 #
 #   bash EP3_ITY1102/infra/desplegar_todo.sh          # despliega, verifica y muestra las URLs (~15-20 min)
 #   bash EP3_ITY1102/infra/desplegar_todo.sh --urls   # solo vuelve a mostrar las URLs y si responden
+#   bash EP3_ITY1102/infra/desplegar_todo.sh --sagemaker   # muestra si el laboratorio permite SageMaker (no crea nada útil)
 #
 # Pide el bloque de credenciales de «AWS Details» (se pega tal cual) y la contraseña de la cuenta de la demo.
 # No las guarda en ningún archivo. No borra nada. Funciona también desde fish (se llama con bash).
@@ -39,6 +40,7 @@ mostrar_urls() {
 
 if [ "${1:-}" = "--urls" ]; then mostrar_urls; exit 0; fi
 
+cargar_credenciales() {
 titulo "Credenciales del laboratorio"
 if aws sts get-caller-identity >/dev/null 2>&1; then
   echo "Ya hay credenciales de AWS válidas en esta terminal."
@@ -60,6 +62,15 @@ else
   fi
 fi
 echo "Cuenta de AWS: $(aws sts get-caller-identity --query Account --output text)"
+}
+cargar_credenciales
+
+if [ "${1:-}" = "--sagemaker" ]; then
+  titulo "¿Permite este laboratorio usar SageMaker?"
+  bash "$INFRA/intentar_sagemaker.sh"
+  echo "Quedó registrado en $RAIZ/EP3_ITY1102/evidencia/sagemaker-intento.txt"
+  exit 0
+fi
 
 titulo "Datos de la aplicación"
 if [ -f .env ]; then set -a; . ./.env; set +a; else echo "AVISO: no hay .env en $RAIZ: el asistente responderá solo con reglas."; fi
