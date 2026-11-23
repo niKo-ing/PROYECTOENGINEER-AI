@@ -44,6 +44,9 @@ if [ "$(pedir GET "$API/api/v1/ml/health")" = 200 ] && [ "$(campo "d['status']")
 else falla "/api/v1/ml/health no está «ok»: $(head -c 200 "$TMP/cuerpo")"; fi
 if [ "$(pedir GET "$API/api/v1/pc/components?slot=cpu")" = 200 ] && [ "$(campo "len(d['items'])")" -gt 0 ] 2>/dev/null; then ok "catálogo del armador: $(campo "len(d['items'])") procesadores"
 else falla "el catálogo del armador está vacío (la siembra no corrió)"; fi
+TIENDAS=$(campo "len([p for p in d['items'] if p.get('store') and p['store'] != 'Precio de referencia'])" 2>/dev/null || echo 0)
+if [ "${TIENDAS:-0}" -gt 0 ] 2>/dev/null; then ok "precios de tiendas reales (SoloTodo): $TIENDAS procesadores"
+else aviso "los procesadores siguen con el precio de referencia (¿corrió python -m app.pcbuilder.solotodo?)"; fi
 [ "$(pedir GET "$API/docs")" = 200 ] && ok "Swagger /docs" || falla "/docs no responde"
 
 if [ -n "${DEMO_EMAIL:-}" ] && [ -n "${DEMO_PASSWORD:-}" ]; then

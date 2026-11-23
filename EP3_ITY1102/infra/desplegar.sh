@@ -73,6 +73,8 @@ docker compose -f docker-compose.aws.yml restart backend worker
 # catálogo del armador de PC (idempotente; el backend también lo siembra al arrancar si la base está vacía)
 sleep 15
 docker compose -f docker-compose.aws.yml exec -T backend python -c "from app.db import SessionLocal; from app.pcbuilder.catalog import seed_pc_parts; s = SessionLocal(); print('catalogo armador', seed_pc_parts(s)); s.close()" || true
+# precios de tiendas chilenas e imágenes desde la API pública de SoloTodo (sin conexión, queda el precio de referencia)
+docker compose -f docker-compose.aws.yml exec -T backend python -m app.pcbuilder.solotodo || true
 UD
 ID=$(aws ec2 run-instances --image-id "$AMI" --instance-type t3.medium --iam-instance-profile Name=myS3Role \
   --security-group-ids "$SG" --user-data file://infra/.salida/user-data.sh \

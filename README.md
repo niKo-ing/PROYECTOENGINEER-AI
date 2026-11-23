@@ -54,6 +54,21 @@ cd frontend && pnpm install && pnpm dev     # http://localhost:3000
 Cree una cuenta en `/register`. Sin `ADMIN_EMAILS` y con `APP_ENV` distinto de `production`, cualquier cuenta ve el panel
 `/observabilidad` (solo para desarrollo); en producción ponga ahí los correos de los administradores.
 
+## Precios de tiendas e imágenes (SoloTodo)
+
+El armador muestra precios de tiendas chilenas reales (PC Factory, Winpy, MyShop…) y la foto de cada pieza, tomados de
+la API pública de SoloTodo (`publicapi.solotodo.com`, JSON; no se raspa HTML). Qué producto de SoloTodo corresponde a cada
+pieza está fijado en `app/pcbuilder/solotodo_productos.json`, que genera y deja revisar `scripts/solotodo_mapear.py`.
+
+```bash
+python -m app.pcbuilder.solotodo        # trae precios e imágenes a la base configurada (el despliegue en AWS lo corre solo)
+python scripts/solotodo_mapear.py       # vuelve a emparejar las piezas (solo si cambian); revisar la tabla antes de subirla
+```
+
+Si una pieza no tiene tiendas con stock, el armador usa su «Precio de referencia» (estimado, no es una tienda). Las
+evaluaciones usan solo esa semilla, sin red, para que sus resultados se puedan repetir. SP Digital cerró: su conector
+ya no se registra.
+
 ## Observabilidad, evaluación y trazas
 
 | Qué | Cómo |

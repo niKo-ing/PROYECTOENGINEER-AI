@@ -481,10 +481,8 @@ def trigger_discovery_run(
 
 
 def _get_url_discovery_obj(domain: str):
-    from app.ingestion.connectors.spdigital.url_discovery import SPDigitalURLDiscovery
     from app.ingestion.connectors.paris.url_discovery import ParisURLDiscovery
     registry = {
-        "www.spdigital.cl": SPDigitalURLDiscovery(),
         "www.paris.cl": ParisURLDiscovery(),
     }
     return registry.get(domain)
@@ -493,18 +491,6 @@ def _get_url_discovery_obj(domain: str):
 def _get_mapper(domain: str):
     from app.ingestion.category import CategoryMapper
     mappers = {
-        "www.spdigital.cl": CategoryMapper.build("www.spdigital.cl", {
-            "Tarjetas de Video": "tarjetas-graficas",
-            "Notebooks": "notebooks",
-            "Procesadores": "procesadores",
-            "Memoria RAM": "memoria-ram",
-            "SSD": "almacenamiento-ssd",
-            "Monitores": "monitores",
-            "Placas Madre": "placas-madre",
-            "Computadores de Escritorio": "pcs-de-escritorio",
-            "Celulares": "celulares",
-            "Consolas": "consolas",
-        }),
         "www.paris.cl": CategoryMapper.build("www.paris.cl", {
             "Computación": "notebooks",
             "Procesadores": "procesadores",

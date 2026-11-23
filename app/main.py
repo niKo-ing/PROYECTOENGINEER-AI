@@ -98,11 +98,9 @@ def _run_store_sync(store_id: int) -> None:
 
 def _get_connector_class(domain: str):
     """Map a store domain to its connector class. Returns None if unknown."""
-    from app.ingestion.connectors.spdigital.connector import SPDigitalConnector
     from app.ingestion.connectors.paris.connector import ParisConnector
 
     registry: dict[str, type] = {
-        "www.spdigital.cl": SPDigitalConnector,
         "www.paris.cl": ParisConnector,
     }
     return registry.get(domain)
@@ -110,11 +108,9 @@ def _get_connector_class(domain: str):
 
 def _get_url_discovery(domain: str):
     """Map a store domain to its URLDiscovery instance. Returns None if unknown."""
-    from app.ingestion.connectors.spdigital.url_discovery import SPDigitalURLDiscovery
     from app.ingestion.connectors.paris.url_discovery import ParisURLDiscovery
 
     registry: dict[str, object] = {
-        "www.spdigital.cl": SPDigitalURLDiscovery(),
         "www.paris.cl": ParisURLDiscovery(),
     }
     return registry.get(domain)
@@ -125,18 +121,6 @@ def _get_category_mapper(domain: str):
     from app.ingestion.category import CategoryMapper
 
     mappers = {
-        "www.spdigital.cl": CategoryMapper.build("www.spdigital.cl", {
-            "Tarjetas de Video": "tarjetas-graficas",
-            "Notebooks": "notebooks",
-            "Procesadores": "procesadores",
-            "Memoria RAM": "memoria-ram",
-            "SSD": "almacenamiento-ssd",
-            "Monitores": "monitores",
-            "Placas Madre": "placas-madre",
-            "Computadores de Escritorio": "pcs-de-escritorio",
-            "Celulares": "celulares",
-            "Consolas": "consolas",
-        }),
         "www.paris.cl": CategoryMapper.build("www.paris.cl", {
             "Computación": "notebooks",
             "Procesadores": "procesadores",
