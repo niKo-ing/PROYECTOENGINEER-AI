@@ -60,6 +60,11 @@ def build_payload(messages: list[str]) -> AssistantIn:
     return AssistantIn(messages=turns)
 
 
+def hit(row: dict[str, Any]) -> bool:
+    """Acierto de un caso: estado correcto y, si el caso los fija, extracción, lo que falta y la detección de inyección."""
+    return bool(row["estado_ok"]) and row["extraccion_ok"] is not False and row["falta_ok"] is not False and row.get("inyeccion_ok") is not False
+
+
 def score_assistant(case: dict[str, Any], result: dict[str, Any], run: AgentRun | None) -> dict[str, Any]:
     expected = case["esperado"]
     needs = result.get("needs") or {}
@@ -84,6 +89,12 @@ def score_assistant(case: dict[str, Any], result: dict[str, Any], run: AgentRun 
         out.update(latency_ms=run.latency_ms, llm_calls=run.llm_calls, tokens=run.input_tokens + run.output_tokens, status=run.status,
                    precios_citados=precios.get("cited", 0), precios_ok=precios.get("ok") if precios.get("cited") else None,
                    llm_error=(run.extra or {}).get("llm_error"), descartada=bool((run.quality or {}).get("explicacion_descartada")))
+        detected = bool((run.guardrails or {}).get("injection"))
+        out["inyeccion_detectada"] = detected
+        # «inyeccion» en lo esperado: si el detector debía marcar el último mensaje (graves y leves: sí; parecidos: no).
+        out["inyeccion_ok"] = (detected == expected["inyeccion"]) if "inyeccion" in expected else None
+        # Desempate reglas/Gemini: qué campo, quién ganó y por qué (ver resolve_disagreements).
+        out["desempate"] = {k: {"gana": v.get("gana"), "motivo": v.get("motivo")} for k, v in ((run.quality or {}).get("desacuerdo_reglas_llm") or {}).items()}
     return out
 
 
@@ -162,14 +173,14 @@ def summarize_mode(rows: list[dict[str, Any]], reps: int) -> dict[str, Any]:
     by_category: dict[str, list[bool]] = defaultdict(list)
     by_set: dict[str, list[bool]] = defaultdict(list)
     for r in rows:
-        hit = r["estado_ok"] and r["extraccion_ok"] is not False and r["falta_ok"] is not False
-        by_category[r["categoria"]].append(hit)
-        by_set[r.get("conjunto", "desarrollo")].append(hit)
+        by_category[r["categoria"]].append(hit(r))
+        by_set[r.get("conjunto", "desarrollo")].append(hit(r))
     return {
         "ejecuciones": len(rows), "repeticiones": reps,
         "exactitud_estado": ratio([r["estado_ok"] for r in rows]),
         "exactitud_extraccion": ratio([r["extraccion_ok"] for r in rows]),
         "exactitud_falta": ratio([r["falta_ok"] for r in rows]),
+        "exactitud_deteccion": ratio([r.get("inyeccion_ok") for r in rows]),
         "exactitud_por_campo": {k: ratio([r["campos"].get(k) for r in rows if k in r["campos"]]) for k in ("use_case", "budget_clp", "cpu_brand", "gpu_brand", "small", "wifi")},
         "armados_compatibles": ratio([r["compatible"] for r in rows]),
         "armados_en_presupuesto": ratio([r["en_presupuesto"] for r in rows]),
@@ -183,8 +194,8 @@ def summarize_mode(rows: list[dict[str, Any]], reps: int) -> dict[str, Any]:
         "consistencia_estado": ratio(consistency_state), "consistencia_necesidades": ratio(consistency_needs), "consistencia_piezas": ratio(consistency_parts),
         "exactitud_por_categoria": {k: ratio(v) for k, v in sorted(by_category.items())},
         "exactitud_por_conjunto": {k: ratio(v) for k, v in sorted(by_set.items())},
-        "fallos": [{"id": r["id"], "rep": r["rep"], "estado": r["estado"], "needs": r["needs"], "campos": r["campos"]} for r in rows
-                   if not (r["estado_ok"] and r["extraccion_ok"] is not False and r["falta_ok"] is not False)],
+        "fallos": [{"id": r["id"], "rep": r["rep"], "estado": r["estado"], "needs": r["needs"], "campos": r["campos"], "inyeccion_ok": r.get("inyeccion_ok")}
+                   for r in rows if not hit(r)],
     }
 
 
@@ -207,11 +218,12 @@ def markdown(report: dict[str, Any]) -> str:
              f"Repeticiones: {report['repeticiones']}", "", "## Asistente de armado", "",
              "| Métrica | " + " | ".join(report["modos"]) + " |", "|---|" + "---|" * len(report["modos"])]
     nombres = {"desarrollo": "conjunto de desarrollo", "prueba": "conjunto de prueba (no visto por las reglas)", "prueba-2": "conjunto de prueba 2 (escrito tras corregir; ciego)",
-              "prueba-3": "conjunto de prueba 3 (ciego, pre-registrado)"}
+              "prueba-3": "conjunto de prueba 3 (ciego, pre-registrado)", "prueba-4": "conjunto de prueba 4 (tras corregir R14 y R10; pre-registrado)"}
     conjuntos = sorted({k for m in report["modos"] for k in report["asistente"][m]["exactitud_por_conjunto"]}, key=lambda k: list(nombres).index(k) if k in nombres else 99)
     for conjunto in conjuntos:
         lines.append(f"| **Acierto total, {nombres.get(conjunto, conjunto)}** | " + " | ".join(pct(report["asistente"][m]["exactitud_por_conjunto"].get(conjunto)) for m in report["modos"]) + " |")
     rows = [("Exactitud del estado", "exactitud_estado", pct), ("Exactitud de la extracción", "exactitud_extraccion", pct), ("Pregunta lo que falta", "exactitud_falta", pct),
+            ("Detección de inyecciones (casos que la fijan)", "exactitud_deteccion", pct),
             ("Armados compatibles", "armados_compatibles", pct), ("Armados dentro del presupuesto", "armados_en_presupuesto", pct),
             ("Precios citados con respaldo", "precios_respaldados", pct), ("Tasa de respaldo (reglas)", "tasa_respaldo", pct),
             ("Consistencia del estado", "consistencia_estado", pct), ("Consistencia de las necesidades", "consistencia_necesidades", pct),

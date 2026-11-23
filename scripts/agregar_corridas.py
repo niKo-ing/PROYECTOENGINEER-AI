@@ -23,7 +23,8 @@ from app.observability.metrics import percentile
 
 
 def _hit(row: dict[str, Any]) -> bool:
-    return bool(row["estado_ok"]) and row["extraccion_ok"] is not False and row["falta_ok"] is not False
+    return (bool(row["estado_ok"]) and row["extraccion_ok"] is not False and row["falta_ok"] is not False
+            and row.get("inyeccion_ok") is not False)
 
 
 def _mean(values: list[Any]) -> float | None:
@@ -42,6 +43,7 @@ METRICS: list[tuple[str, str, str]] = [
     ("estado", "Exactitud del estado", "pct"),
     ("extraccion", "Exactitud de la extracción", "pct"),
     ("falta", "Pregunta lo que falta", "pct"),
+    ("deteccion", "Detección de inyecciones correcta", "pct"),
     ("compatibles", "Armados compatibles", "pct"),
     ("en_presupuesto", "Armados dentro del presupuesto", "pct"),
     ("precios", "Precios citados con respaldo", "pct"),
@@ -60,6 +62,7 @@ def run_metrics(rows: list[dict[str, Any]]) -> dict[str, float | None]:
         "estado": _ratio([r["estado_ok"] for r in rows]),
         "extraccion": _ratio([r["extraccion_ok"] for r in rows]),
         "falta": _ratio([r["falta_ok"] for r in rows]),
+        "deteccion": _ratio([r.get("inyeccion_ok") for r in rows]),
         "compatibles": _ratio([r["compatible"] for r in rows]),
         "en_presupuesto": _ratio([r["en_presupuesto"] for r in rows]),
         "precios": _ratio([r.get("precios_ok") for r in rows]),
@@ -98,6 +101,8 @@ def aggregate(reports: list[dict[str, Any]], conjunto: str) -> dict[str, Any]:
                 "estados": [row["estado"] for row in rows],
                 "needs": [row["needs"] for row in rows],
                 "campos": [row["campos"] for row in rows],
+                "inyeccion": [row.get("inyeccion_detectada") for row in rows],
+                "desempates": [row.get("desempate") or {} for row in rows],
                 "mismo_estado": len({row["estado"] for row in rows}) == 1,
                 "mismas_necesidades": len({json.dumps(row["needs"], sort_keys=True) for row in rows}) == 1,
                 "mismas_piezas": (len(set(parts)) == 1) if all(parts) else None,
@@ -111,8 +116,20 @@ def aggregate(reports: list[dict[str, Any]], conjunto: str) -> dict[str, Any]:
                 "piezas": _ratio([c["mismas_piezas"] for c in cases.values()]),
             },
             "casos": cases,
+            "desempate": _tiebreak_counts(cases),
         }
     return out
+
+
+def _tiebreak_counts(cases: dict[str, Any]) -> dict[str, int]:
+    """Cuántas veces terminó cada desacuerdo reglas/Gemini con cada motivo, sumando corridas y campos."""
+    counts: dict[str, int] = {}
+    for case in cases.values():
+        for decisions in case["desempates"]:
+            for decision in decisions.values():
+                key = f"{decision.get('gana')}:{decision.get('motivo')}"
+                counts[key] = counts.get(key, 0) + 1
+    return dict(sorted(counts.items()))
 
 
 def _fmt(value: float | None, kind: str) -> str:
@@ -154,6 +171,10 @@ def to_markdown(agg: dict[str, Any], preregistro: str | None) -> str:
             case = agg["por_modo"][m]["casos"].get(case_id)
             cells.append("".join("✓" if h else "✗" for h in case["aciertos"]) if case else "—")
         lines.append(f"| {case_id} | {first[case_id]['categoria']} | " + " | ".join(cells) + " |")
+    lines += ["", "### Desempate reglas/Gemini (suma de corridas)", ""]
+    for m in modes:
+        counts = agg["por_modo"][m].get("desempate") or {}
+        lines.append(f"* **{m}:** " + (", ".join(f"`{k}` × {v}" for k, v in counts.items()) if counts else "sin desacuerdos"))
     lines += ["", "### Fallos", ""]
     any_failure = False
     for m in modes:
@@ -162,8 +183,12 @@ def to_markdown(agg: dict[str, Any], preregistro: str | None) -> str:
                 if not hit:
                     any_failure = True
                     wrong = [k for k, ok in case["campos"][i].items() if not ok]
+                    detected = (case.get("inyeccion") or [None] * (i + 1))[i]
+                    tiebreak = (case.get("desempates") or [{}] * (i + 1))[i]
                     lines.append(f"* **{m} · {case_id} · corrida {i + 1}:** estado `{case['estados'][i]}`; necesidades "
-                                 f"`{json.dumps(case['needs'][i], ensure_ascii=False)}`" + (f"; campos errados: {', '.join(wrong)}" if wrong else ""))
+                                 f"`{json.dumps(case['needs'][i], ensure_ascii=False)}`" + (f"; campos errados: {', '.join(wrong)}" if wrong else "")
+                                 + (f"; inyección detectada: {'sí' if detected else 'no'}" if detected is not None else "")
+                                 + (f"; desempate: `{json.dumps(tiebreak, ensure_ascii=False)}`" if tiebreak else ""))
     if not any_failure:
         lines.append("Ninguno.")
     return "\n".join(lines) + "\n"
