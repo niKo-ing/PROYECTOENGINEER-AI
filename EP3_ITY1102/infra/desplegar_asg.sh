@@ -102,6 +102,8 @@ aws cloudwatch put-metric-alarm --alarm-name $P-replica-caida --namespace AWS/Ap
   --dimensions Name=TargetGroup,Value="$TG_SUF" Name=LoadBalancer,Value="$ALB_SUF"
 
 log "8/9 CloudFront (HTTPS)"
+# asg.env puede traer una distribución que ya no existe (el laboratorio limpia la cuenta): se comprueba antes de reutilizarla.
+if [ -n "${CF_ID:-}" ] && ! aws cloudfront get-distribution --id "$CF_ID" >/dev/null 2>&1; then CF_ID=; fi
 if [ -z "${CF_ID:-}" ]; then
   sed -e "s/__REF__/$P-$(date +%s)/" -e "s/__ALB_DNS__/$ALB_DNS/" -e "s/__SECRETO__/$(openssl rand -hex 16)/" "$INFRA/cloudfront.json" > "$SALIDA/cloudfront.json"
   read -r CF_ID CF_DOMINIO < <(aws cloudfront create-distribution --distribution-config "file://$SALIDA/cloudfront.json" --query 'Distribution.[Id,DomainName]' --output text)

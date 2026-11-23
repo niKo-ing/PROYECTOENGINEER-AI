@@ -12,8 +12,9 @@ despliegue (ver «No borrar nada»). Esta guía la levanta desde cero en **una i
 **Costo:** ~USD 0,05 por hora, solo mientras dura la sesión. **No destruyan nada al terminar** (paso 6).
 
 > La pila se probó completa en Docker el 23-11-2026, con el mismo `docker-compose.aws.yml` y el verificador del paso 5:
-> 15 de 15 verificaciones en verde, desde una base vacía y con Gemini respondiendo. Lo que no se pudo probar desde aquí es
-> AWS mismo, porque no hay credenciales del laboratorio.
+> 15 de 15 verificaciones en verde, desde una base vacía y con Gemini respondiendo. **En AWS se desplegó y verificó el
+> 23-11-2026 a las 02:49**: `desplegar.sh` + verificador, 15 de 15 en verde en ~8 minutos; `desplegar_asg.sh` con ALB,
+> réplicas sanas y CloudFront respondiendo en ~10 minutos.
 
 ## 0. Lo que necesitan (una vez)
 
