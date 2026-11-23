@@ -35,8 +35,10 @@ from app.models.agent import PriceAlert, ShoppingList
 from app.models.catalog import Product
 from app.services.product_service import ProductService
 
-READ_TOOLS = ("search_products", "get_product_offers", "get_price_history", "compare_products", "get_user_profile", "recall_memory", "check_price_alerts", "analyze_price_trend")
-WRITE_TOOLS = ("create_price_alert", "save_shopping_list", "remember_preference")
+from app.agent.pc_tools import PC_READ_TOOLS, PC_WRITE_TOOLS, build_pc_tools  # noqa: E402
+
+READ_TOOLS = ("search_products", "get_product_offers", "get_price_history", "compare_products", "get_user_profile", "recall_memory", "check_price_alerts", "analyze_price_trend", *PC_READ_TOOLS)
+WRITE_TOOLS = ("create_price_alert", "save_shopping_list", "remember_preference", *PC_WRITE_TOOLS)
 
 
 # El pedido tiene que mencionar una lista o pedir guardar/armar/anotar para que se guarde una lista. Es una regla
@@ -234,4 +236,5 @@ def build_tools(db: Session, user_id: str, memory: LongTermMemory, context: RunC
         tool("create_price_alert", "ESCRIBE una alerta: avisar al usuario cuando un producto baje de un precio objetivo.", create_price_alert, CreatePriceAlertInput),
         tool("save_shopping_list", "ESCRIBE una lista de compra con los productos elegidos, su mejor oferta y el total frente al presupuesto.", save_shopping_list, SaveShoppingListInput),
         tool("remember_preference", "ESCRIBE en la memoria de largo plazo una preferencia o dato estable del usuario (marca que evita, uso, presupuesto) para sesiones futuras.", remember_preference, RememberPreferenceInput),
+        *build_pc_tools(db, user_id, context, tool),
     ]

@@ -1,50 +1,11 @@
 """Rutas /pc y /me/pcs con base en memoria y la semilla del armador."""
 
-import pytest
-from fastapi.testclient import TestClient
-from sqlalchemy import create_engine, select
-from sqlalchemy.orm import sessionmaker
-from sqlalchemy.pool import StaticPool
+from sqlalchemy import select
 
-from app.db import Base, get_db
-from app.main import app
-from app.models.catalog import Category, Product
+from app.models.catalog import Product
 from app.pcbuilder.catalog import load_parts, seed_pc_parts
 
-
-@pytest.fixture()
-def env(monkeypatch):
-    monkeypatch.setenv("AUTH_RATE_LIMIT_PER_MINUTE", "1000")
-    monkeypatch.setenv("PC_RATE_LIMIT_PER_MINUTE", "1000")
-    engine = create_engine("sqlite://", connect_args={"check_same_thread": False}, poolclass=StaticPool)
-    Base.metadata.create_all(engine)
-    Session = sessionmaker(bind=engine)
-    with Session() as db:
-        db.add(Category(name="PC y Componentes", slug="pc-y-componentes", is_group=True))
-        db.commit()
-        seed_pc_parts(db)
-
-    def override():
-        db = Session()
-        try:
-            yield db
-        finally:
-            db.close()
-
-    app.dependency_overrides[get_db] = override
-    client = TestClient(app)
-    yield client, Session
-    app.dependency_overrides.pop(get_db, None)
-
-
-def pid(Session, fragment):
-    with Session() as db:
-        return db.scalar(select(Product.id).where(Product.name.contains(fragment)))
-
-
-def token(client, email="u@correo.cl"):
-    r = client.post("/api/v1/auth/register", json={"email": email, "password": "clave-segura-123", "display_name": "Usuario"})
-    return {"Authorization": f"Bearer {r.json()['access_token']}"}
+from .apoyo import pid, token
 
 
 def test_semilla_idempotente_y_con_precios(env):
