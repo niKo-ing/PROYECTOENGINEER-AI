@@ -10,7 +10,7 @@ mkdir -p /usr/local/lib/docker/cli-plugins
 curl -fsSL https://github.com/docker/compose/releases/download/v2.29.7/docker-compose-linux-x86_64 -o /usr/local/lib/docker/cli-plugins/docker-compose
 chmod +x /usr/local/lib/docker/cli-plugins/docker-compose
 mkdir -p /opt/app && cd /opt/app
-aws s3 cp s3://$BUCKET/fuente.tgz . && tar xzf fuente.tgz
+aws s3 cp s3://$BUCKET/fuente-asg.tgz . && tar xzf fuente-asg.tgz   # otro nombre que desplegar.sh: así no se pisan
 docker build -q -t todobarato-backend -f Dockerfile .
 docker build -q -t todobarato-modelo -f EP3_ITY1102/modelo/Dockerfile .
 docker save todobarato-backend todobarato-modelo | gzip | aws s3 cp - s3://$BUCKET/images/stack.tar.gz

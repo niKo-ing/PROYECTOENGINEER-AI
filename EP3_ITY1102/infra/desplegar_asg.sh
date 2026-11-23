@@ -19,9 +19,9 @@ CLAVES=${ML_API_KEYS:-$(for i in $(seq 1 40); do printf "%s," "$(openssl rand -h
 RABBIT_PASS=${RABBIT_PASS:-$(openssl rand -hex 12)}; DB_CLAVE=${DB_CLAVE:-$(openssl rand -hex 14)}
 
 log "1/9 Código a S3"
-git -C "$RAIZ" archive --format=tar.gz -o "$SALIDA/fuente.tgz" HEAD app ml alembic alembic.ini pyproject.toml README.md Dockerfile EP3_ITY1102/modelo
+git -C "$RAIZ" archive --format=tar.gz -o "$SALIDA/fuente-asg.tgz" HEAD app ml alembic alembic.ini pyproject.toml README.md Dockerfile EP3_ITY1102/modelo
 aws s3api head-bucket --bucket "$BUCKET" 2>/dev/null || aws s3 mb "s3://$BUCKET" >/dev/null
-aws s3 cp "$SALIDA/fuente.tgz" "s3://$BUCKET/fuente.tgz" --only-show-errors
+aws s3 cp "$SALIDA/fuente-asg.tgz" "s3://$BUCKET/fuente-asg.tgz" --only-show-errors
 aws s3 rm "s3://$BUCKET/images/stack.tar.gz" 2>/dev/null || true
 
 log "2/9 Grupos de seguridad"

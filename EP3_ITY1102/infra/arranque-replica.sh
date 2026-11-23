@@ -10,6 +10,10 @@ curl -fsSL https://github.com/docker/compose/releases/download/v2.29.7/docker-co
 chmod +x /usr/local/lib/docker/cli-plugins/docker-compose
 for i in $(seq 1 90); do aws s3 ls s3://$BUCKET/images/stack.tar.gz && break; sleep 20; done
 aws s3 cp s3://$BUCKET/images/stack.tar.gz - | gunzip | docker load
+# Id y zona de esta réplica: /health los muestra para ver cómo reparte el ALB entre instancias y zonas (IMDSv2).
+TOKEN=$(curl -sX PUT http://169.254.169.254/latest/api/token -H 'X-aws-ec2-metadata-token-ttl-seconds: 300')
+meta() { curl -sH "X-aws-ec2-metadata-token: $TOKEN" "http://169.254.169.254/latest/meta-data/$1"; }
+INSTANCIA=$(meta instance-id); ZONA=$(meta placement/availability-zone)
 mkdir -p /opt/app
 cat > /opt/app/compose.yml <<'YML'
 services:
@@ -29,6 +33,10 @@ services:
       ML_RATE_LIMIT_PER_MINUTE: "600"
       INGESTION_SCHEDULER_ENABLED: "false"
       APP_ENV: production
+      INSTANCIA: "__INSTANCIA__"
+      ZONA: "__ZONA__"
+      ROL: replica
     depends_on: [modelo]
 YML
+sed -i -e "s|__INSTANCIA__|$INSTANCIA|" -e "s|__ZONA__|$ZONA|" /opt/app/compose.yml
 docker compose -f /opt/app/compose.yml up -d
