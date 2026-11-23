@@ -342,7 +342,7 @@ function RecentRuns({ runs, onOpen, withDate }: { runs: RunRow[]; onOpen: (id: s
                   <td className="py-2">
                     <span className="flex items-center gap-1.5">
                       <StatusBadge status={run.status} />
-                      {run.guardrails?.injection ? <ShieldAlert className="size-4 text-amber-600" aria-label="Posible inyección" /> : null}
+                      {run.guardrails?.injection ? <ShieldAlert className="size-4 text-amber-600 dark:text-amber-400" aria-label="Posible inyección" /> : null}
                       {run.eval_tag ? <Badge variant="outline">eval</Badge> : null}
                     </span>
                   </td>

@@ -87,7 +87,7 @@ export function OffersList({ offers, isLoading, isError }: { offers: StoreOfferR
             </div>
 
             <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-muted-foreground">
-              <span className={`flex items-center gap-1 font-medium ${isAvailable ? "text-emerald-600" : "text-rose-600"}`}>
+              <span className={`flex items-center gap-1 font-medium ${isAvailable ? "text-emerald-600 dark:text-emerald-400" : "text-rose-600 dark:text-rose-400"}`}>
                 {isAvailable ? <CheckCircle2 className="h-4 w-4" /> : <XCircle className="h-4 w-4" />}
                 {available}
               </span>

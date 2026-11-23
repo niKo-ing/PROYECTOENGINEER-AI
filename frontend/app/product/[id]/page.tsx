@@ -84,7 +84,7 @@ export default function ProductPage() {
               {product.brand ? <Badge variant="secondary">{product.brand}</Badge> : null}
               {product.category ? <Badge variant="outline">{product.category}</Badge> : null}
               {product.rating ? (
-                <span className="flex items-center gap-1 rounded-full bg-amber-50 px-2.5 py-1 text-sm font-medium text-amber-700">
+                <span className="flex items-center gap-1 rounded-full bg-amber-50 dark:bg-amber-500/15 px-2.5 py-1 text-sm font-medium text-amber-700 dark:text-amber-300">
                   ★ {Number(product.rating).toFixed(1)}
                 </span>
               ) : null}
@@ -122,7 +122,7 @@ export default function ProductPage() {
               <>
                 <p className="mt-2 text-3xl font-bold tracking-tight">{formatCLP(product.lowest_price)}</p>
                 {product.lowest_price_store ? (
-                  <p className="mt-2 flex items-center gap-1.5 text-sm font-medium text-emerald-600">
+                  <p className="mt-2 flex items-center gap-1.5 text-sm font-medium text-emerald-600 dark:text-emerald-400">
                     <Award className="h-4 w-4" />
                     en {product.lowest_price_store}
                   </p>

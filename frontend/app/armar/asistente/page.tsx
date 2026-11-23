@@ -178,7 +178,7 @@ export default function AssistantPage() {
           }}
           rows={1}
           maxLength={1500}
-          placeholder="Ej.: para jugar Valorant y estudiar, con 700 mil"
+          placeholder="Ej.: Valorant y estudiar, con 700 mil"
           aria-label="Escribe tu mensaje"
           className="max-h-40 min-h-11 flex-1 resize-none rounded-xl border bg-background px-3 py-2.5 text-sm outline-none focus-visible:ring-2 focus-visible:ring-ring"
         />

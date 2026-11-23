@@ -17,6 +17,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ProfileMenu } from "@/components/layout/profile-menu";
+import { ThemeToggle } from "@/components/layout/theme-toggle";
 import { categoryIcon } from "@/lib/catalog-meta";
 import { useCategories } from "@/hooks/use-catalog";
 import { mainGroups } from "@/types/category";
@@ -37,7 +38,8 @@ export function SiteHeader() {
 
   return (
     <header className="sticky top-0 z-40 shrink-0 border-b bg-background/80 backdrop-blur">
-      <div className="mx-auto flex max-w-7xl items-center gap-3 px-4 py-3 sm:px-6">
+      {/* En el celular el buscador baja a su propia fila a lo ancho (antes quedaba apretado entre el logo y los íconos). */}
+      <div className="mx-auto flex max-w-7xl flex-wrap items-center gap-x-3 gap-y-2 px-4 py-2.5 sm:flex-nowrap sm:py-3 sm:px-6">
         <Link href="/" className="flex shrink-0 items-center gap-2">
           <span className="flex size-8 items-center justify-center rounded-lg bg-primary font-bold text-primary-foreground" aria-hidden="true">
             S
@@ -47,7 +49,7 @@ export function SiteHeader() {
           </span>
         </Link>
 
-        <form onSubmit={submitSearch} className="mx-auto flex w-full max-w-xl items-center gap-2" role="search">
+        <form onSubmit={submitSearch} className="order-last flex w-full basis-full items-center gap-2 sm:order-none sm:mx-auto sm:max-w-xl sm:basis-auto" role="search">
           <Input
             value={query}
             onChange={(event) => setQuery(event.target.value)}
@@ -60,7 +62,7 @@ export function SiteHeader() {
           </Button>
         </form>
 
-        <nav className="flex shrink-0 items-center gap-1">
+        <nav className="ml-auto flex shrink-0 items-center gap-1 sm:ml-0">
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" className="hidden gap-2 md:inline-flex">
@@ -123,6 +125,7 @@ export function SiteHeader() {
               <span className="hidden sm:inline">Admin</span>
             </Link>
           </Button>
+          <ThemeToggle />
           <ProfileMenu />
         </nav>
       </div>

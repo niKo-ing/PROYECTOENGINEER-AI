@@ -189,9 +189,9 @@ export default function BuilderPage() {
                   hasError ? (
                     <CircleX className="size-4 shrink-0 text-destructive" aria-label="Incompatible" />
                   ) : issues.length ? (
-                    <TriangleAlert className="size-4 shrink-0 text-amber-600" aria-label="Con avisos" />
+                    <TriangleAlert className="size-4 shrink-0 text-amber-600 dark:text-amber-400" aria-label="Con avisos" />
                   ) : (
-                    <CircleCheck className="size-4 shrink-0 text-emerald-600" aria-label="Calza" />
+                    <CircleCheck className="size-4 shrink-0 text-emerald-600 dark:text-emerald-400" aria-label="Calza" />
                   )
                 ) : null}
               </button>

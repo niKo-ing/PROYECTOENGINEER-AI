@@ -55,7 +55,7 @@ function Row({ icon, tone = "default", index = 0, children }: { icon: ReactNode;
         tone === "default" && "bg-muted/40 text-foreground"
       )}
     >
-      <span className={cn("mt-0.5 shrink-0", tone === "warn" ? "text-amber-600" : "text-primary")} aria-hidden="true">
+      <span className={cn("mt-0.5 shrink-0", tone === "warn" ? "text-amber-600 dark:text-amber-400" : "text-primary")} aria-hidden="true">
         {icon}
       </span>
       <div className="min-w-0 flex-1 [overflow-wrap:anywhere]">{children}</div>

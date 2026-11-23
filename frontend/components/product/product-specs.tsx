@@ -459,7 +459,7 @@ function ReviewIndicator({ item }: { item: DisplaySpecItem }) {
   const conflict = item.conflict_status === "pending";
   return (
     <span
-      className={`mt-0.5 inline-flex size-5 shrink-0 items-center justify-center rounded-full ${conflict ? "bg-amber-100 text-amber-700" : "bg-sky-100 text-sky-700"}`}
+      className={`mt-0.5 inline-flex size-5 shrink-0 items-center justify-center rounded-full ${conflict ? "bg-amber-100 dark:bg-amber-500/15 text-amber-700 dark:text-amber-300" : "bg-sky-100 dark:bg-sky-500/15 text-sky-700 dark:text-sky-300"}`}
       title={reviewTitle(item)}
       aria-label={reviewTitle(item)}
     >
