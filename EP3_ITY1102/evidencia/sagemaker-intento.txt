@@ -19,3 +19,30 @@ ecr:CreateRepository     implicitDeny
 Conclusión: el rol del laboratorio no permite crear modelos ni endpoints de SageMaker, ni crear el rol de ejecución que
 SageMaker necesita, ni un repositorio ECR para la imagen. El contenedor ya cumple el contrato de SageMaker (/ping e
 /invocations) y corre en EC2; falta solo una cuenta o laboratorio con permisos de SageMaker.
+== 2026-11-23T12:31:09Z · cuenta 255708237033
+-- roles utilizables por SageMaker (confianza sagemaker.amazonaws.com):
+-- create-model con el único rol disponible (myS3Role):
+
+An error occurred (AccessDeniedException) when calling the CreateModel operation: User: arn:aws:sts::255708237033:assumed-role/voclabs/user3176393=nic.estefania is not authorized to perform: sagemaker:CreateModel on resource: arn:aws:sagemaker:us-east-1:255708237033:model/todobarato-match because no identity-based policy allows the sagemaker:CreateModel action
+-- cuotas de endpoints ml.m5.large:
+ml.m5.large for endpoint usage	30.0
+-- permisos del rol arn:aws:iam::255708237033:role/voclabs (simulación de IAM; allowed = permitido, implicitDeny/explicitDeny = denegado):
+sagemaker:CreateModel	implicitDeny
+sagemaker:CreateEndpointConfig	implicitDeny
+sagemaker:CreateEndpoint	implicitDeny
+sagemaker:InvokeEndpoint	implicitDeny
+iam:PassRole	implicitDeny
+iam:CreateRole	implicitDeny
+ecr:CreateRepository	implicitDeny
+application-autoscaling:RegisterScalableTarget	implicitDeny
+VEREDICTO: este laboratorio NO permite desplegar en SageMaker (faltan CreateModel/CreateEndpoint o PassRole).
+
+ml.m5.large for endpoint usage	30.0
+(La ejecución de arriba se cortó a mano mientras esperaba la consulta de cuotas, que tarda ~45 s. Se completó con la
+misma sesión del laboratorio, a mano, ~12:33Z:)
+-- aws iam simulate-principal-policy --policy-source-arn arn:aws:iam::255708237033:role/voclabs:
+sagemaker:CreateModel	implicitDeny
+sagemaker:CreateEndpoint	implicitDeny
+iam:PassRole	implicitDeny
+VEREDICTO: este laboratorio NO permite desplegar en SageMaker (faltan CreateModel/CreateEndpoint o PassRole).
+

@@ -13,8 +13,6 @@ SALIDA="$(dirname "$0")/../evidencia/sagemaker-intento.txt"; mkdir -p "$(dirname
   echo "-- create-model con el único rol disponible (myS3Role):"
   aws sagemaker create-model --model-name todobarato-match --execution-role-arn "arn:aws:iam::$CUENTA:role/myS3Role" \
     --primary-container "Image=683313688378.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com/sagemaker-scikit-learn:1.2-1-cpu-py3" 2>&1
-  echo "-- cuotas de endpoints ml.m5.large:"
-  aws service-quotas list-service-quotas --service-code sagemaker --query "Quotas[?QuotaName=='ml.m5.large for endpoint usage'].[QuotaName,Value]" --output text
   # Simulación de IAM: pregunta a AWS qué permite el rol de esta sesión, sin crear nada.
   ROL=$(aws sts get-caller-identity --query Arn --output text | sed -E 's#^arn:aws:sts::([0-9]+):assumed-role/([^/]+)/.*#arn:aws:iam::\1:role/\2#')
   echo "-- permisos del rol $ROL (simulación de IAM; allowed = permitido, implicitDeny/explicitDeny = denegado):"
@@ -28,5 +26,7 @@ SALIDA="$(dirname "$0")/../evidencia/sagemaker-intento.txt"; mkdir -p "$(dirname
     echo "VEREDICTO: este laboratorio NO permite desplegar en SageMaker (faltan CreateModel/CreateEndpoint o PassRole)."
   fi
   rm -f "$SALIDA.sim"
+  echo "-- cuotas de endpoints ml.m5.large (esta consulta tarda ~45 s; el veredicto ya está arriba):"
+  aws service-quotas list-service-quotas --service-code sagemaker --query "Quotas[?QuotaName=='ml.m5.large for endpoint usage'].[QuotaName,Value]" --output text
   echo
 } | tee -a "$SALIDA"
