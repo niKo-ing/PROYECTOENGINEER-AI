@@ -5,7 +5,8 @@ Reparto de responsabilidades (la IA nunca decide sola lo que se puede comprobar)
 1. **Entender** (LLM): extrae del chat el uso, el presupuesto y las preferencias en JSON, y redacta la siguiente
    pregunta si falta algo. Un extractor por reglas hace lo mismo como respaldo y valida lo que devuelve el modelo.
    **Desempate (``resolve_disagreements``):** si reglas y Gemini leen distinto el uso o el presupuesto, gana Gemini solo
-   con confianza alta y una cita textual del usuario que el código encuentra en el chat; si no, ganan las reglas. La
+   con confianza alta y una cita del usuario que el código encuentra en el chat (tal cual, o aproximada con los mismos
+   números); si no, ganan las reglas. La
    respuesta dice qué regla se anuló y por qué, y la traza guarda cada decisión. La compatibilidad física nunca se anula:
    la decide siempre ``check_build``.
 2. **Armar** (código): ``recommend`` elige piezas compatibles dentro del presupuesto; ``check_build`` revisa.
@@ -21,6 +22,7 @@ import json
 import logging
 import re
 import unicodedata
+from difflib import SequenceMatcher
 from typing import Any, Literal
 
 from langchain_core.language_models import BaseChatModel
@@ -172,6 +174,37 @@ def _norm(text: str) -> str:
     return re.sub(r"[^a-z0-9$.,]+", " ", text).strip()
 
 
+# Cita con tolerancia (hallazgo R10 de prueba-3): Gemini leyó bien «súbele a 900», pero copió su cita como «sûele a 900».
+# Se acepta una cita aproximada solo si TODOS sus números están en el texto (un monto inventado nunca pasa) y algún tramo
+# del texto se le parece al menos QUOTE_MIN_SIMILARITY.
+QUOTE_MIN_SIMILARITY = 0.85
+_NUMBER = re.compile(r"\d+(?:[.,]\d+)?")
+
+
+def locate_quote(quote: str | None, user_text: str) -> tuple[str | None, str | None]:
+    """Busca la cita en lo que escribió el usuario. Devuelve (tipo, fragmento): ("exacta" | "aproximada", palabras del
+    usuario que la respaldan) o (None, None) si no la encuentra."""
+    q = _norm(quote or "")
+    if not q:
+        return None, None
+    if q in _norm(user_text):
+        return "exacta", (quote or "").strip()
+    if len(q) < 6 or not set(_NUMBER.findall(q)) <= set(_NUMBER.findall(_norm(user_text))):
+        return None, None
+    words = user_text.split()
+    plain = [_norm(w) for w in words]
+    size = len(q.split())
+    best, span = 0.0, None
+    for n in {max(1, size - 1), size, size + 1}:
+        for i in range(len(words) - n + 1):
+            ratio = SequenceMatcher(None, q, " ".join(plain[i:i + n])).ratio()
+            if ratio > best:
+                best, span = ratio, " ".join(words[i:i + n])
+    if best >= QUOTE_MIN_SIMILARITY and span:
+        return "aproximada", span.strip(" ,.;:!?¡¿")
+    return None, None
+
+
 def _llm_support(data: dict[str, Any]) -> dict[str, dict[str, str | None]]:
     """Confianza y cita que Gemini declara por campo (si faltan, la confianza no es alta)."""
     confidence = data.get("confidence") if isinstance(data.get("confidence"), dict) else {}
@@ -194,31 +227,32 @@ def _value_label(key: str, value: Any) -> str:
 def resolve_disagreements(rules: dict[str, Any], llm: dict[str, Any], support: dict[str, dict[str, str | None]], user_text: str) -> tuple[dict[str, dict[str, Any]], list[dict[str, Any]]]:
     """Decide quién gana en cada campo en que reglas y Gemini no coinciden.
 
-    Gana Gemini solo si (1) declara confianza alta, (2) su cita aparece tal cual en lo que escribió el usuario y
-    (3) en el presupuesto, la cita nombra un monto. Devuelve las decisiones (para la traza) y las anulaciones
-    (para la respuesta, con el texto que se le muestra al usuario).
+    Gana Gemini solo si (1) declara confianza alta, (2) su cita aparece en lo que escribió el usuario, tal cual o
+    aproximada con los mismos números (``locate_quote``), y (3) en el presupuesto, la cita nombra un monto. Devuelve las
+    decisiones (para la traza) y las anulaciones (para la respuesta, con las palabras del usuario).
     """
     decisions: dict[str, dict[str, Any]] = {}
     overrides: list[dict[str, Any]] = []
-    said = _norm(user_text)
     for key in OVERRIDABLE_FIELDS:
         if key not in rules or key not in llm or rules[key] == llm[key]:
             continue
         info = support.get(key) or {}
         quote = info.get("cita")
+        match, backing = locate_quote(quote, user_text)
         if info.get("confianza") != "alta":
             winner, reason = "reglas", "confianza_no_alta"
-        elif not quote or _norm(quote) not in said:
+        elif match is None:
             winner, reason = "reglas", "cita_no_encontrada"
-        elif key == "budget_clp" and not MENTIONS_AMOUNT.search(quote):
+        elif key == "budget_clp" and not MENTIONS_AMOUNT.search(backing or ""):
             winner, reason = "reglas", "cita_sin_monto"
         else:
-            winner, reason = "llm", "confianza_alta_con_cita"
-        decisions[key] = {"reglas": rules[key], "llm": llm[key], "gana": winner, "motivo": reason, "confianza": info.get("confianza"), "cita": quote}
+            winner, reason = "llm", "confianza_alta_con_cita" if match == "exacta" else "confianza_alta_con_cita_aproximada"
+        decisions[key] = {"reglas": rules[key], "llm": llm[key], "gana": winner, "motivo": reason, "confianza": info.get("confianza"), "cita": quote,
+                          "respaldo": backing}
         if winner == "llm":
             overrides.append({
-                "field": key, "rule": RULE_NAMES[key], "rules_value": rules[key], "llm_value": llm[key], "quote": quote,
-                "message": f"Entendí {_value_label(key, llm[key])} por «{quote}»; la regla automática de {RULE_NAMES[key]} había leído "
+                "field": key, "rule": RULE_NAMES[key], "rules_value": rules[key], "llm_value": llm[key], "quote": backing,
+                "message": f"Entendí {_value_label(key, llm[key])} por «{backing}»; la regla automática de {RULE_NAMES[key]} había leído "
                            f"{_value_label(key, rules[key])}. Si no es así, dímelo y lo cambio.",
             })
     return decisions, overrides

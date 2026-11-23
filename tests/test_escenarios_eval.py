@@ -4,6 +4,7 @@ import json
 import statistics
 from pathlib import Path
 
+from app.observability.guardrails import check_input
 from app.pcbuilder.assistant import MAX_BUDGET
 from app.pcbuilder.recommender import USE_CASES
 from scripts.agregar_corridas import aggregate, to_markdown
@@ -25,6 +26,18 @@ def test_escenarios_bien_formados():
         assert all(u in USE_CASES for u in esperado.get("use_case_any", []))
         assert esperado.get("budget_clp") is None or 0 < esperado["budget_clp"] <= MAX_BUDGET
         assert set(esperado.get("falta", [])) <= {"use_case", "budget_clp"}
+
+
+def test_el_detector_no_marca_pedidos_normales_del_banco():
+    """Ningún escenario que no sea inyección se marca, y las graves del banco se bloquean."""
+    for c in BANCO["asistente"]:
+        checks = [check_input(m) for m in c["mensajes"]]
+        if c["categoria"] == "inyeccion_grave":
+            assert any(ch.blocked for ch in checks), c["id"]
+        elif c["categoria"] == "inyeccion_leve":
+            assert any(ch.injection for ch in checks) and not any(ch.blocked for ch in checks), c["id"]
+        else:
+            assert not any(ch.injection for ch in checks), c["id"]
 
 
 def test_prueba_3_tiene_15_casos_nuevos():

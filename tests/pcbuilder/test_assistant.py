@@ -10,7 +10,7 @@ from sqlalchemy import select
 from app.main import app
 from app.models.observability import AgentRun, AgentSpan
 from app.observability.metrics import dashboard
-from app.pcbuilder.assistant import OVERRIDABLE_FIELDS, AssistantIn, PcAssistant, ReviewIn, resolve_disagreements, rule_based_needs
+from app.pcbuilder.assistant import OVERRIDABLE_FIELDS, AssistantIn, PcAssistant, ReviewIn, locate_quote, resolve_disagreements, rule_based_needs
 from app.routers.pc import get_assistant_llm
 
 from .apoyo import pid, token
@@ -249,7 +249,7 @@ def test_desacuerdo_sin_confianza_alta_mandan_las_reglas(env):
         run = db.scalar(select(AgentRun).where(AgentRun.run_id == r["run_id"]))
     assert r["needs"]["use_case"] == "esports" and r["overrides"] == []
     assert run.quality["desacuerdo_reglas_llm"] == {"use_case": {"reglas": "esports", "llm": "streaming", "gana": "reglas", "motivo": "confianza_no_alta",
-                                                                 "confianza": "media", "cita": "jugar valorant"}}
+                                                                 "confianza": "media", "cita": "jugar valorant", "respaldo": "jugar valorant"}}
     assert "reglas_anuladas" not in run.quality
 
 
@@ -310,7 +310,8 @@ def test_politica_de_desempate_pura():
     apoyo = {"use_case": {"confianza": "alta", "cita": "jugar en 4k"}, "budget_clp": {"confianza": "alta", "cita": "tengo plata"}}
     decisiones, anuladas = resolve_disagreements(reglas, gemini, apoyo, texto)
     assert decisiones["use_case"]["gana"] == "llm"  # la cita se compara sin mayúsculas ni tildes
-    assert decisiones["budget_clp"] == {"reglas": 2_000_000, "llm": 2_500_000, "gana": "reglas", "motivo": "cita_no_encontrada", "confianza": "alta", "cita": "tengo plata"}
+    assert decisiones["budget_clp"] == {"reglas": 2_000_000, "llm": 2_500_000, "gana": "reglas", "motivo": "cita_no_encontrada", "confianza": "alta", "cita": "tengo plata",
+                                        "respaldo": None}
     assert "cpu_brand" not in decisiones  # solo se desempata la interpretación del pedido (uso y presupuesto)
     assert [o["field"] for o in anuladas] == ["use_case"]
     texto2 = "tengo harto para gastar, quiero jugar en 4K"
@@ -328,3 +329,45 @@ def test_la_marca_pedida_no_se_anula(env):
     with Session() as db:
         r = PcAssistant(db, "u1", modelo).run(turnos("tengo 700 lucas pa jugar valorant, ojalá amd"))
     assert r["needs"]["cpu_brand"] == "AMD" and r["overrides"] == []
+
+
+# ── cita con tolerancia (hallazgo R10 de prueba-3) ─────────────────────────────────────────────────────
+
+SUBELE = "quiero un pc pa jugar con 700 mil\npucha, mejor súbele a 900"
+
+
+@pytest.mark.parametrize(
+    ("cita", "esperado"),
+    [
+        ("900", ("exacta", "900")),
+        ("sûele a 900", ("aproximada", "súbele a 900")),  # corrida 2 de prueba-3: Gemini se comió la «b»
+        ("súblee a 900", ("aproximada", "súbele a 900")),  # corrida 3
+        ("súbele a 950", (None, None)),  # un número que el usuario no escribió nunca pasa
+        ("quiero hacer streaming", (None, None)),  # no se parece a nada del texto
+        ("", (None, None)),
+    ],
+)
+def test_ubicar_la_cita(cita, esperado):
+    assert locate_quote(cita, SUBELE) == esperado
+
+
+def test_cita_mal_copiada_igual_gana_y_muestra_las_palabras_del_usuario(env):
+    """R10: Gemini leyó bien los $900.000 pero copió mal su cita; antes ganaban las reglas con $700.000."""
+    _, Session = env
+    modelo = FakeListChatModel(responses=[extraccion(use_case="gaming_1080", budget_clp=900000, **seguro(budget_clp=("alta", "sûele a 900"))), "Bien [Tarjeta gráfica]."])
+    with Session() as db:
+        r = PcAssistant(db, "u1", modelo).run(turnos("quiero un pc pa jugar con 700 mil", "¿Algo más?", "pucha, mejor súbele a 900"))
+        run = db.scalar(select(AgentRun).where(AgentRun.run_id == r["run_id"]))
+    assert r["needs"]["budget_clp"] == 900_000
+    [anulada] = r["overrides"]
+    assert anulada["quote"] == "súbele a 900" and "«súbele a 900»" in anulada["message"] and "sûele" not in anulada["message"]
+    decision = run.quality["desacuerdo_reglas_llm"]["budget_clp"]
+    assert decision["motivo"] == "confianza_alta_con_cita_aproximada" and decision["cita"] == "sûele a 900" and decision["respaldo"] == "súbele a 900"
+
+
+def test_monto_inventado_en_la_cita_no_gana(env):
+    _, Session = env
+    modelo = FakeListChatModel(responses=[extraccion(use_case="gaming_1080", budget_clp=950000, **seguro(budget_clp=("alta", "súbele a 950"))), "Bien [Tarjeta gráfica]."])
+    with Session() as db:
+        r = PcAssistant(db, "u1", modelo).run(turnos("quiero un pc pa jugar con 700 mil", "¿Algo más?", "pucha, mejor súbele a 900"))
+    assert r["needs"]["budget_clp"] == 700_000 and r["overrides"] == []
