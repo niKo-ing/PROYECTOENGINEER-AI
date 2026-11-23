@@ -109,24 +109,48 @@ export function ReportPanel({ report, compact = false }: { report: Compatibility
   );
 }
 
+/** Foto de la pieza (SoloTodo) o, si no hay o no carga, el ícono de su espacio. */
+export function PartThumb({ part, className }: { part: Pick<Part, "slot" | "image_url">; className?: string }) {
+  const [error, setError] = useState(false);
+  const Icon = SLOT_META[part.slot].icon;
+  if (part.image_url && !error) {
+    return (
+      <img
+        src={part.image_url}
+        alt=""
+        loading="lazy"
+        decoding="async"
+        referrerPolicy="no-referrer"
+        onError={() => setError(true)}
+        className={cn("size-9 shrink-0 rounded-md border bg-white object-contain p-0.5", className)}
+      />
+    );
+  }
+  return (
+    <span className={cn("flex size-9 shrink-0 items-center justify-center rounded-md bg-primary/10 text-primary", className)}>
+      <Icon className="size-4" aria-hidden="true" />
+    </span>
+  );
+}
+
 export function PartsList({ parts, onRemove }: { parts: Part[]; onRemove?: (part: Part) => void }) {
   if (parts.length === 0) return <p className="text-sm text-muted-foreground">Aún no hay piezas.</p>;
   return (
     <ul className="divide-y rounded-lg border">
       {parts.map((part, index) => {
         const meta = SLOT_META[part.slot];
-        const Icon = meta.icon;
         return (
           <li key={`${part.slot}-${part.product_id ?? part.name}-${index}`} className="flex items-center gap-3 p-3">
-            <span className="flex size-9 shrink-0 items-center justify-center rounded-md bg-primary/10 text-primary">
-              <Icon className="size-4" aria-hidden="true" />
-            </span>
+            <PartThumb part={part} />
             <div className="min-w-0 flex-1">
               <p className="text-xs text-muted-foreground">{meta.label}</p>
               <p className="truncate text-sm font-medium">{part.name}</p>
             </div>
             {part.legacy ? <Badge variant="secondary">Descontinuado</Badge> : null}
-            <span className="shrink-0 text-sm tabular-nums">{part.price_clp ? formatCLP(part.price_clp) : "—"}</span>
+            <span className="shrink-0 text-right">
+              <span className="block text-sm tabular-nums">{part.price_clp ? formatCLP(part.price_clp) : "—"}</span>
+              {part.price_clp && part.store ? <span className="block max-w-28 truncate text-xs text-muted-foreground">{part.store}</span> : null}
+            </span>
             {onRemove ? (
               <Button variant="ghost" size="sm" onClick={() => onRemove(part)} aria-label={`Quitar ${part.name}`}>
                 Quitar

@@ -75,8 +75,10 @@ laboratorio. La instancia los descarga y **los borra del bucket** al leerlos.
 Si tienen `ep3_data.db` en la raíz (se genera con los pasos de `EP3_ITY1102/README.md`), `desplegar.sh` la sube sola y
 el dashboard del modelo muestra productos reales. Sin ella, el modelo responde igual.
 
-El **catálogo del armador de PC** (82 piezas) se carga solo en la base SQLite de la instancia: el backend lo carga al
-arrancar si la base está vacía, y `desplegar.sh` vuelve a ejecutar `seed_pc_parts` al final, que es idempotente.
+El **catálogo del armador de PC** son unas 200 piezas que hoy se venden nuevas en tiendas chilenas, tomadas de SoloTodo
+(`app/pcbuilder/catalogo_solotodo.json`). El backend las carga al arrancar (`PC_CATALOGO=solotodo`) y les pone precios,
+tiendas e imágenes reales en segundo plano, cada 6 horas; `desplegar.sh` sincroniza una vez al final para dejar el
+resultado en el registro. Sin conexión a SoloTodo las piezas quedan sin precio: nunca se muestra un precio inventado.
 
 ## 4. Desplegar
 

@@ -40,6 +40,7 @@ class Part:
     brand: str | None = None
     store: str | None = None
     legacy: bool = False
+    image_url: str | None = None
 
     @property
     def label(self) -> str:

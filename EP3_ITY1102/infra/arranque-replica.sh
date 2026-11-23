@@ -32,6 +32,7 @@ services:
       ML_API_KEYS: "__API_KEYS__"
       ML_RATE_LIMIT_PER_MINUTE: "600"
       INGESTION_SCHEDULER_ENABLED: "false"
+      PC_CATALOGO: solotodo
       APP_ENV: production
       INSTANCIA: "__INSTANCIA__"
       ZONA: "__ZONA__"

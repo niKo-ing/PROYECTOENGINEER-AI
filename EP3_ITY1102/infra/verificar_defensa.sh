@@ -45,8 +45,11 @@ else falla "/api/v1/ml/health no está «ok»: $(head -c 200 "$TMP/cuerpo")"; fi
 if [ "$(pedir GET "$API/api/v1/pc/components?slot=cpu")" = 200 ] && [ "$(campo "len(d['items'])")" -gt 0 ] 2>/dev/null; then ok "catálogo del armador: $(campo "len(d['items'])") procesadores"
 else falla "el catálogo del armador está vacío (la siembra no corrió)"; fi
 TIENDAS=$(campo "len([p for p in d['items'] if p.get('store') and p['store'] != 'Precio de referencia'])" 2>/dev/null || echo 0)
-if [ "${TIENDAS:-0}" -gt 0 ] 2>/dev/null; then ok "precios de tiendas reales (SoloTodo): $TIENDAS procesadores"
-else aviso "los procesadores siguen con el precio de referencia (¿corrió python -m app.pcbuilder.solotodo?)"; fi
+REFERENCIA=$(campo "len([p for p in d['items'] if p.get('store') == 'Precio de referencia'])" 2>/dev/null || echo 0)
+SIN_PRECIO=$(campo "len([p for p in d['items'] if not p.get('price_clp')])" 2>/dev/null || echo 0)
+if [ "${REFERENCIA:-0}" -gt 0 ] 2>/dev/null; then falla "$REFERENCIA procesadores con precio de referencia: producción debe usar solo SoloTodo (PC_CATALOGO=solotodo)"
+elif [ "${TIENDAS:-0}" -gt 0 ] 2>/dev/null; then ok "precios de tiendas reales (SoloTodo): $TIENDAS procesadores, $SIN_PRECIO sin stock nuevo"
+else aviso "los procesadores aún no tienen precio: la API sincroniza con SoloTodo al minuto de arrancar (o: python -m app.pcbuilder.solotodo)"; fi
 [ "$(pedir GET "$API/docs")" = 200 ] && ok "Swagger /docs" || falla "/docs no responde"
 
 if [ -n "${DEMO_EMAIL:-}" ] && [ -n "${DEMO_PASSWORD:-}" ]; then

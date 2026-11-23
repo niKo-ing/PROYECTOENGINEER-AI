@@ -14,6 +14,7 @@ from app.pcbuilder.parts import CATEGORY_TO_SLOT, SLOT_BY_KEY, Part
 
 log = logging.getLogger(__name__)
 
+NO_NUEVAS = {"used", "semi_new", "refurbished", "open_box"}  # «unknown» cuenta como nueva: muchas tiendas no lo informan
 REFERENCE_STORE = "Precio de referencia"
 REFERENCE_DOMAIN = "precio-de-referencia"  # identificador interno: no es un sitio web y la ficha no lo muestra
 REFERENCE_SOURCE = "semilla-armador"
@@ -28,7 +29,9 @@ def part_from_product(product: Product) -> Part | None:
     slot = specs.get("pc_slot") or CATEGORY_TO_SLOT.get(product.category_entity.slug if product.category_entity else "")
     if slot not in SLOT_BY_KEY:
         return None
-    offer = product.lowest_offer
+    # El armador cotiza piezas nuevas: una oferta usada o reacondicionada se ve en la ficha, pero no fija el precio.
+    nuevas = [o for o in product.offers if o.currency == "CLP" and o.availability and o.condition not in NO_NUEVAS]
+    offer = min(nuevas, key=lambda o: o.price) if nuevas else None
     return Part(
         slot=slot,
         name=product.name,
@@ -38,6 +41,7 @@ def part_from_product(product: Product) -> Part | None:
         brand=product.brand,
         store=offer.store.name if offer and offer.store else None,
         legacy=bool(specs.get("legacy")),
+        image_url=product.image_url,
     )
 
 
@@ -49,8 +53,17 @@ def load_parts(db: Session) -> list[Part]:
         .where(Category.slug.in_(slugs))
         .options(selectinload(Product.offers).selectinload(StoreOffer.store), selectinload(Product.category_entity))
     )
-    parts = [part_from_product(product) for product in db.scalars(stmt)]
+    productos = list(db.scalars(stmt))
+    if _solo_solotodo():  # producción: solo piezas de SoloTodo, aunque la base tenga filas viejas de la semilla
+        productos = [p for p in productos if isinstance(p.specs, dict) and p.specs.get("fuente") == "SoloTodo"]
+    parts = [part_from_product(product) for product in productos]
     return [p for p in parts if p is not None]
+
+
+def _solo_solotodo() -> bool:
+    from app.pcbuilder.solotodo_catalogo import catalogo_activo
+
+    return catalogo_activo() == "solotodo"
 
 
 def parts_by_id(db: Session, product_ids: list[int]) -> dict[int, Part]:
@@ -77,7 +90,7 @@ def _highlights(slot: str, pc: dict) -> list[str]:
     if slot == "gpu":
         return [f"{pc['vram_gb']} GB de video", f"{pc['length_mm']} mm de largo", f"Fuente recomendada {pc['recommended_psu_w']} W"]
     if slot == "storage":
-        return [f"{pc['capacity_gb']} GB", f"{pc['interface']} {pc['form']}", f"Lectura {pc['read_mbps']} MB/s"]
+        return [f"{pc['capacity_gb']} GB", f"{pc['interface']} {pc['form']}"] + ([f"Lectura {pc['read_mbps']} MB/s"] if pc.get("read_mbps") else [])
     if slot == "psu":
         return [f"{pc['watts']} W", pc["efficiency"], pc["form_factor"]]
     if slot == "case":
@@ -164,6 +177,15 @@ def seed_pc_parts(db: Session) -> dict[str, int]:
 
 
 def ensure_seeded(db: Session) -> None:
-    """Siembra solo si el catálogo no tiene ninguna pieza del armador (primer arranque en Docker/AWS)."""
+    """Siembra solo si el catálogo no tiene ninguna pieza del armador (primer arranque en Docker/AWS).
+
+    Con ``PC_CATALOGO=solotodo`` (producción) siembra el catálogo de SoloTodo, sin precios inventados: los pone
+    ``solotodo.sincronizar``. Si no, la semilla del equipo (pruebas, evaluaciones y desarrollo sin red)."""
+    if _solo_solotodo():
+        from app.pcbuilder.solotodo_catalogo import mapa_instantanea, seed_solotodo_parts
+
+        if set(mapa_instantanea()) - {p.name for p in load_parts(db)}:  # base vacía o instantánea nueva
+            seed_solotodo_parts(db)
+        return
     if not load_parts(db):
         seed_pc_parts(db)

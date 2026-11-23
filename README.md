@@ -56,18 +56,27 @@ Cree una cuenta en `/register`. Sin `ADMIN_EMAILS` y con `APP_ENV` distinto de `
 
 ## Precios de tiendas e imágenes (SoloTodo)
 
-El armador muestra precios de tiendas chilenas reales (PC Factory, Winpy, MyShop…) y la foto de cada pieza, tomados de
-la API pública de SoloTodo (`publicapi.solotodo.com`, JSON; no se raspa HTML). Qué producto de SoloTodo corresponde a cada
-pieza está fijado en `app/pcbuilder/solotodo_productos.json`, que genera y deja revisar `scripts/solotodo_mapear.py`.
+En producción (`PC_CATALOGO=solotodo`, lo fija el despliegue en AWS) el armador usa **solo productos que hoy se venden
+nuevos en tiendas chilenas**: unas 200 piezas tomadas de la API pública de SoloTodo (`publicapi.solotodo.com`, JSON; no
+se raspa HTML), con su ficha técnica, su foto y las ofertas de cada tienda (PC Factory, Winpy, MyShop, Infor-Ingen…).
+No hay precios inventados.
+
+- `app/pcbuilder/catalogo_solotodo.json` es la instantánea revisable del catálogo; la genera `scripts/solotodo_catalogo.py`
+  eligiendo los más populares por grupo (socket, con o sin gráficos integrados, DDR4/DDR5, formato, potencia…) y
+  descartando los que no tienen una oferta nueva en Chile. Las reglas que convierten la ficha de SoloTodo en los datos de
+  compatibilidad (y las que deducen lo que SoloTodo no publica) están en `app/pcbuilder/solotodo_catalogo.py`; una ficha
+  a la que le falta un dato necesario se descarta, no se rellena.
+- La API siembra esa instantánea al arrancar y, en segundo plano, sincroniza precios, tiendas e imágenes cada 6 horas
+  (`SOLOTODO_SYNC_HORAS`); entre réplicas sincroniza una sola. El armador cotiza la oferta nueva más barata (las usadas o
+  reacondicionadas se ven en la ficha, pero no fijan el precio) y omite la oferta de una página que vende varias variantes.
 
 ```bash
-python -m app.pcbuilder.solotodo        # trae precios e imágenes a la base configurada (el despliegue en AWS lo corre solo)
-python scripts/solotodo_mapear.py       # vuelve a emparejar las piezas (solo si cambian); revisar la tabla antes de subirla
+python -m app.pcbuilder.solotodo                 # sincroniza a mano la base configurada
+python scripts/solotodo_catalogo.py              # regenera la instantánea (1 consulta/s); revisar el diff antes de subirla
 ```
 
-Si una pieza no tiene tiendas con stock, el armador usa su «Precio de referencia» (estimado, no es una tienda). Las
-evaluaciones usan solo esa semilla, sin red, para que sus resultados se puedan repetir. SP Digital cerró: su conector
-ya no se registra.
+Las pruebas, las evaluaciones y el desarrollo local usan la semilla del equipo (`catalog_data.py`, con «Precio de
+referencia»), sin red, para que sus resultados se puedan repetir. SP Digital cerró: su conector ya no se registra.
 
 ## Observabilidad, evaluación y trazas
 

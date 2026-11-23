@@ -67,3 +67,45 @@ def test_es_idempotente_y_la_referencia_vuelve_si_no_quedan_tiendas(env):
         assert ofertas["solotodo"].availability is False and ofertas["solotodo"].stock_status == "out_of_stock"
         assert ofertas["semilla-armador"].availability is True
         assert next(p for p in load_parts(db) if p.name == PIEZA).store == "Precio de referencia"
+
+
+def test_una_pagina_con_varias_variantes_no_rompe_ni_se_asigna_a_dos_productos(env):
+    """Una tienda vende dos productos en la misma URL (p. ej. dos capacidades): el segundo no recibe esa oferta."""
+    _, Session = env
+    otra = "Intel Core i5-12400F"
+    url = "https://www.pcfactory.cl/procesadores-varios"
+
+    def responder(pedido: httpx.Request) -> httpx.Response:
+        if pedido.url.path == "/stores/":
+            return httpx.Response(200, json=TIENDAS)
+        return httpx.Response(200, json=[
+            {"product": {"id": 135981}, "entities": [_entidad(12, "179990.00", url + "?a"), _entidad(12, "150000.00", url)]},
+            {"product": {"id": 777}, "entities": [_entidad(12, "120000.00", url)]},  # misma página que la oferta del Ryzen
+        ])
+
+    with Session() as db:
+        assert db.scalar(select(Product).where(Product.name == otra)) is not None
+        cliente = httpx.Client(transport=httpx.MockTransport(responder), base_url="https://publicapi.solotodo.com")
+        resumen = sincronizar(db, cliente=cliente, mapa={**MAPA, otra: {"solotodo_id": 777}}, pausa=0)
+        assert resumen["ofertas"] == 1 and resumen["omitidas_url_compartida"] == 1
+        real = next(o for o in _ofertas(db) if o.source == "solotodo")
+        assert (real.url, real.price) == (url, 150000)  # dos publicaciones en la tienda: queda la más barata
+        intel = db.scalar(select(Product).where(Product.name == otra))
+        assert not [o for o in intel.offers if o.source == "solotodo"]
+
+
+def test_el_armador_cotiza_la_oferta_nueva_aunque_haya_una_usada_mas_barata(env):
+    _, Session = env
+    nueva = _entidad(12, "179990.00", "https://www.pcfactory.cl/producto/49205")
+    usada = {**_entidad(13, "90000.00", "https://www.otra.cl/r5-usado"), "condition": "https://schema.org/UsedCondition"}
+
+    def responder(pedido: httpx.Request) -> httpx.Response:
+        if pedido.url.path == "/stores/":
+            return httpx.Response(200, json=[*TIENDAS, {"id": 13, "name": "Tienda de usados", "country_id": 1}])
+        return httpx.Response(200, json=[{"product": {"id": 135981}, "entities": [nueva, usada]}])
+
+    with Session() as db:
+        sincronizar(db, cliente=httpx.Client(transport=httpx.MockTransport(responder), base_url="https://publicapi.solotodo.com"), mapa=MAPA, pausa=0)
+        assert {o.condition for o in _ofertas(db) if o.source == "solotodo"} == {"new", "used"}  # la ficha muestra las dos
+        parte = next(p for p in load_parts(db) if p.name == PIEZA)
+        assert (parte.price_clp, parte.store) == (179990, "PC Factory")

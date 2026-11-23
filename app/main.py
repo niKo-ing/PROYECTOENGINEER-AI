@@ -175,6 +175,12 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
                 ensure_seeded(db)
         except Exception:
             log.warning("No se pudo sembrar el catálogo del armador", exc_info=True)
+    from app.pcbuilder.solotodo_catalogo import catalogo_activo
+
+    if catalogo_activo() == "solotodo" and os.getenv("SOLOTODO_SYNC", "true").strip().lower() in {"1", "true", "yes", "on"}:
+        from app.pcbuilder.solotodo import sincronizar_periodicamente
+
+        threading.Thread(target=sincronizar_periodicamente, name="solotodo-sync", daemon=True).start()
     try:
         yield
     finally:

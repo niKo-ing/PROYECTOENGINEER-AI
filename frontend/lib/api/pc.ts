@@ -14,6 +14,7 @@ export type Part = {
   brand: string | null;
   store: string | null;
   legacy: boolean;
+  image_url?: string | null;
 };
 
 export type Issue = { level: "error" | "warning" | "info"; code: string; message: string; slots: SlotKey[] };

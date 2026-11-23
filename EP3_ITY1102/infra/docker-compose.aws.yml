@@ -22,6 +22,7 @@ services:
       ML_API_KEYS: ${ML_API_KEYS}
       ML_RATE_LIMIT_PER_MINUTE: "600"   # por llave
       INGESTION_SCHEDULER_ENABLED: "false"
+      PC_CATALOGO: solotodo   # el armador usa solo productos de SoloTodo con precios de tiendas reales (la API los sincroniza)
       APP_ENV: production
       GEMINI_MODEL: ${GEMINI_MODEL:-gemini-3.5-flash-lite}   # sin modelo, el asistente responde solo con reglas
     env_file: [{ path: secretos.env, required: false }]

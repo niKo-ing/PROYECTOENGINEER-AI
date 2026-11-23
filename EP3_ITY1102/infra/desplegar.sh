@@ -70,10 +70,9 @@ docker compose -f docker-compose.aws.yml up -d --build
 aws s3 cp s3://$BUCKET/ep3.db /tmp/ep3.db || true
 [ -f /tmp/ep3.db ] && docker run --rm -v infra_datos:/data -v /tmp:/src alpine cp /src/ep3.db /data/ep3.db || true
 docker compose -f docker-compose.aws.yml restart backend worker
-# catálogo del armador de PC (idempotente; el backend también lo siembra al arrancar si la base está vacía)
+# El armador usa solo productos de SoloTodo (PC_CATALOGO=solotodo): la API los siembra al arrancar y les pone precios
+# de tiendas chilenas en segundo plano. Aquí se sincroniza una vez para dejar el resultado en el registro del arranque.
 sleep 15
-docker compose -f docker-compose.aws.yml exec -T backend python -c "from app.db import SessionLocal; from app.pcbuilder.catalog import seed_pc_parts; s = SessionLocal(); print('catalogo armador', seed_pc_parts(s)); s.close()" || true
-# precios de tiendas chilenas e imágenes desde la API pública de SoloTodo (sin conexión, queda el precio de referencia)
 docker compose -f docker-compose.aws.yml exec -T backend python -m app.pcbuilder.solotodo || true
 UD
 ID=$(aws ec2 run-instances --image-id "$AMI" --instance-type t3.medium --iam-instance-profile Name=myS3Role \

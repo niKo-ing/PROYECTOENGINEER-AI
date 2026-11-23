@@ -1,0 +1,4387 @@
+[
+ {
+  "slot": "case",
+  "tipo": "case",
+  "solotodo_id": 67340,
+  "name": "ASUS ROG Strix Helios (90DC0020-B38000)",
+  "brand": "ASUS",
+  "model": "ROG Strix Helios (90DC0020-B38000)",
+  "imagen": "https://media.solotodo.com/media/products/1000286_picture_1570710249.jpg",
+  "pc": {
+   "form_factors": [
+    "E-ATX",
+    "ATX",
+    "mATX",
+    "ITX"
+   ],
+   "max_gpu_mm": 450,
+   "max_cooler_mm": 190,
+   "psu_form_factors": [
+    "ATX"
+   ],
+   "radiators_mm": [
+    120,
+    140,
+    240,
+    280,
+    360,
+    420
+   ]
+  },
+  "ofertas_al_generar": 1,
+  "precio_al_generar": 299000
+ },
+ {
+  "slot": "case",
+  "tipo": "case",
+  "solotodo_id": 277351,
+  "name": "Antec FLUX PRO BK (0-761345-10154-7)",
+  "brand": "Antec",
+  "model": "FLUX PRO BK (0-761345-10154-7)",
+  "imagen": "https://media.solotodo.com/media/products/2039476",
+  "pc": {
+   "form_factors": [
+    "E-ATX",
+    "ATX",
+    "mATX",
+    "ITX"
+   ],
+   "max_gpu_mm": 455,
+   "max_cooler_mm": 190,
+   "psu_form_factors": [
+    "ATX"
+   ],
+   "radiators_mm": [
+    140,
+    280,
+    420
+   ]
+  },
+  "ofertas_al_generar": 1,
+  "precio_al_generar": 229900
+ },
+ {
+  "slot": "case",
+  "tipo": "case",
+  "solotodo_id": 364714,
+  "name": "Antec ST10M (0-761345-10235-3)",
+  "brand": "Antec",
+  "model": "ST10M (0-761345-10235-3)",
+  "imagen": "https://media.solotodo.com/media/products/2603756_picture_1764852057.png",
+  "pc": {
+   "form_factors": [
+    "mATX",
+    "ITX"
+   ],
+   "max_gpu_mm": 265,
+   "max_cooler_mm": 150,
+   "psu_form_factors": [
+    "ATX"
+   ],
+   "radiators_mm": []
+  },
+  "ofertas_al_generar": 5,
+  "precio_al_generar": 15900
+ },
+ {
+  "slot": "case",
+  "tipo": "case",
+  "solotodo_id": 127796,
+  "name": "Antec Striker",
+  "brand": "Antec",
+  "model": "Striker",
+  "imagen": "https://media.solotodo.com/media/products/1512724_picture_1640004399.png",
+  "pc": {
+   "form_factors": [
+    "ITX"
+   ],
+   "max_gpu_mm": 330,
+   "max_cooler_mm": 160,
+   "psu_form_factors": [
+    "SFX"
+   ],
+   "radiators_mm": []
+  },
+  "ofertas_al_generar": 1,
+  "precio_al_generar": 212500
+ },
+ {
+  "slot": "case",
+  "tipo": "case",
+  "solotodo_id": 412156,
+  "name": "Cooler Master MasterBox Q300L V3 - Black (Q300LV3-KGNN-S01)",
+  "brand": "Cooler Master",
+  "model": "MasterBox Q300L V3 - Black (Q300LV3-KGNN-S01)",
+  "imagen": "https://media.solotodo.com/media/products/2841372_picture_1791312709.jpeg",
+  "pc": {
+   "form_factors": [
+    "mATX",
+    "ITX"
+   ],
+   "max_gpu_mm": 366,
+   "max_cooler_mm": 178,
+   "psu_form_factors": [
+    "ATX"
+   ],
+   "radiators_mm": [
+    140,
+    280
+   ]
+  },
+  "ofertas_al_generar": 6,
+  "precio_al_generar": 48290
+ },
+ {
+  "slot": "case",
+  "tipo": "case",
+  "solotodo_id": 269047,
+  "name": "Corsair 4000D Frame RS ARGB - Black (CC-9011296-WW)",
+  "brand": "Corsair",
+  "model": "4000D Frame RS ARGB - Black (CC-9011296-WW)",
+  "imagen": "https://media.solotodo.com/media/products/2038565_picture_1742188716.png",
+  "pc": {
+   "form_factors": [
+    "E-ATX",
+    "ATX",
+    "mATX",
+    "ITX"
+   ],
+   "max_gpu_mm": 430,
+   "max_cooler_mm": 170,
+   "psu_form_factors": [
+    "ATX"
+   ],
+   "radiators_mm": [
+    120,
+    240,
+    360
+   ]
+  },
+  "ofertas_al_generar": 1,
+  "precio_al_generar": 149990
+ },
+ {
+  "slot": "case",
+  "tipo": "case",
+  "solotodo_id": 378362,
+  "name": "Cougar CFV235 - Negro (382DA40.0001)",
+  "brand": "Cougar",
+  "model": "CFV235 - Negro (382DA40.0001)",
+  "imagen": "https://media.solotodo.com/media/products/2184590.png",
+  "pc": {
+   "form_factors": [
+    "ATX",
+    "mATX",
+    "ITX"
+   ],
+   "max_gpu_mm": 430,
+   "max_cooler_mm": 175,
+   "psu_form_factors": [
+    "ATX"
+   ],
+   "radiators_mm": [
+    120,
+    240,
+    360
+   ]
+  },
+  "ofertas_al_generar": 6,
+  "precio_al_generar": 99890
+ },
+ {
+  "slot": "case",
+  "tipo": "case",
+  "solotodo_id": 256432,
+  "name": "Cougar FV150 RGB - Black (385KA10.0001)",
+  "brand": "Cougar",
+  "model": "FV150 RGB - Black (385KA10.0001)",
+  "imagen": "https://media.solotodo.com/media/products/1970608_picture_1729359293.jpg",
+  "pc": {
+   "form_factors": [
+    "ATX",
+    "mATX",
+    "ITX"
+   ],
+   "max_gpu_mm": 400,
+   "max_cooler_mm": 180,
+   "psu_form_factors": [
+    "ATX"
+   ],
+   "radiators_mm": [
+    120,
+    240,
+    360
+   ]
+  },
+  "ofertas_al_generar": 4,
+  "precio_al_generar": 73990
+ },
+ {
+  "slot": "case",
+  "tipo": "case",
+  "solotodo_id": 386559,
+  "name": "EsGaming ZERO MAX-BK",
+  "brand": "EsGaming",
+  "model": "ZERO MAX-BK",
+  "imagen": "https://media.solotodo.com/media/products/2727954_picture_1775654507.webp",
+  "pc": {
+   "form_factors": [
+    "ATX",
+    "mATX",
+    "ITX"
+   ],
+   "max_gpu_mm": 415,
+   "max_cooler_mm": 160,
+   "psu_form_factors": [
+    "ATX"
+   ],
+   "radiators_mm": [
+    120,
+    240,
+    360
+   ]
+  },
+  "ofertas_al_generar": 2,
+  "precio_al_generar": 83590
+ },
+ {
+  "slot": "case",
+  "tipo": "case",
+  "solotodo_id": 380532,
+  "name": "Exodia Sky Plus - White",
+  "brand": "Exodia",
+  "model": "Sky Plus - White",
+  "imagen": "https://media.solotodo.com/media/products/2694292_picture_1770376200.png",
+  "pc": {
+   "form_factors": [
+    "ATX",
+    "mATX",
+    "ITX"
+   ],
+   "max_gpu_mm": 400,
+   "max_cooler_mm": 160,
+   "psu_form_factors": [
+    "ATX"
+   ],
+   "radiators_mm": [
+    120,
+    240,
+    360
+   ]
+  },
+  "ofertas_al_generar": 2,
+  "precio_al_generar": 58990
+ },
+ {
+  "slot": "case",
+  "tipo": "case",
+  "solotodo_id": 229061,
+  "name": "Gamemax Infinity Mini Black",
+  "brand": "Gamemax",
+  "model": "Infinity Mini Black",
+  "imagen": "https://media.solotodo.com/media/products/1860729_picture_1704533338.png",
+  "pc": {
+   "form_factors": [
+    "mATX",
+    "ITX"
+   ],
+   "max_gpu_mm": 330,
+   "max_cooler_mm": 155,
+   "psu_form_factors": [
+    "ATX"
+   ],
+   "radiators_mm": [
+    120,
+    140,
+    240,
+    280
+   ]
+  },
+  "ofertas_al_generar": 7,
+  "precio_al_generar": 29990
+ },
+ {
+  "slot": "case",
+  "tipo": "case",
+  "solotodo_id": 217154,
+  "name": "Gamemax Storm BK",
+  "brand": "Gamemax",
+  "model": "Storm BK",
+  "imagen": "https://media.solotodo.com/media/products/1810127_picture_1693376738.png",
+  "pc": {
+   "form_factors": [
+    "mATX",
+    "ITX"
+   ],
+   "max_gpu_mm": 320,
+   "max_cooler_mm": 155,
+   "psu_form_factors": [
+    "ATX"
+   ],
+   "radiators_mm": [
+    120,
+    140,
+    240,
+    280,
+    360
+   ]
+  },
+  "ofertas_al_generar": 5,
+  "precio_al_generar": 27500
+ },
+ {
+  "slot": "case",
+  "tipo": "case",
+  "solotodo_id": 83634,
+  "name": "Gamemax Stratos ITX",
+  "brand": "Gamemax",
+  "model": "Stratos ITX",
+  "imagen": "https://media.solotodo.com/media/products/1199840_picture_1594967283.png",
+  "pc": {
+   "form_factors": [
+    "ITX"
+   ],
+   "max_gpu_mm": 320,
+   "max_cooler_mm": 50,
+   "psu_form_factors": [
+    "SFX"
+   ],
+   "radiators_mm": [
+    120,
+    240
+   ]
+  },
+  "ofertas_al_generar": 1,
+  "precio_al_generar": 59900
+ },
+ {
+  "slot": "case",
+  "tipo": "case",
+  "solotodo_id": 410848,
+  "name": "Genérica 270-D1",
+  "brand": "Genérica",
+  "model": "270-D1",
+  "imagen": "https://media.solotodo.com/media/products/2838485_picture_1790866584.jpg",
+  "pc": {
+   "form_factors": [
+    "mATX",
+    "ITX"
+   ],
+   "max_gpu_mm": 320,
+   "max_cooler_mm": 160,
+   "psu_form_factors": [
+    "ATX"
+   ],
+   "radiators_mm": [
+    120,
+    240
+   ]
+  },
+  "ofertas_al_generar": 1,
+  "precio_al_generar": 26900
+ },
+ {
+  "slot": "case",
+  "tipo": "case",
+  "solotodo_id": 212056,
+  "name": "Hyte Y60 - Black",
+  "brand": "Hyte",
+  "model": "Y60 - Black",
+  "imagen": "https://media.solotodo.com/media/products/1782155_picture_1689574135.jpg",
+  "pc": {
+   "form_factors": [
+    "E-ATX",
+    "ATX",
+    "mATX",
+    "ITX"
+   ],
+   "max_gpu_mm": 375,
+   "max_cooler_mm": 160,
+   "psu_form_factors": [
+    "ATX"
+   ],
+   "radiators_mm": [
+    120,
+    240,
+    360
+   ]
+  },
+  "ofertas_al_generar": 2,
+  "precio_al_generar": 182990
+ },
+ {
+  "slot": "case",
+  "tipo": "case",
+  "solotodo_id": 276676,
+  "name": "MSI MAG FORGE 321R AIRFLOW",
+  "brand": "MSI",
+  "model": "MAG FORGE 321R AIRFLOW",
+  "imagen": "https://media.solotodo.com/media/products/2089933_picture_1748504136.png",
+  "pc": {
+   "form_factors": [
+    "ATX",
+    "mATX",
+    "ITX"
+   ],
+   "max_gpu_mm": 390,
+   "max_cooler_mm": 160,
+   "psu_form_factors": [
+    "ATX"
+   ],
+   "radiators_mm": [
+    120,
+    240,
+    360
+   ]
+  },
+  "ofertas_al_generar": 1,
+  "precio_al_generar": 49990
+ },
+ {
+  "slot": "case",
+  "tipo": "case",
+  "solotodo_id": 406360,
+  "name": "MSI MEG Maestro 900R",
+  "brand": "MSI",
+  "model": "MEG Maestro 900R",
+  "imagen": "https://media.solotodo.com/media/products/2825870_picture_1789131671.webp",
+  "pc": {
+   "form_factors": [
+    "E-ATX",
+    "ATX",
+    "mATX",
+    "ITX"
+   ],
+   "max_gpu_mm": 440,
+   "max_cooler_mm": 170,
+   "psu_form_factors": [
+    "ATX"
+   ],
+   "radiators_mm": [
+    120,
+    140,
+    240,
+    280,
+    360,
+    420
+   ]
+  },
+  "ofertas_al_generar": 2,
+  "precio_al_generar": 699900
+ },
+ {
+  "slot": "cooler",
+  "tipo": "cooler",
+  "solotodo_id": 56712,
+  "name": "AMD Wraith Stealth (712-0000XX)",
+  "brand": "AMD",
+  "model": "Wraith Stealth (712-0000XX)",
+  "imagen": "https://media.solotodo.com/media/products/879396_picture_1791899575.webp",
+  "pc": {
+   "type": "aire",
+   "sockets": [
+    "AM4"
+   ],
+   "height_mm": 60,
+   "tdp_rating_w": 65
+  },
+  "ofertas_al_generar": 11,
+  "precio_al_generar": 9490
+ },
+ {
+  "slot": "cooler",
+  "tipo": "cooler",
+  "solotodo_id": 368757,
+  "name": "ASUS ROG Ryuo IV SLC 360 ARGB",
+  "brand": "ASUS",
+  "model": "ROG Ryuo IV SLC 360 ARGB",
+  "imagen": "https://media.solotodo.com/media/products/2623203_picture_1768846050.webp",
+  "pc": {
+   "type": "liquida",
+   "sockets": [
+    "AM4",
+    "AM5",
+    "LGA1700",
+    "LGA1851"
+   ],
+   "radiator_mm": 360,
+   "tdp_rating_w": 350
+  },
+  "ofertas_al_generar": 11,
+  "precio_al_generar": 349900
+ },
+ {
+  "slot": "cooler",
+  "tipo": "cooler",
+  "solotodo_id": 177276,
+  "name": "ASUS ROG STRIX LC II 280 ARGB",
+  "brand": "ASUS",
+  "model": "ROG STRIX LC II 280 ARGB",
+  "imagen": "https://media.solotodo.com/media/products/1717431_picture_1675589092.jpg",
+  "pc": {
+   "type": "liquida",
+   "sockets": [
+    "AM4",
+    "AM5",
+    "LGA1700",
+    "LGA1851"
+   ],
+   "radiator_mm": 280,
+   "tdp_rating_w": 300
+  },
+  "ofertas_al_generar": 1,
+  "precio_al_generar": 179000
+ },
+ {
+  "slot": "cooler",
+  "tipo": "cooler",
+  "solotodo_id": 386233,
+  "name": "Antec A35 FRGB",
+  "brand": "Antec",
+  "model": "A35 FRGB",
+  "imagen": "https://media.solotodo.com/media/products/2726492_picture_1775563985.jpg",
+  "pc": {
+   "type": "aire",
+   "sockets": [
+    "AM4",
+    "LGA1700",
+    "LGA1851"
+   ],
+   "height_mm": 128,
+   "tdp_rating_w": 150
+  },
+  "ofertas_al_generar": 1,
+  "precio_al_generar": 12990
+ },
+ {
+  "slot": "cooler",
+  "tipo": "cooler",
+  "solotodo_id": 243968,
+  "name": "Arctic Liquid Freezer III 420 A-RGB",
+  "brand": "Arctic",
+  "model": "Liquid Freezer III 420 A-RGB",
+  "imagen": "https://media.solotodo.com/media/products/1913877_picture_1715769226.jpg",
+  "pc": {
+   "type": "liquida",
+   "sockets": [
+    "AM4",
+    "AM5",
+    "LGA1700",
+    "LGA1851"
+   ],
+   "radiator_mm": 420,
+   "tdp_rating_w": 350
+  },
+  "ofertas_al_generar": 1,
+  "precio_al_generar": 144391
+ },
+ {
+  "slot": "cooler",
+  "tipo": "cooler",
+  "solotodo_id": 354519,
+  "name": "Arctic Liquid Freezer III Pro 420 - Black (ACFRE00181A)",
+  "brand": "Arctic",
+  "model": "Liquid Freezer III Pro 420 - Black (ACFRE00181A)",
+  "imagen": "https://media.solotodo.com/media/products/2544281_picture_1757328398.png",
+  "pc": {
+   "type": "liquida",
+   "sockets": [
+    "AM4",
+    "AM5",
+    "LGA1700",
+    "LGA1851"
+   ],
+   "radiator_mm": 420,
+   "tdp_rating_w": 350
+  },
+  "ofertas_al_generar": 1,
+  "precio_al_generar": 99910
+ },
+ {
+  "slot": "cooler",
+  "tipo": "cooler",
+  "solotodo_id": 406573,
+  "name": "Cooler Master MasterLiquid Core Nex Series 360 - Black",
+  "brand": "Cooler Master",
+  "model": "MasterLiquid Core Nex Series 360 - Black",
+  "imagen": "https://media.solotodo.com/media/products/2826578_picture_1789201315.png",
+  "pc": {
+   "type": "liquida",
+   "sockets": [
+    "AM4",
+    "AM5",
+    "LGA1700",
+    "LGA1851"
+   ],
+   "radiator_mm": 360,
+   "tdp_rating_w": 350
+  },
+  "ofertas_al_generar": 9,
+  "precio_al_generar": 86990
+ },
+ {
+  "slot": "cooler",
+  "tipo": "cooler",
+  "solotodo_id": 419131,
+  "name": "Corsair Nautilus 240 LCD - Black",
+  "brand": "Corsair",
+  "model": "Nautilus 240 LCD - Black",
+  "imagen": "https://media.solotodo.com/media/products/2855450_picture_1793376900.avif",
+  "pc": {
+   "type": "liquida",
+   "sockets": [
+    "AM4",
+    "AM5",
+    "LGA1700",
+    "LGA1851"
+   ],
+   "radiator_mm": 240,
+   "tdp_rating_w": 280
+  },
+  "ofertas_al_generar": 1,
+  "precio_al_generar": 69990
+ },
+ {
+  "slot": "cooler",
+  "tipo": "cooler",
+  "solotodo_id": 220756,
+  "name": "GameMax Iceberg 120 Infinity",
+  "brand": "GameMax",
+  "model": "Iceberg 120 Infinity",
+  "imagen": "https://media.solotodo.com/media/products/1824651_picture_1696443094.png",
+  "pc": {
+   "type": "liquida",
+   "sockets": [
+    "AM4",
+    "AM5",
+    "LGA1700",
+    "LGA1851"
+   ],
+   "radiator_mm": 120,
+   "tdp_rating_w": 200
+  },
+  "ofertas_al_generar": 3,
+  "precio_al_generar": 40900
+ },
+ {
+  "slot": "cooler",
+  "tipo": "cooler",
+  "solotodo_id": 221501,
+  "name": "GameMax Iceberg 120 Infinity - White",
+  "brand": "GameMax",
+  "model": "Iceberg 120 Infinity - White",
+  "imagen": "https://media.solotodo.com/media/products/1827494_picture_1697147306.png",
+  "pc": {
+   "type": "liquida",
+   "sockets": [
+    "AM4",
+    "AM5",
+    "LGA1700",
+    "LGA1851"
+   ],
+   "radiator_mm": 120,
+   "tdp_rating_w": 200
+  },
+  "ofertas_al_generar": 5,
+  "precio_al_generar": 41900
+ },
+ {
+  "slot": "cooler",
+  "tipo": "cooler",
+  "solotodo_id": 272352,
+  "name": "MSI MAG CORELIQUID A15 240",
+  "brand": "MSI",
+  "model": "MAG CORELIQUID A15 240",
+  "imagen": "https://media.solotodo.com/media/products/2066865_picture_1744899177.webp",
+  "pc": {
+   "type": "liquida",
+   "sockets": [
+    "AM4",
+    "AM5",
+    "LGA1700",
+    "LGA1851"
+   ],
+   "radiator_mm": 240,
+   "tdp_rating_w": 280
+  },
+  "ofertas_al_generar": 20,
+  "precio_al_generar": 39900
+ },
+ {
+  "slot": "cooler",
+  "tipo": "cooler",
+  "solotodo_id": 363860,
+  "name": "MSI MAG CoreFrozr AA13 - Black",
+  "brand": "MSI",
+  "model": "MAG CoreFrozr AA13 - Black",
+  "imagen": "https://media.solotodo.com/media/products/2600976_picture_1764252222.png",
+  "pc": {
+   "type": "aire",
+   "sockets": [
+    "AM4",
+    "AM5",
+    "LGA1700",
+    "LGA1851"
+   ],
+   "height_mm": 152,
+   "tdp_rating_w": 200
+  },
+  "ofertas_al_generar": 8,
+  "precio_al_generar": 19900
+ },
+ {
+  "slot": "cooler",
+  "tipo": "cooler",
+  "solotodo_id": 158446,
+  "name": "Thermalright Assassin X 120 Refined SE ARGB",
+  "brand": "Thermalright",
+  "model": "Assassin X 120 Refined SE ARGB",
+  "imagen": "https://media.solotodo.com/media/products/1683111_picture_1671201747.jpg",
+  "pc": {
+   "type": "aire",
+   "sockets": [
+    "AM4",
+    "AM5",
+    "LGA1700",
+    "LGA1851"
+   ],
+   "height_mm": 148,
+   "tdp_rating_w": 150
+  },
+  "ofertas_al_generar": 1,
+  "precio_al_generar": 27000
+ },
+ {
+  "slot": "cooler",
+  "tipo": "cooler",
+  "solotodo_id": 280414,
+  "name": "Thermalright Frozen Warframe 280 ARGB - White",
+  "brand": "Thermalright",
+  "model": "Frozen Warframe 280 ARGB - White",
+  "imagen": "https://media.solotodo.com/media/products/2113403_picture_1754048787.webp",
+  "pc": {
+   "type": "liquida",
+   "sockets": [
+    "AM4",
+    "AM5",
+    "LGA1700",
+    "LGA1851"
+   ],
+   "radiator_mm": 280,
+   "tdp_rating_w": 300
+  },
+  "ofertas_al_generar": 1,
+  "precio_al_generar": 102990
+ },
+ {
+  "slot": "cooler",
+  "tipo": "cooler",
+  "solotodo_id": 235885,
+  "name": "Thermalright Peerless Assassin 120 SE",
+  "brand": "Thermalright",
+  "model": "Peerless Assassin 120 SE",
+  "imagen": "https://media.solotodo.com/media/products/1888188_picture_1709055726.webp",
+  "pc": {
+   "type": "aire",
+   "sockets": [
+    "AM4",
+    "AM5",
+    "LGA1700",
+    "LGA1851"
+   ],
+   "height_mm": 155,
+   "tdp_rating_w": 200
+  },
+  "ofertas_al_generar": 3,
+  "precio_al_generar": 39950
+ },
+ {
+  "slot": "cooler",
+  "tipo": "cooler",
+  "solotodo_id": 76574,
+  "name": "Thermaltake UX100 (CL-P064-AL12SW-A)",
+  "brand": "Thermaltake",
+  "model": "UX100 (CL-P064-AL12SW-A)",
+  "imagen": "https://media.solotodo.com/media/products/1103994_picture_1583856854.jpg",
+  "pc": {
+   "type": "aire",
+   "sockets": [
+    "AM4",
+    "AM5"
+   ],
+   "height_mm": 61,
+   "tdp_rating_w": 65
+  },
+  "ofertas_al_generar": 3,
+  "precio_al_generar": 19590
+ },
+ {
+  "slot": "cooler",
+  "tipo": "cooler",
+  "solotodo_id": 398329,
+  "name": "Xilence Performance C A250PWM.B",
+  "brand": "Xilence",
+  "model": "Performance C A250PWM.B",
+  "imagen": "https://media.solotodo.com/media/products/2283743.jpg",
+  "pc": {
+   "type": "aire",
+   "sockets": [
+    "AM4",
+    "AM5"
+   ],
+   "height_mm": 69,
+   "tdp_rating_w": 65
+  },
+  "ofertas_al_generar": 2,
+  "precio_al_generar": 4990
+ },
+ {
+  "slot": "cooler",
+  "tipo": "cooler",
+  "solotodo_id": 398319,
+  "name": "Xilence Performance C M404PRO.ARGB",
+  "brand": "Xilence",
+  "model": "Performance C M404PRO.ARGB",
+  "imagen": "https://media.solotodo.com/media/products/2790540_picture_1783526426.jpg",
+  "pc": {
+   "type": "aire",
+   "sockets": [
+    "AM4",
+    "AM5",
+    "LGA1700",
+    "LGA1851"
+   ],
+   "height_mm": 143,
+   "tdp_rating_w": 150
+  },
+  "ofertas_al_generar": 2,
+  "precio_al_generar": 12990
+ },
+ {
+  "slot": "cooler",
+  "tipo": "cooler",
+  "solotodo_id": 358049,
+  "name": "be quiet! Pure Rock Pro 3 LX (BK043)",
+  "brand": "be quiet!",
+  "model": "Pure Rock Pro 3 LX (BK043)",
+  "imagen": "https://media.solotodo.com/media/products/2567406_picture_1759847921.jpg",
+  "pc": {
+   "type": "aire",
+   "sockets": [
+    "AM4",
+    "AM5",
+    "LGA1700",
+    "LGA1851"
+   ],
+   "height_mm": 155,
+   "tdp_rating_w": 200
+  },
+  "ofertas_al_generar": 4,
+  "precio_al_generar": 39990
+ },
+ {
+  "slot": "cpu",
+  "tipo": "cpu",
+  "solotodo_id": 63488,
+  "name": "AMD Ryzen 5 3400G",
+  "brand": "AMD",
+  "model": "Ryzen 5 3400G",
+  "imagen": "https://media.solotodo.com/media/products/956152_picture_1562592222.jpg",
+  "pc": {
+   "socket": "AM4",
+   "cores": 4,
+   "threads": 8,
+   "base_ghz": 3.7,
+   "boost_ghz": 4.2,
+   "tdp_w": 65,
+   "max_power_w": 88,
+   "igpu": true,
+   "memory_types": [
+    "DDR4"
+   ],
+   "max_mem_mts": 2933,
+   "includes_cooler": true,
+   "cpu_score": 21,
+   "gaming_score": 54,
+   "igpu_name": "Radeon RX Vega 11",
+   "igpu_score": 5
+  },
+  "ofertas_al_generar": 1,
+  "precio_al_generar": 99900
+ },
+ {
+  "slot": "cpu",
+  "tipo": "cpu",
+  "solotodo_id": 137994,
+  "name": "AMD Ryzen 5 5500",
+  "brand": "AMD",
+  "model": "Ryzen 5 5500",
+  "imagen": "https://media.solotodo.com/media/products/1580673_picture_1651582928.jpg",
+  "pc": {
+   "socket": "AM4",
+   "cores": 6,
+   "threads": 12,
+   "base_ghz": 3.6,
+   "boost_ghz": 4.2,
+   "tdp_w": 65,
+   "max_power_w": 88,
+   "igpu": false,
+   "memory_types": [
+    "DDR4"
+   ],
+   "max_mem_mts": 3200,
+   "includes_cooler": true,
+   "cpu_score": 45,
+   "gaming_score": 64
+  },
+  "ofertas_al_generar": 19,
+  "precio_al_generar": 99655
+ },
+ {
+  "slot": "cpu",
+  "tipo": "cpu",
+  "solotodo_id": 117431,
+  "name": "AMD Ryzen 5 5600G",
+  "brand": "AMD",
+  "model": "Ryzen 5 5600G",
+  "imagen": "https://media.solotodo.com/media/products/1436922_picture_1628622735.png",
+  "pc": {
+   "socket": "AM4",
+   "cores": 6,
+   "threads": 12,
+   "base_ghz": 3.9,
+   "boost_ghz": 4.4,
+   "tdp_w": 65,
+   "max_power_w": 88,
+   "igpu": true,
+   "memory_types": [
+    "DDR4"
+   ],
+   "max_mem_mts": 3200,
+   "includes_cooler": true,
+   "cpu_score": 45,
+   "gaming_score": 68,
+   "igpu_name": "Radeon Vega 7",
+   "igpu_score": 12
+  },
+  "ofertas_al_generar": 2,
+  "precio_al_generar": 230850
+ },
+ {
+  "slot": "cpu",
+  "tipo": "cpu",
+  "solotodo_id": 232390,
+  "name": "AMD Ryzen 5 5600GT",
+  "brand": "AMD",
+  "model": "Ryzen 5 5600GT",
+  "imagen": "https://media.solotodo.com/media/products/1436922_picture_1628622735.png",
+  "pc": {
+   "socket": "AM4",
+   "cores": 6,
+   "threads": 12,
+   "base_ghz": 3.6,
+   "boost_ghz": 4.6,
+   "tdp_w": 65,
+   "max_power_w": 88,
+   "igpu": true,
+   "memory_types": [
+    "DDR4"
+   ],
+   "max_mem_mts": 3200,
+   "includes_cooler": true,
+   "cpu_score": 46,
+   "gaming_score": 69,
+   "igpu_name": "Radeon Vega 7",
+   "igpu_score": 12
+  },
+  "ofertas_al_generar": 4,
+  "precio_al_generar": 249900
+ },
+ {
+  "slot": "cpu",
+  "tipo": "cpu",
+  "solotodo_id": 358548,
+  "name": "AMD Ryzen 5 7400F Tray",
+  "brand": "AMD",
+  "model": "Ryzen 5 7400F Tray",
+  "imagen": "https://media.solotodo.com/media/products/2570556_picture_1760196899.avif",
+  "pc": {
+   "socket": "AM5",
+   "cores": 6,
+   "threads": 12,
+   "base_ghz": 3.7,
+   "boost_ghz": 4.7,
+   "tdp_w": 65,
+   "max_power_w": 88,
+   "igpu": false,
+   "memory_types": [
+    "DDR5"
+   ],
+   "max_mem_mts": 5200,
+   "includes_cooler": false,
+   "cpu_score": 18,
+   "gaming_score": 56
+  },
+  "ofertas_al_generar": 1,
+  "precio_al_generar": 159505
+ },
+ {
+  "slot": "cpu",
+  "tipo": "cpu",
+  "solotodo_id": 276762,
+  "name": "AMD Ryzen 5 7500F Tray",
+  "brand": "AMD",
+  "model": "Ryzen 5 7500F Tray",
+  "imagen": "https://media.solotodo.com/media/products/2090961_picture_1764672276.webp",
+  "pc": {
+   "socket": "AM5",
+   "cores": 6,
+   "threads": 12,
+   "base_ghz": 3.7,
+   "boost_ghz": 5.0,
+   "tdp_w": 65,
+   "max_power_w": 88,
+   "igpu": false,
+   "memory_types": [
+    "DDR5"
+   ],
+   "max_mem_mts": 5200,
+   "includes_cooler": false,
+   "cpu_score": 61,
+   "gaming_score": 79
+  },
+  "ofertas_al_generar": 3,
+  "precio_al_generar": 154990
+ },
+ {
+  "slot": "cpu",
+  "tipo": "cpu",
+  "solotodo_id": 166287,
+  "name": "AMD Ryzen 5 7600",
+  "brand": "AMD",
+  "model": "Ryzen 5 7600",
+  "imagen": "https://media.solotodo.com/media/products/1696740_picture_1673410406.jpg",
+  "pc": {
+   "socket": "AM5",
+   "cores": 6,
+   "threads": 12,
+   "base_ghz": 3.8,
+   "boost_ghz": 5.1,
+   "tdp_w": 65,
+   "max_power_w": 88,
+   "igpu": true,
+   "memory_types": [
+    "DDR5"
+   ],
+   "max_mem_mts": 5200,
+   "includes_cooler": true,
+   "cpu_score": 62,
+   "gaming_score": 80,
+   "igpu_name": "RDNA 2",
+   "igpu_score": 5
+  },
+  "ofertas_al_generar": 17,
+  "precio_al_generar": 216900
+ },
+ {
+  "slot": "cpu",
+  "tipo": "cpu",
+  "solotodo_id": 268157,
+  "name": "AMD Ryzen 5 8400F Tray",
+  "brand": "AMD",
+  "model": "Ryzen 5 8400F Tray",
+  "imagen": "https://media.solotodo.com/media/products/2031117_picture_1741789695.avif",
+  "pc": {
+   "socket": "AM5",
+   "cores": 6,
+   "threads": 12,
+   "base_ghz": 4.2,
+   "boost_ghz": 4.7,
+   "tdp_w": 65,
+   "max_power_w": 88,
+   "igpu": false,
+   "memory_types": [
+    "DDR5"
+   ],
+   "max_mem_mts": 5200,
+   "includes_cooler": false,
+   "cpu_score": 54,
+   "gaming_score": 72
+  },
+  "ofertas_al_generar": 3,
+  "precio_al_generar": 104970
+ },
+ {
+  "slot": "cpu",
+  "tipo": "cpu",
+  "solotodo_id": 252401,
+  "name": "AMD Ryzen 5 9600X",
+  "brand": "AMD",
+  "model": "Ryzen 5 9600X",
+  "imagen": "https://media.solotodo.com/media/products/1941894_picture_1722940748.webp",
+  "pc": {
+   "socket": "AM5",
+   "cores": 6,
+   "threads": 12,
+   "base_ghz": 3.9,
+   "boost_ghz": 5.4,
+   "tdp_w": 65,
+   "max_power_w": 88,
+   "igpu": true,
+   "memory_types": [
+    "DDR5"
+   ],
+   "max_mem_mts": 5600,
+   "includes_cooler": false,
+   "cpu_score": 68,
+   "gaming_score": 92,
+   "igpu_name": "Radeon Graphics",
+   "igpu_score": 5
+  },
+  "ofertas_al_generar": 24,
+  "precio_al_generar": 219850
+ },
+ {
+  "slot": "cpu",
+  "tipo": "cpu",
+  "solotodo_id": 232391,
+  "name": "AMD Ryzen 7 5700",
+  "brand": "AMD",
+  "model": "Ryzen 7 5700",
+  "imagen": "https://media.solotodo.com/media/products/1874897_picture_1706850892.webp",
+  "pc": {
+   "socket": "AM4",
+   "cores": 8,
+   "threads": 16,
+   "base_ghz": 3.7,
+   "boost_ghz": 4.6,
+   "tdp_w": 65,
+   "max_power_w": 88,
+   "igpu": false,
+   "memory_types": [
+    "DDR4"
+   ],
+   "max_mem_mts": 3200,
+   "includes_cooler": true,
+   "cpu_score": 55,
+   "gaming_score": 73
+  },
+  "ofertas_al_generar": 16,
+  "precio_al_generar": 160990
+ },
+ {
+  "slot": "cpu",
+  "tipo": "cpu",
+  "solotodo_id": 117428,
+  "name": "AMD Ryzen 7 5700G",
+  "brand": "AMD",
+  "model": "Ryzen 7 5700G",
+  "imagen": "https://media.solotodo.com/media/products/1436898_picture_1628621689.png",
+  "pc": {
+   "socket": "AM4",
+   "cores": 8,
+   "threads": 16,
+   "base_ghz": 3.8,
+   "boost_ghz": 4.6,
+   "tdp_w": 65,
+   "max_power_w": 88,
+   "igpu": true,
+   "memory_types": [
+    "DDR4"
+   ],
+   "max_mem_mts": 3200,
+   "includes_cooler": true,
+   "cpu_score": 54,
+   "gaming_score": 69,
+   "igpu_name": "Radeon Vega 8",
+   "igpu_score": 13
+  },
+  "ofertas_al_generar": 17,
+  "precio_al_generar": 234990
+ },
+ {
+  "slot": "cpu",
+  "tipo": "cpu",
+  "solotodo_id": 196153,
+  "name": "AMD Ryzen 7 5700X Tray",
+  "brand": "AMD",
+  "model": "Ryzen 7 5700X Tray",
+  "imagen": "https://media.solotodo.com/media/products/1746947_picture_1680711332.jpg",
+  "pc": {
+   "socket": "AM4",
+   "cores": 8,
+   "threads": 16,
+   "base_ghz": 3.4,
+   "boost_ghz": 4.6,
+   "tdp_w": 65,
+   "max_power_w": 88,
+   "igpu": false,
+   "memory_types": [
+    "DDR4"
+   ],
+   "max_mem_mts": 3200,
+   "includes_cooler": false,
+   "cpu_score": 60,
+   "gaming_score": 69
+  },
+  "ofertas_al_generar": 6,
+  "precio_al_generar": 174980
+ },
+ {
+  "slot": "cpu",
+  "tipo": "cpu",
+  "solotodo_id": 399230,
+  "name": "AMD Ryzen 7 5800X3D 10th Anniversary Edition",
+  "brand": "AMD",
+  "model": "Ryzen 7 5800X3D 10th Anniversary Edition",
+  "imagen": "https://media.solotodo.com/media/products/2795079_picture_1784299454.jpg",
+  "pc": {
+   "socket": "AM4",
+   "cores": 8,
+   "threads": 16,
+   "base_ghz": 3.4,
+   "boost_ghz": 4.5,
+   "tdp_w": 105,
+   "max_power_w": 142,
+   "igpu": false,
+   "memory_types": [
+    "DDR4"
+   ],
+   "max_mem_mts": 3200,
+   "includes_cooler": false,
+   "cpu_score": 63,
+   "gaming_score": 84
+  },
+  "ofertas_al_generar": 9,
+  "precio_al_generar": 435900
+ },
+ {
+  "slot": "cpu",
+  "tipo": "cpu",
+  "solotodo_id": 241309,
+  "name": "AMD Ryzen 7 7800X3D Tray",
+  "brand": "AMD",
+  "model": "Ryzen 7 7800X3D Tray",
+  "imagen": "https://media.solotodo.com/media/products/1906400_picture_1713802528.webp",
+  "pc": {
+   "socket": "AM5",
+   "cores": 8,
+   "threads": 16,
+   "base_ghz": 4.2,
+   "boost_ghz": 5.0,
+   "tdp_w": 120,
+   "max_power_w": 162,
+   "igpu": true,
+   "memory_types": [
+    "DDR5"
+   ],
+   "max_mem_mts": 5200,
+   "includes_cooler": false,
+   "cpu_score": 77,
+   "gaming_score": 98,
+   "igpu_name": "RDNA 2",
+   "igpu_score": 5
+  },
+  "ofertas_al_generar": 4,
+  "precio_al_generar": 349000
+ },
+ {
+  "slot": "cpu",
+  "tipo": "cpu",
+  "solotodo_id": 276384,
+  "name": "AMD Ryzen 7 8700F Tray",
+  "brand": "AMD",
+  "model": "Ryzen 7 8700F Tray",
+  "imagen": "https://media.solotodo.com/media/products/2087877_picture_1748030135.webp",
+  "pc": {
+   "socket": "AM5",
+   "cores": 8,
+   "threads": 16,
+   "base_ghz": 4.1,
+   "boost_ghz": 5.0,
+   "tdp_w": 65,
+   "max_power_w": 88,
+   "igpu": false,
+   "memory_types": [
+    "DDR5"
+   ],
+   "max_mem_mts": 5200,
+   "includes_cooler": false,
+   "cpu_score": 69,
+   "gaming_score": 79
+  },
+  "ofertas_al_generar": 2,
+  "precio_al_generar": 154970
+ },
+ {
+  "slot": "cpu",
+  "tipo": "cpu",
+  "solotodo_id": 260863,
+  "name": "AMD Ryzen 7 9800X3D",
+  "brand": "AMD",
+  "model": "Ryzen 7 9800X3D",
+  "imagen": "https://media.solotodo.com/media/products/1997216_picture_1732927401.png",
+  "pc": {
+   "socket": "AM5",
+   "cores": 8,
+   "threads": 16,
+   "base_ghz": 4.7,
+   "boost_ghz": 5.2,
+   "tdp_w": 120,
+   "max_power_w": 162,
+   "igpu": true,
+   "memory_types": [
+    "DDR5"
+   ],
+   "max_mem_mts": 5600,
+   "includes_cooler": false,
+   "cpu_score": 91,
+   "gaming_score": 100,
+   "igpu_name": "Radeon Graphics",
+   "igpu_score": 5
+  },
+  "ofertas_al_generar": 28,
+  "precio_al_generar": 503405
+ },
+ {
+  "slot": "cpu",
+  "tipo": "cpu",
+  "solotodo_id": 266048,
+  "name": "Intel Core Ultra 5 225F",
+  "brand": "Intel",
+  "model": "Core Ultra 5 225F",
+  "imagen": "https://media.solotodo.com/media/products/2018716_picture_1739542362.png",
+  "pc": {
+   "socket": "LGA1851",
+   "cores": 6,
+   "threads": 10,
+   "base_ghz": 3.3,
+   "boost_ghz": 4.9,
+   "tdp_w": 65,
+   "max_power_w": 148,
+   "igpu": false,
+   "memory_types": [
+    "DDR5"
+   ],
+   "max_mem_mts": 6400,
+   "includes_cooler": false,
+   "cpu_score": 71,
+   "gaming_score": 80
+  },
+  "ofertas_al_generar": 18,
+  "precio_al_generar": 150000
+ },
+ {
+  "slot": "cpu",
+  "tipo": "cpu",
+  "solotodo_id": 258694,
+  "name": "Intel Core Ultra 5 245K",
+  "brand": "Intel",
+  "model": "Core Ultra 5 245K",
+  "imagen": "https://media.solotodo.com/media/products/1983362_picture_1732090570.jpg",
+  "pc": {
+   "socket": "LGA1851",
+   "cores": 6,
+   "threads": 14,
+   "base_ghz": 4.2,
+   "boost_ghz": 5.2,
+   "tdp_w": 125,
+   "max_power_w": 148,
+   "igpu": true,
+   "memory_types": [
+    "DDR5"
+   ],
+   "max_mem_mts": 6400,
+   "includes_cooler": false,
+   "cpu_score": 98,
+   "gaming_score": 92,
+   "igpu_name": "Arc Xe2 Graphics 64EU",
+   "igpu_score": 14
+  },
+  "ofertas_al_generar": 22,
+  "precio_al_generar": 228000
+ },
+ {
+  "slot": "cpu",
+  "tipo": "cpu",
+  "solotodo_id": 259413,
+  "name": "Intel Core Ultra 5 245KF",
+  "brand": "Intel",
+  "model": "Core Ultra 5 245KF",
+  "imagen": "https://media.solotodo.com/media/products/1987698_picture_1732495097.jpg",
+  "pc": {
+   "socket": "LGA1851",
+   "cores": 6,
+   "threads": 14,
+   "base_ghz": 4.2,
+   "boost_ghz": 5.2,
+   "tdp_w": 125,
+   "max_power_w": 148,
+   "igpu": false,
+   "memory_types": [
+    "DDR5"
+   ],
+   "max_mem_mts": 6400,
+   "includes_cooler": false,
+   "cpu_score": 99,
+   "gaming_score": 93
+  },
+  "ofertas_al_generar": 26,
+  "precio_al_generar": 224700
+ },
+ {
+  "slot": "cpu",
+  "tipo": "cpu",
+  "solotodo_id": 392688,
+  "name": "Intel Core Ultra 5 250K Plus",
+  "brand": "Intel",
+  "model": "Core Ultra 5 250K Plus",
+  "imagen": "https://media.solotodo.com/media/products/2760299_picture_1778847465.webp",
+  "pc": {
+   "socket": "LGA1851",
+   "cores": 6,
+   "threads": 18,
+   "base_ghz": 4.2,
+   "boost_ghz": 5.3,
+   "tdp_w": 125,
+   "max_power_w": 181,
+   "igpu": true,
+   "memory_types": [
+    "DDR5"
+   ],
+   "max_mem_mts": 6400,
+   "includes_cooler": false,
+   "cpu_score": 120,
+   "gaming_score": 100,
+   "igpu_name": "Arc Xe-LPG Graphics 64EU",
+   "igpu_score": 14
+  },
+  "ofertas_al_generar": 4,
+  "precio_al_generar": 284544
+ },
+ {
+  "slot": "cpu",
+  "tipo": "cpu",
+  "solotodo_id": 390531,
+  "name": "Intel Core Ultra 5 250KF Plus",
+  "brand": "Intel",
+  "model": "Core Ultra 5 250KF Plus",
+  "imagen": "https://media.solotodo.com/media/products/1987698_picture_1732495097.jpg",
+  "pc": {
+   "socket": "LGA1851",
+   "cores": 6,
+   "threads": 18,
+   "base_ghz": 4.2,
+   "boost_ghz": 5.3,
+   "tdp_w": 125,
+   "max_power_w": 181,
+   "igpu": false,
+   "memory_types": [
+    "DDR5"
+   ],
+   "max_mem_mts": 6400,
+   "includes_cooler": false,
+   "cpu_score": 117,
+   "gaming_score": 100
+  },
+  "ofertas_al_generar": 3,
+  "precio_al_generar": 258980
+ },
+ {
+  "slot": "cpu",
+  "tipo": "cpu",
+  "solotodo_id": 256966,
+  "name": "Intel Core Ultra 7 265K",
+  "brand": "Intel",
+  "model": "Core Ultra 7 265K",
+  "imagen": "https://media.solotodo.com/media/products/1973410_picture_1730221524.webp",
+  "pc": {
+   "socket": "LGA1851",
+   "cores": 8,
+   "threads": 20,
+   "base_ghz": 3.9,
+   "boost_ghz": 5.5,
+   "tdp_w": 125,
+   "max_power_w": 181,
+   "igpu": true,
+   "memory_types": [
+    "DDR5"
+   ],
+   "max_mem_mts": 6400,
+   "includes_cooler": false,
+   "cpu_score": 136,
+   "gaming_score": 100,
+   "igpu_name": "Arc Xe2 Graphics 64EU",
+   "igpu_score": 14
+  },
+  "ofertas_al_generar": 2,
+  "precio_al_generar": 443990
+ },
+ {
+  "slot": "cpu",
+  "tipo": "cpu",
+  "solotodo_id": 259003,
+  "name": "Intel Core Ultra 7 265KF",
+  "brand": "Intel",
+  "model": "Core Ultra 7 265KF",
+  "imagen": "https://media.solotodo.com/media/products/1984860_picture_1732167527.jpg",
+  "pc": {
+   "socket": "LGA1851",
+   "cores": 8,
+   "threads": 20,
+   "base_ghz": 3.9,
+   "boost_ghz": 5.5,
+   "tdp_w": 125,
+   "max_power_w": 181,
+   "igpu": false,
+   "memory_types": [
+    "DDR5"
+   ],
+   "max_mem_mts": 6400,
+   "includes_cooler": false,
+   "cpu_score": 140,
+   "gaming_score": 100
+  },
+  "ofertas_al_generar": 10,
+  "precio_al_generar": 367924
+ },
+ {
+  "slot": "cpu",
+  "tipo": "cpu",
+  "solotodo_id": 392378,
+  "name": "Intel Core Ultra 7 270K PLUS",
+  "brand": "Intel",
+  "model": "Core Ultra 7 270K PLUS",
+  "imagen": "https://media.solotodo.com/media/products/1984860_picture_1732167527.jpg",
+  "pc": {
+   "socket": "LGA1851",
+   "cores": 8,
+   "threads": 24,
+   "base_ghz": 3.7,
+   "boost_ghz": 5.5,
+   "tdp_w": 125,
+   "max_power_w": 181,
+   "igpu": true,
+   "memory_types": [
+    "DDR5"
+   ],
+   "max_mem_mts": 6400,
+   "includes_cooler": false,
+   "cpu_score": 155,
+   "gaming_score": 100,
+   "igpu_name": "Arc Xe-LPG Graphics 64EU",
+   "igpu_score": 14
+  },
+  "ofertas_al_generar": 3,
+  "precio_al_generar": 405980
+ },
+ {
+  "slot": "cpu",
+  "tipo": "cpu",
+  "solotodo_id": 127944,
+  "name": "Intel Core i5-12400F",
+  "brand": "Intel",
+  "model": "Core i5-12400F",
+  "imagen": "https://media.solotodo.com/media/products/1514024_picture_1640156807.jpg",
+  "pc": {
+   "socket": "LGA1700",
+   "cores": 6,
+   "threads": 12,
+   "base_ghz": 2.5,
+   "boost_ghz": 4.4,
+   "tdp_w": 65,
+   "max_power_w": 148,
+   "igpu": false,
+   "memory_types": [
+    "DDR4",
+    "DDR5"
+   ],
+   "max_mem_mts": 4800,
+   "includes_cooler": true,
+   "cpu_score": 53,
+   "gaming_score": 75
+  },
+  "ofertas_al_generar": 20,
+  "precio_al_generar": 164490
+ },
+ {
+  "slot": "cpu",
+  "tipo": "cpu",
+  "solotodo_id": 233325,
+  "name": "Intel Core i5-14400",
+  "brand": "Intel",
+  "model": "Core i5-14400",
+  "imagen": "https://media.solotodo.com/media/products/1878994_picture_1707949232.jpg",
+  "pc": {
+   "socket": "LGA1700",
+   "cores": 6,
+   "threads": 16,
+   "base_ghz": 2.5,
+   "boost_ghz": 4.7,
+   "tdp_w": 65,
+   "max_power_w": 148,
+   "igpu": true,
+   "memory_types": [
+    "DDR4",
+    "DDR5"
+   ],
+   "max_mem_mts": 5600,
+   "includes_cooler": true,
+   "cpu_score": 61,
+   "gaming_score": 75,
+   "igpu_name": "UHD 730",
+   "igpu_score": 6
+  },
+  "ofertas_al_generar": 25,
+  "precio_al_generar": 221981
+ },
+ {
+  "slot": "cpu",
+  "tipo": "cpu",
+  "solotodo_id": 229183,
+  "name": "Intel Core i5-14400F",
+  "brand": "Intel",
+  "model": "Core i5-14400F",
+  "imagen": "https://media.solotodo.com/media/products/1861058_picture_1707949213.jpg",
+  "pc": {
+   "socket": "LGA1700",
+   "cores": 6,
+   "threads": 16,
+   "base_ghz": 2.5,
+   "boost_ghz": 4.7,
+   "tdp_w": 65,
+   "max_power_w": 148,
+   "igpu": false,
+   "memory_types": [
+    "DDR4",
+    "DDR5"
+   ],
+   "max_mem_mts": 5600,
+   "includes_cooler": true,
+   "cpu_score": 58,
+   "gaming_score": 74
+  },
+  "ofertas_al_generar": 22,
+  "precio_al_generar": 185990
+ },
+ {
+  "slot": "cpu",
+  "tipo": "cpu",
+  "solotodo_id": 222073,
+  "name": "Intel Core i5-14600KF",
+  "brand": "Intel",
+  "model": "Core i5-14600KF",
+  "imagen": "https://media.solotodo.com/media/products/1831674_picture_1707949175.jpg",
+  "pc": {
+   "socket": "LGA1700",
+   "cores": 6,
+   "threads": 20,
+   "base_ghz": 3.5,
+   "boost_ghz": 5.3,
+   "tdp_w": 125,
+   "max_power_w": 181,
+   "igpu": false,
+   "memory_types": [
+    "DDR4",
+    "DDR5"
+   ],
+   "max_mem_mts": 5600,
+   "includes_cooler": false,
+   "cpu_score": 88,
+   "gaming_score": 88
+  },
+  "ofertas_al_generar": 17,
+  "precio_al_generar": 284990
+ },
+ {
+  "slot": "cpu",
+  "tipo": "cpu",
+  "solotodo_id": 233326,
+  "name": "Intel Core i7-14700",
+  "brand": "Intel",
+  "model": "Core i7-14700",
+  "imagen": "https://media.solotodo.com/media/products/1879006_picture_1707949384.jpg",
+  "pc": {
+   "socket": "LGA1700",
+   "cores": 8,
+   "threads": 28,
+   "base_ghz": 2.1,
+   "boost_ghz": 5.4,
+   "tdp_w": 65,
+   "max_power_w": 148,
+   "igpu": true,
+   "memory_types": [
+    "DDR4",
+    "DDR5"
+   ],
+   "max_mem_mts": 5600,
+   "includes_cooler": true,
+   "cpu_score": 110,
+   "gaming_score": 98,
+   "igpu_name": "UHD 770",
+   "igpu_score": 7
+  },
+  "ofertas_al_generar": 18,
+  "precio_al_generar": 413990
+ },
+ {
+  "slot": "cpu",
+  "tipo": "cpu",
+  "solotodo_id": 222075,
+  "name": "Intel Core i7-14700K",
+  "brand": "Intel",
+  "model": "Core i7-14700K",
+  "imagen": "https://media.solotodo.com/media/products/1831699_picture_1707949353.jpg",
+  "pc": {
+   "socket": "LGA1700",
+   "cores": 8,
+   "threads": 28,
+   "base_ghz": 3.4,
+   "boost_ghz": 5.6,
+   "tdp_w": 125,
+   "max_power_w": 181,
+   "igpu": true,
+   "memory_types": [
+    "DDR4",
+    "DDR5"
+   ],
+   "max_mem_mts": 5600,
+   "includes_cooler": false,
+   "cpu_score": 121,
+   "gaming_score": 100,
+   "igpu_name": "UHD 770",
+   "igpu_score": 7
+  },
+  "ofertas_al_generar": 16,
+  "precio_al_generar": 437782
+ },
+ {
+  "slot": "cpu",
+  "tipo": "cpu",
+  "solotodo_id": 222080,
+  "name": "Intel Core i9-14900K",
+  "brand": "Intel",
+  "model": "Core i9-14900K",
+  "imagen": "https://media.solotodo.com/media/products/1831756_picture_1707949314.jpg",
+  "pc": {
+   "socket": "LGA1700",
+   "cores": 8,
+   "threads": 32,
+   "base_ghz": 3.2,
+   "boost_ghz": 6.0,
+   "tdp_w": 125,
+   "max_power_w": 181,
+   "igpu": true,
+   "memory_types": [
+    "DDR4",
+    "DDR5"
+   ],
+   "max_mem_mts": 5600,
+   "includes_cooler": false,
+   "cpu_score": 138,
+   "gaming_score": 100,
+   "igpu_name": "UHD 770",
+   "igpu_score": 7
+  },
+  "ofertas_al_generar": 16,
+  "precio_al_generar": 612256
+ },
+ {
+  "slot": "cpu",
+  "tipo": "cpu",
+  "solotodo_id": 222289,
+  "name": "Intel Core i9-14900KF",
+  "brand": "Intel",
+  "model": "Core i9-14900KF",
+  "imagen": "https://media.solotodo.com/media/products/1833256_picture_1707949298.jpg",
+  "pc": {
+   "socket": "LGA1700",
+   "cores": 8,
+   "threads": 32,
+   "base_ghz": 3.2,
+   "boost_ghz": 6.0,
+   "tdp_w": 125,
+   "max_power_w": 181,
+   "igpu": false,
+   "memory_types": [
+    "DDR4",
+    "DDR5"
+   ],
+   "max_mem_mts": 5600,
+   "includes_cooler": false,
+   "cpu_score": 135,
+   "gaming_score": 100
+  },
+  "ofertas_al_generar": 17,
+  "precio_al_generar": 549900
+ },
+ {
+  "slot": "gpu",
+  "tipo": "gpu",
+  "solotodo_id": 272349,
+  "name": "ASRock Arc B570 Challenger 10GB OC",
+  "brand": "ASRock",
+  "model": "Arc B570 Challenger 10GB OC",
+  "imagen": "https://media.solotodo.com/media/products/2066829_picture_1744898374.png",
+  "pc": {
+   "chip": "Intel",
+   "vram_gb": 10,
+   "length_mm": 249,
+   "board_power_w": 150,
+   "recommended_psu_w": 550,
+   "pcie_gen": 4,
+   "perf": 56
+  },
+  "ofertas_al_generar": 5,
+  "precio_al_generar": 369990
+ },
+ {
+  "slot": "gpu",
+  "tipo": "gpu",
+  "solotodo_id": 265755,
+  "name": "ASRock Arc B580 Challenger 12GB OC",
+  "brand": "ASRock",
+  "model": "Arc B580 Challenger 12GB OC",
+  "imagen": "https://media.solotodo.com/media/products/2017577_picture_1739366708.png",
+  "pc": {
+   "chip": "Intel",
+   "vram_gb": 12,
+   "length_mm": 249,
+   "board_power_w": 190,
+   "recommended_psu_w": 600,
+   "pcie_gen": 4,
+   "perf": 64
+  },
+  "ofertas_al_generar": 1,
+  "precio_al_generar": 449000
+ },
+ {
+  "slot": "gpu",
+  "tipo": "gpu",
+  "solotodo_id": 383170,
+  "name": "ASRock Arc Pro B60 Creator 24GB",
+  "brand": "ASRock",
+  "model": "Arc Pro B60 Creator 24GB",
+  "imagen": "https://media.solotodo.com/media/products/2707857_picture_1772535416.png",
+  "pc": {
+   "chip": "Intel",
+   "vram_gb": 24,
+   "length_mm": 271,
+   "board_power_w": 200,
+   "recommended_psu_w": 600,
+   "pcie_gen": 5,
+   "perf": 55
+  },
+  "ofertas_al_generar": 3,
+  "precio_al_generar": 999500
+ },
+ {
+  "slot": "gpu",
+  "tipo": "gpu",
+  "solotodo_id": 130428,
+  "name": "ASRock Challenger D 8GB OC RX 6600 XT",
+  "brand": "ASRock",
+  "model": "Challenger D 8GB OC RX 6600 XT",
+  "imagen": "https://media.solotodo.com/media/products/1532103_picture_1643030959.png",
+  "pc": {
+   "chip": "AMD",
+   "vram_gb": 8,
+   "length_mm": 269,
+   "board_power_w": 160,
+   "recommended_psu_w": 600,
+   "pcie_gen": 4,
+   "perf": 44
+  },
+  "ofertas_al_generar": 1,
+  "precio_al_generar": 499900
+ },
+ {
+  "slot": "gpu",
+  "tipo": "gpu",
+  "solotodo_id": 404254,
+  "name": "ASRock Radeon RX 9060 Challenger 8GB",
+  "brand": "ASRock",
+  "model": "Radeon RX 9060 Challenger 8GB",
+  "imagen": "https://media.solotodo.com/media/products/2289643.jpg",
+  "pc": {
+   "chip": "AMD",
+   "vram_gb": 8,
+   "length_mm": 249,
+   "board_power_w": 132,
+   "recommended_psu_w": 550,
+   "pcie_gen": 5,
+   "perf": 60
+  },
+  "ofertas_al_generar": 1,
+  "precio_al_generar": 467990
+ },
+ {
+  "slot": "gpu",
+  "tipo": "gpu",
+  "solotodo_id": 270071,
+  "name": "ASRock Radeon RX 9070 Challenger 16GB",
+  "brand": "ASRock",
+  "model": "Radeon RX 9070 Challenger 16GB",
+  "imagen": "https://media.solotodo.com/media/products/2047508_picture_1742831116.png",
+  "pc": {
+   "chip": "AMD",
+   "vram_gb": 16,
+   "length_mm": 290,
+   "board_power_w": 220,
+   "recommended_psu_w": 650,
+   "pcie_gen": 5,
+   "perf": 104
+  },
+  "ofertas_al_generar": 2,
+  "precio_al_generar": 879900
+ },
+ {
+  "slot": "gpu",
+  "tipo": "gpu",
+  "solotodo_id": 82490,
+  "name": "ASUS DUAL-RTX2060-O6G-EVO",
+  "brand": "ASUS",
+  "model": "DUAL-RTX2060-O6G-EVO",
+  "imagen": "https://media.solotodo.com/media/products/1187078_picture_1598995417.jpeg",
+  "pc": {
+   "chip": "NVIDIA",
+   "vram_gb": 6,
+   "length_mm": 242,
+   "board_power_w": 160,
+   "recommended_psu_w": 600,
+   "pcie_gen": 3,
+   "perf": 34
+  },
+  "ofertas_al_generar": 1,
+  "precio_al_generar": 489900
+ },
+ {
+  "slot": "gpu",
+  "tipo": "gpu",
+  "solotodo_id": 387590,
+  "name": "ASUS Dual GeForce RTX 5060 EVO OC Edition 8GB GDDR7",
+  "brand": "ASUS",
+  "model": "Dual GeForce RTX 5060 EVO OC Edition 8GB GDDR7",
+  "imagen": "https://media.solotodo.com/media/products/2733026_picture_1776218463.webp",
+  "pc": {
+   "chip": "NVIDIA",
+   "vram_gb": 8,
+   "length_mm": 225,
+   "board_power_w": 145,
+   "recommended_psu_w": 550,
+   "pcie_gen": 5,
+   "perf": 63
+  },
+  "ofertas_al_generar": 11,
+  "precio_al_generar": 547808
+ },
+ {
+  "slot": "gpu",
+  "tipo": "gpu",
+  "solotodo_id": 270835,
+  "name": "ASUS Dual Radeon RX 7600 EVO OC Edition 8GB GDDR6",
+  "brand": "ASUS",
+  "model": "Dual Radeon RX 7600 EVO OC Edition 8GB GDDR6",
+  "imagen": "https://media.solotodo.com/media/products/2055806_picture_1743427648.webp",
+  "pc": {
+   "chip": "AMD",
+   "vram_gb": 8,
+   "length_mm": 229,
+   "board_power_w": 165,
+   "recommended_psu_w": 600,
+   "pcie_gen": 4,
+   "perf": 48
+  },
+  "ofertas_al_generar": 2,
+  "precio_al_generar": 395990
+ },
+ {
+  "slot": "gpu",
+  "tipo": "gpu",
+  "solotodo_id": 355722,
+  "name": "ASUS Dual Radeon RX 9060 XT 16GB",
+  "brand": "ASUS",
+  "model": "Dual Radeon RX 9060 XT 16GB",
+  "imagen": "https://media.solotodo.com/media/products/2551956_picture_1758701616.png",
+  "pc": {
+   "chip": "AMD",
+   "vram_gb": 16,
+   "length_mm": 202,
+   "board_power_w": 160,
+   "recommended_psu_w": 600,
+   "pcie_gen": 5,
+   "perf": 70
+  },
+  "ofertas_al_generar": 15,
+  "precio_al_generar": 639990
+ },
+ {
+  "slot": "gpu",
+  "tipo": "gpu",
+  "solotodo_id": 60668,
+  "name": "ASUS PH-GTX1650-O4G",
+  "brand": "ASUS",
+  "model": "PH-GTX1650-O4G",
+  "imagen": "https://media.solotodo.com/media/products/923205_picture_1556956032.jpg",
+  "pc": {
+   "chip": "NVIDIA",
+   "vram_gb": 4,
+   "length_mm": 190,
+   "board_power_w": 75,
+   "recommended_psu_w": 500,
+   "pcie_gen": 3,
+   "perf": 16
+  },
+  "ofertas_al_generar": 1,
+  "precio_al_generar": 219900
+ },
+ {
+  "slot": "gpu",
+  "tipo": "gpu",
+  "solotodo_id": 71770,
+  "name": "ASUS PH-GTX1650S-O4G",
+  "brand": "ASUS",
+  "model": "PH-GTX1650S-O4G",
+  "imagen": "https://media.solotodo.com/media/products/1047681_picture_1579286991.jfif",
+  "pc": {
+   "chip": "NVIDIA",
+   "vram_gb": 4,
+   "length_mm": 174,
+   "board_power_w": 100,
+   "recommended_psu_w": 500,
+   "pcie_gen": 3,
+   "perf": 22
+  },
+  "ofertas_al_generar": 1,
+  "precio_al_generar": 249900
+ },
+ {
+  "slot": "gpu",
+  "tipo": "gpu",
+  "solotodo_id": 276343,
+  "name": "ASUS Prime Radeon RX 9070 XT OC Edition 16GB",
+  "brand": "ASUS",
+  "model": "Prime Radeon RX 9070 XT OC Edition 16GB",
+  "imagen": "https://media.solotodo.com/media/products/2087610_picture_1747988354.jpg",
+  "pc": {
+   "chip": "AMD",
+   "vram_gb": 16,
+   "length_mm": 312,
+   "board_power_w": 304,
+   "recommended_psu_w": 750,
+   "pcie_gen": 5,
+   "perf": 117
+  },
+  "ofertas_al_generar": 20,
+  "precio_al_generar": 986990
+ },
+ {
+  "slot": "gpu",
+  "tipo": "gpu",
+  "solotodo_id": 269748,
+  "name": "ASUS ROG Astral GeForce RTX 5080 16GB GDDR7 OC Edition",
+  "brand": "ASUS",
+  "model": "ROG Astral GeForce RTX 5080 16GB GDDR7 OC Edition",
+  "imagen": "https://media.solotodo.com/media/products/2045149_picture_1742548830.png",
+  "pc": {
+   "chip": "NVIDIA",
+   "vram_gb": 16,
+   "length_mm": 358,
+   "board_power_w": 360,
+   "recommended_psu_w": 800,
+   "pcie_gen": 5,
+   "perf": 129
+  },
+  "ofertas_al_generar": 3,
+  "precio_al_generar": 2599990
+ },
+ {
+  "slot": "gpu",
+  "tipo": "gpu",
+  "solotodo_id": 120813,
+  "name": "ASUS ROG-STRIX-RTX3060TI-O8G-V2-GAMING",
+  "brand": "ASUS",
+  "model": "ROG-STRIX-RTX3060TI-O8G-V2-GAMING",
+  "imagen": "https://media.solotodo.com/media/products/1462374_picture_1632311955.png",
+  "pc": {
+   "chip": "NVIDIA",
+   "vram_gb": 8,
+   "length_mm": 319,
+   "board_power_w": 200,
+   "recommended_psu_w": 600,
+   "pcie_gen": 4,
+   "perf": 51
+  },
+  "ofertas_al_generar": 1,
+  "precio_al_generar": 639900
+ },
+ {
+  "slot": "gpu",
+  "tipo": "gpu",
+  "solotodo_id": 124483,
+  "name": "ASUS TUF-GTX1660TI-O6G-EVO-GAMING",
+  "brand": "ASUS",
+  "model": "TUF-GTX1660TI-O6G-EVO-GAMING",
+  "imagen": "https://media.solotodo.com/media/products/1488947_picture_1636097156.jpg",
+  "pc": {
+   "chip": "NVIDIA",
+   "vram_gb": 6,
+   "length_mm": 206,
+   "board_power_w": 120,
+   "recommended_psu_w": 550,
+   "pcie_gen": 3,
+   "perf": 29
+  },
+  "ofertas_al_generar": 2,
+  "precio_al_generar": 329900
+ },
+ {
+  "slot": "gpu",
+  "tipo": "gpu",
+  "solotodo_id": 122914,
+  "name": "ASUS TUF-RTX3070-O8G-V2-GAMING",
+  "brand": "ASUS",
+  "model": "TUF-RTX3070-O8G-V2-GAMING",
+  "imagen": "https://media.solotodo.com/media/products/1476984_picture_1634487968.png",
+  "pc": {
+   "chip": "NVIDIA",
+   "vram_gb": 8,
+   "length_mm": 300,
+   "board_power_w": 220,
+   "recommended_psu_w": 650,
+   "pcie_gen": 4,
+   "perf": 59
+  },
+  "ofertas_al_generar": 1,
+  "precio_al_generar": 659900
+ },
+ {
+  "slot": "gpu",
+  "tipo": "gpu",
+  "solotodo_id": 68748,
+  "name": "EVGA GeForce GTX 1660 SUPER SC ULTRA GAMING",
+  "brand": "EVGA",
+  "model": "GeForce GTX 1660 SUPER SC ULTRA GAMING",
+  "imagen": "https://media.solotodo.com/media/products/1015224_picture_1573837802.png",
+  "pc": {
+   "chip": "NVIDIA",
+   "vram_gb": 6,
+   "length_mm": 202,
+   "board_power_w": 125,
+   "recommended_psu_w": 550,
+   "pcie_gen": 3,
+   "perf": 28
+  },
+  "ofertas_al_generar": 1,
+  "precio_al_generar": 314900
+ },
+ {
+  "slot": "gpu",
+  "tipo": "gpu",
+  "solotodo_id": 115560,
+  "name": "EVGA GeForce RTX 3070 Ti FTW3 ULTRA GAMING",
+  "brand": "EVGA",
+  "model": "GeForce RTX 3070 Ti FTW3 ULTRA GAMING",
+  "imagen": "https://media.solotodo.com/media/products/1422506_picture_1626454576.jpg",
+  "pc": {
+   "chip": "NVIDIA",
+   "vram_gb": 8,
+   "length_mm": 300,
+   "board_power_w": 290,
+   "recommended_psu_w": 700,
+   "pcie_gen": 4,
+   "perf": 63
+  },
+  "ofertas_al_generar": 1,
+  "precio_al_generar": 699900
+ },
+ {
+  "slot": "gpu",
+  "tipo": "gpu",
+  "solotodo_id": 113038,
+  "name": "EVGA GeForce RTX 3080 Ti FTW3 ULTRA GAMING",
+  "brand": "EVGA",
+  "model": "GeForce RTX 3080 Ti FTW3 ULTRA GAMING",
+  "imagen": "https://media.solotodo.com/media/products/1404869_picture_1623418462.jpg",
+  "pc": {
+   "chip": "NVIDIA",
+   "vram_gb": 12,
+   "length_mm": 300,
+   "board_power_w": 350,
+   "recommended_psu_w": 750,
+   "pcie_gen": 4,
+   "perf": 81
+  },
+  "ofertas_al_generar": 1,
+  "precio_al_generar": 1299900
+ },
+ {
+  "slot": "gpu",
+  "tipo": "gpu",
+  "solotodo_id": 131305,
+  "name": "Gigabyte AORUS Radeon RX 6900 XT MASTER 16G",
+  "brand": "Gigabyte",
+  "model": "AORUS Radeon RX 6900 XT MASTER 16G",
+  "imagen": "https://media.solotodo.com/media/products/1538351_picture_1644222088.png",
+  "pc": {
+   "chip": "AMD",
+   "vram_gb": 16,
+   "length_mm": 322,
+   "board_power_w": 300,
+   "recommended_psu_w": 700,
+   "pcie_gen": 4,
+   "perf": 85
+  },
+  "ofertas_al_generar": 1,
+  "precio_al_generar": 1349900
+ },
+ {
+  "slot": "gpu",
+  "tipo": "gpu",
+  "solotodo_id": 211157,
+  "name": "Gigabyte GeForce RTX 3060 WINDFORCE OC 12G",
+  "brand": "Gigabyte",
+  "model": "GeForce RTX 3060 WINDFORCE OC 12G",
+  "imagen": "https://media.solotodo.com/media/products/1774308_picture_1687696992.jpg",
+  "pc": {
+   "chip": "NVIDIA",
+   "vram_gb": 12,
+   "length_mm": 242,
+   "board_power_w": 170,
+   "recommended_psu_w": 600,
+   "pcie_gen": 4,
+   "perf": 41
+  },
+  "ofertas_al_generar": 4,
+  "precio_al_generar": 419990
+ },
+ {
+  "slot": "gpu",
+  "tipo": "gpu",
+  "solotodo_id": 211519,
+  "name": "Gigabyte GeForce RTX 4060 EAGLE OC 8G",
+  "brand": "Gigabyte",
+  "model": "GeForce RTX 4060 EAGLE OC 8G",
+  "imagen": "https://media.solotodo.com/media/products/1777560_picture_1688535231.webp",
+  "pc": {
+   "chip": "NVIDIA",
+   "vram_gb": 8,
+   "length_mm": 272,
+   "board_power_w": 115,
+   "recommended_psu_w": 550,
+   "pcie_gen": 4,
+   "perf": 48
+  },
+  "ofertas_al_generar": 1,
+  "precio_al_generar": 574990
+ },
+ {
+  "slot": "gpu",
+  "tipo": "gpu",
+  "solotodo_id": 108477,
+  "name": "Gigabyte Radeon RX 6700 XT GAMING OC 12G",
+  "brand": "Gigabyte",
+  "model": "Radeon RX 6700 XT GAMING OC 12G",
+  "imagen": "https://media.solotodo.com/media/products/1383214_picture_1619854158.png",
+  "pc": {
+   "chip": "AMD",
+   "vram_gb": 12,
+   "length_mm": 281,
+   "board_power_w": 230,
+   "recommended_psu_w": 650,
+   "pcie_gen": 4,
+   "perf": 55
+  },
+  "ofertas_al_generar": 1,
+  "precio_al_generar": 849900
+ },
+ {
+  "slot": "gpu",
+  "tipo": "gpu",
+  "solotodo_id": 103117,
+  "name": "Gigabyte Radeon RX 6800 XT GAMING OC 16G",
+  "brand": "Gigabyte",
+  "model": "Radeon RX 6800 XT GAMING OC 16G",
+  "imagen": "https://media.solotodo.com/media/products/1352723_picture_1616623182.png",
+  "pc": {
+   "chip": "AMD",
+   "vram_gb": 16,
+   "length_mm": 286,
+   "board_power_w": 300,
+   "recommended_psu_w": 700,
+   "pcie_gen": 4,
+   "perf": 79
+  },
+  "ofertas_al_generar": 1,
+  "precio_al_generar": 799990
+ },
+ {
+  "slot": "gpu",
+  "tipo": "gpu",
+  "solotodo_id": 406331,
+  "name": "Gigabyte Radeon RX 9070 GRE GAMING OC 12G",
+  "brand": "Gigabyte",
+  "model": "Radeon RX 9070 GRE GAMING OC 12G",
+  "imagen": "https://media.solotodo.com/media/products/2335834.png",
+  "pc": {
+   "chip": "AMD",
+   "vram_gb": 12,
+   "length_mm": 288,
+   "board_power_w": 220,
+   "recommended_psu_w": 650,
+   "pcie_gen": 5,
+   "perf": 88
+  },
+  "ofertas_al_generar": 6,
+  "precio_al_generar": 718990
+ },
+ {
+  "slot": "gpu",
+  "tipo": "gpu",
+  "solotodo_id": 133103,
+  "name": "MSI GeForce RTX 3080 VENTUS 3X PLUS 10G OC LHR",
+  "brand": "MSI",
+  "model": "GeForce RTX 3080 VENTUS 3X PLUS 10G OC LHR",
+  "imagen": "https://media.solotodo.com/media/products/1551639_picture_1646315364.jpg",
+  "pc": {
+   "chip": "NVIDIA",
+   "vram_gb": 10,
+   "length_mm": 305,
+   "board_power_w": 320,
+   "recommended_psu_w": 750,
+   "pcie_gen": 4,
+   "perf": 72
+  },
+  "ofertas_al_generar": 1,
+  "precio_al_generar": 799900
+ },
+ {
+  "slot": "gpu",
+  "tipo": "gpu",
+  "solotodo_id": 280212,
+  "name": "MSI GeForce RTX 5050 8G VENTUS 2X OC",
+  "brand": "MSI",
+  "model": "GeForce RTX 5050 8G VENTUS 2X OC",
+  "imagen": "https://media.solotodo.com/media/products/2111616_picture_1753776652.png",
+  "pc": {
+   "chip": "NVIDIA",
+   "vram_gb": 8,
+   "length_mm": 197,
+   "board_power_w": 130,
+   "recommended_psu_w": 550,
+   "pcie_gen": 5,
+   "perf": 49
+  },
+  "ofertas_al_generar": 2,
+  "precio_al_generar": 449900
+ },
+ {
+  "slot": "gpu",
+  "tipo": "gpu",
+  "solotodo_id": 276358,
+  "name": "MSI GeForce RTX 5070 12G SHADOW 3X OC",
+  "brand": "MSI",
+  "model": "GeForce RTX 5070 12G SHADOW 3X OC",
+  "imagen": "https://media.solotodo.com/media/products/2087736_picture_1748002682.png",
+  "pc": {
+   "chip": "NVIDIA",
+   "vram_gb": 12,
+   "length_mm": 303,
+   "board_power_w": 250,
+   "recommended_psu_w": 650,
+   "pcie_gen": 5,
+   "perf": 94
+  },
+  "ofertas_al_generar": 4,
+  "precio_al_generar": 1044544
+ },
+ {
+  "slot": "gpu",
+  "tipo": "gpu",
+  "solotodo_id": 397351,
+  "name": "MSI GeForce RTX 5070 Ti 16G FRIEREN EDITION OC",
+  "brand": "MSI",
+  "model": "GeForce RTX 5070 Ti 16G FRIEREN EDITION OC",
+  "imagen": "https://media.solotodo.com/media/products/2786246_picture_1782833275.png",
+  "pc": {
+   "chip": "NVIDIA",
+   "vram_gb": 16,
+   "length_mm": 338,
+   "board_power_w": 300,
+   "recommended_psu_w": 700,
+   "pcie_gen": 5,
+   "perf": 111
+  },
+  "ofertas_al_generar": 5,
+  "precio_al_generar": 1478900
+ },
+ {
+  "slot": "gpu",
+  "tipo": "gpu",
+  "solotodo_id": 265691,
+  "name": "MSI GeForce RTX 5090 32G GAMING TRIO OC",
+  "brand": "MSI",
+  "model": "GeForce RTX 5090 32G GAMING TRIO OC",
+  "imagen": "https://media.solotodo.com/media/products/2017196_picture_1739290867.jpg",
+  "pc": {
+   "chip": "NVIDIA",
+   "vram_gb": 32,
+   "length_mm": 359,
+   "board_power_w": 575,
+   "recommended_psu_w": 1000,
+   "pcie_gen": 5,
+   "perf": 166
+  },
+  "ofertas_al_generar": 1,
+  "precio_al_generar": 6599500
+ },
+ {
+  "slot": "gpu",
+  "tipo": "gpu",
+  "solotodo_id": 238853,
+  "name": "Sparkle Arc A310 ECO",
+  "brand": "Sparkle",
+  "model": "Arc A310 ECO",
+  "imagen": "https://media.solotodo.com/media/products/1899184_picture_1711620361.webp",
+  "pc": {
+   "chip": "Intel",
+   "vram_gb": 4,
+   "length_mm": 156,
+   "board_power_w": 30,
+   "recommended_psu_w": 450,
+   "pcie_gen": 4,
+   "perf": 15
+  },
+  "ofertas_al_generar": 1,
+  "precio_al_generar": 156650
+ },
+ {
+  "slot": "gpu",
+  "tipo": "gpu",
+  "solotodo_id": 238842,
+  "name": "Sparkle Arc A580 ORC OC Edition",
+  "brand": "Sparkle",
+  "model": "Arc A580 ORC OC Edition",
+  "imagen": "https://media.solotodo.com/media/products/1899046_picture_1746479742.jpg",
+  "pc": {
+   "chip": "Intel",
+   "vram_gb": 8,
+   "length_mm": 222,
+   "board_power_w": 175,
+   "recommended_psu_w": 600,
+   "pcie_gen": 4,
+   "perf": 48
+  },
+  "ofertas_al_generar": 1,
+  "precio_al_generar": 269990
+ },
+ {
+  "slot": "gpu",
+  "tipo": "gpu",
+  "solotodo_id": 367896,
+  "name": "Sparkle Intel Arc A380 ELF",
+  "brand": "Sparkle",
+  "model": "Intel Arc A380 ELF",
+  "imagen": "https://media.solotodo.com/media/products/2619971_picture_1767428746.png",
+  "pc": {
+   "chip": "Intel",
+   "vram_gb": 6,
+   "length_mm": 153,
+   "board_power_w": 75,
+   "recommended_psu_w": 500,
+   "pcie_gen": 4,
+   "perf": 25
+  },
+  "ofertas_al_generar": 2,
+  "precio_al_generar": 179900
+ },
+ {
+  "slot": "gpu",
+  "tipo": "gpu",
+  "solotodo_id": 166288,
+  "name": "XFX SWFT 210 AMD Radeon RX 6650 XT",
+  "brand": "XFX",
+  "model": "SWFT 210 AMD Radeon RX 6650 XT",
+  "imagen": "https://media.solotodo.com/media/products/1696752_picture_1673410651.jpeg",
+  "pc": {
+   "chip": "AMD",
+   "vram_gb": 8,
+   "length_mm": 241,
+   "board_power_w": 180,
+   "recommended_psu_w": 600,
+   "pcie_gen": 4,
+   "perf": 45
+  },
+  "ofertas_al_generar": 1,
+  "precio_al_generar": 439900
+ },
+ {
+  "slot": "gpu",
+  "tipo": "gpu",
+  "solotodo_id": 131486,
+  "name": "Zotac GAMING GeForce RTX 3050 Twin Edge",
+  "brand": "Zotac",
+  "model": "GAMING GeForce RTX 3050 Twin Edge",
+  "imagen": "https://media.solotodo.com/media/products/1539857_picture_1644386707.jpg",
+  "pc": {
+   "chip": "NVIDIA",
+   "vram_gb": 8,
+   "length_mm": 224,
+   "board_power_w": 130,
+   "recommended_psu_w": 550,
+   "pcie_gen": 4,
+   "perf": 30
+  },
+  "ofertas_al_generar": 1,
+  "precio_al_generar": 274900
+ },
+ {
+  "slot": "gpu",
+  "tipo": "gpu",
+  "solotodo_id": 385663,
+  "name": "Zotac GAMING GeForce RTX 5060 Ti 8GB Twin Edge OC",
+  "brand": "Zotac",
+  "model": "GAMING GeForce RTX 5060 Ti 8GB Twin Edge OC",
+  "imagen": "https://media.solotodo.com/media/products/2723456_picture_1774946498.png",
+  "pc": {
+   "chip": "NVIDIA",
+   "vram_gb": 8,
+   "length_mm": 221,
+   "board_power_w": 180,
+   "recommended_psu_w": 600,
+   "pcie_gen": 5,
+   "perf": 70
+  },
+  "ofertas_al_generar": 6,
+  "precio_al_generar": 605900
+ },
+ {
+  "slot": "motherboard",
+  "tipo": "motherboard",
+  "solotodo_id": 367670,
+  "name": "ASRock B860 Steel Legend WiFi",
+  "brand": "ASRock",
+  "model": "B860 Steel Legend WiFi",
+  "imagen": "https://media.solotodo.com/media/products/2619025_picture_1767088672.png",
+  "pc": {
+   "socket": "LGA1851",
+   "chipset": "B860",
+   "form_factor": "ATX",
+   "memory_type": "DDR5",
+   "ram_slots": 4,
+   "max_ram_gb": 192,
+   "max_mem_mts": 6400,
+   "m2_slots": 4,
+   "sata_ports": 4,
+   "wifi": true,
+   "pcie_gen": 4
+  },
+  "ofertas_al_generar": 2,
+  "precio_al_generar": 243900
+ },
+ {
+  "slot": "motherboard",
+  "tipo": "motherboard",
+  "solotodo_id": 256272,
+  "name": "ASRock X870E Taichi Lite",
+  "brand": "ASRock",
+  "model": "X870E Taichi Lite",
+  "imagen": "https://media.solotodo.com/media/products/1969322_picture_1729149457.png",
+  "pc": {
+   "socket": "AM5",
+   "chipset": "X870E",
+   "form_factor": "E-ATX",
+   "memory_type": "DDR5",
+   "ram_slots": 4,
+   "max_ram_gb": 192,
+   "max_mem_mts": 6400,
+   "m2_slots": 4,
+   "sata_ports": 6,
+   "wifi": false,
+   "pcie_gen": 5
+  },
+  "ofertas_al_generar": 2,
+  "precio_al_generar": 503405
+ },
+ {
+  "slot": "motherboard",
+  "tipo": "motherboard",
+  "solotodo_id": 152171,
+  "name": "ASRock Z790M-ITX WiFi",
+  "brand": "ASRock",
+  "model": "Z790M-ITX WiFi",
+  "imagen": "https://media.solotodo.com/media/products/1649138_picture_1664542495.png",
+  "pc": {
+   "socket": "LGA1700",
+   "chipset": "Z790",
+   "form_factor": "ITX",
+   "memory_type": "DDR5",
+   "ram_slots": 2,
+   "max_ram_gb": 96,
+   "max_mem_mts": 6400,
+   "m2_slots": 2,
+   "sata_ports": 4,
+   "wifi": true,
+   "pcie_gen": 5
+  },
+  "ofertas_al_generar": 1,
+  "precio_al_generar": 379000
+ },
+ {
+  "slot": "motherboard",
+  "tipo": "motherboard",
+  "solotodo_id": 237936,
+  "name": "ASUS PRIME B760M-A",
+  "brand": "ASUS",
+  "model": "PRIME B760M-A",
+  "imagen": "https://media.solotodo.com/media/products/1895093_picture_1710629291.png",
+  "pc": {
+   "socket": "LGA1700",
+   "chipset": "B760",
+   "form_factor": "mATX",
+   "memory_type": "DDR5",
+   "ram_slots": 4,
+   "max_ram_gb": 192,
+   "max_mem_mts": 6400,
+   "m2_slots": 2,
+   "sata_ports": 4,
+   "wifi": false,
+   "pcie_gen": 4
+  },
+  "ofertas_al_generar": 14,
+  "precio_al_generar": 114990
+ },
+ {
+  "slot": "motherboard",
+  "tipo": "motherboard",
+  "solotodo_id": 163716,
+  "name": "ASUS PRIME B760M-A D4",
+  "brand": "ASUS",
+  "model": "PRIME B760M-A D4",
+  "imagen": "https://media.solotodo.com/media/products/1693413_picture_1672897469.png",
+  "pc": {
+   "socket": "LGA1700",
+   "chipset": "B760",
+   "form_factor": "mATX",
+   "memory_type": "DDR4",
+   "ram_slots": 4,
+   "max_ram_gb": 128,
+   "max_mem_mts": 4400,
+   "m2_slots": 2,
+   "sata_ports": 4,
+   "wifi": false,
+   "pcie_gen": 4
+  },
+  "ofertas_al_generar": 1,
+  "precio_al_generar": 122900
+ },
+ {
+  "slot": "motherboard",
+  "tipo": "motherboard",
+  "solotodo_id": 277891,
+  "name": "ASUS PRIME B860M-A WiFi",
+  "brand": "ASUS",
+  "model": "PRIME B860M-A WiFi",
+  "imagen": "https://media.solotodo.com/media/products/2095556_picture_1750073338.png",
+  "pc": {
+   "socket": "LGA1851",
+   "chipset": "B860",
+   "form_factor": "mATX",
+   "memory_type": "DDR5",
+   "ram_slots": 4,
+   "max_ram_gb": 192,
+   "max_mem_mts": 6400,
+   "m2_slots": 2,
+   "sata_ports": 4,
+   "wifi": true,
+   "pcie_gen": 4
+  },
+  "ofertas_al_generar": 4,
+  "precio_al_generar": 171990
+ },
+ {
+  "slot": "motherboard",
+  "tipo": "motherboard",
+  "solotodo_id": 238237,
+  "name": "ASUS PRIME H610M-K",
+  "brand": "ASUS",
+  "model": "PRIME H610M-K",
+  "imagen": "https://media.solotodo.com/media/products/1895869_picture_1710911377.jpg",
+  "pc": {
+   "socket": "LGA1700",
+   "chipset": "H610",
+   "form_factor": "mATX",
+   "memory_type": "DDR5",
+   "ram_slots": 2,
+   "max_ram_gb": 96,
+   "max_mem_mts": 6400,
+   "m2_slots": 1,
+   "sata_ports": 4,
+   "wifi": false,
+   "pcie_gen": 4
+  },
+  "ofertas_al_generar": 14,
+  "precio_al_generar": 54990
+ },
+ {
+  "slot": "motherboard",
+  "tipo": "motherboard",
+  "solotodo_id": 152175,
+  "name": "ASUS PRIME Z790-P WIFI",
+  "brand": "ASUS",
+  "model": "PRIME Z790-P WIFI",
+  "imagen": "https://media.solotodo.com/media/products/1649165_picture_1664543305.png",
+  "pc": {
+   "socket": "LGA1700",
+   "chipset": "Z790",
+   "form_factor": "ATX",
+   "memory_type": "DDR5",
+   "ram_slots": 4,
+   "max_ram_gb": 192,
+   "max_mem_mts": 6400,
+   "m2_slots": 3,
+   "sata_ports": 4,
+   "wifi": true,
+   "pcie_gen": 5
+  },
+  "ofertas_al_generar": 1,
+  "precio_al_generar": 254990
+ },
+ {
+  "slot": "motherboard",
+  "tipo": "motherboard",
+  "solotodo_id": 142724,
+  "name": "ASUS ROG STRIX B550-F GAMING WIFI II",
+  "brand": "ASUS",
+  "model": "ROG STRIX B550-F GAMING WIFI II",
+  "imagen": "https://media.solotodo.com/media/products/1607008_picture_1654003140.jpg",
+  "pc": {
+   "socket": "AM4",
+   "chipset": "B550",
+   "form_factor": "ATX",
+   "memory_type": "DDR4",
+   "ram_slots": 4,
+   "max_ram_gb": 128,
+   "max_mem_mts": 4400,
+   "m2_slots": 2,
+   "sata_ports": 6,
+   "wifi": true,
+   "pcie_gen": 4
+  },
+  "ofertas_al_generar": 1,
+  "precio_al_generar": 199900
+ },
+ {
+  "slot": "motherboard",
+  "tipo": "motherboard",
+  "solotodo_id": 154675,
+  "name": "ASUS ROG STRIX B650-A GAMING WIFI",
+  "brand": "ASUS",
+  "model": "ROG STRIX B650-A GAMING WIFI",
+  "imagen": "https://media.solotodo.com/media/products/1662746_picture_1667825250.png",
+  "pc": {
+   "socket": "AM5",
+   "chipset": "B650",
+   "form_factor": "ATX",
+   "memory_type": "DDR5",
+   "ram_slots": 4,
+   "max_ram_gb": 192,
+   "max_mem_mts": 6400,
+   "m2_slots": 3,
+   "sata_ports": 4,
+   "wifi": true,
+   "pcie_gen": 4
+  },
+  "ofertas_al_generar": 2,
+  "precio_al_generar": 219978
+ },
+ {
+  "slot": "motherboard",
+  "tipo": "motherboard",
+  "solotodo_id": 219991,
+  "name": "ASUS ROG STRIX B760-A GAMING WIFI",
+  "brand": "ASUS",
+  "model": "ROG STRIX B760-A GAMING WIFI",
+  "imagen": "https://media.solotodo.com/media/products/1819868_picture_1695724723.jpg",
+  "pc": {
+   "socket": "LGA1700",
+   "chipset": "B760",
+   "form_factor": "ATX",
+   "memory_type": "DDR5",
+   "ram_slots": 4,
+   "max_ram_gb": 192,
+   "max_mem_mts": 6400,
+   "m2_slots": 3,
+   "sata_ports": 4,
+   "wifi": true,
+   "pcie_gen": 4
+  },
+  "ofertas_al_generar": 1,
+  "precio_al_generar": 289900
+ },
+ {
+  "slot": "motherboard",
+  "tipo": "motherboard",
+  "solotodo_id": 266541,
+  "name": "ASUS ROG STRIX B860-F GAMING WIFI",
+  "brand": "ASUS",
+  "model": "ROG STRIX B860-F GAMING WIFI",
+  "imagen": "https://media.solotodo.com/media/products/2020362_picture_1740128424.png",
+  "pc": {
+   "socket": "LGA1851",
+   "chipset": "B860",
+   "form_factor": "ATX",
+   "memory_type": "DDR5",
+   "ram_slots": 4,
+   "max_ram_gb": 192,
+   "max_mem_mts": 6400,
+   "m2_slots": 4,
+   "sata_ports": 4,
+   "wifi": true,
+   "pcie_gen": 4
+  },
+  "ofertas_al_generar": 4,
+  "precio_al_generar": 279000
+ },
+ {
+  "slot": "motherboard",
+  "tipo": "motherboard",
+  "solotodo_id": 393821,
+  "name": "ASUS ROG STRIX X870-I GAMING WIFI",
+  "brand": "ASUS",
+  "model": "ROG STRIX X870-I GAMING WIFI",
+  "imagen": "https://media.solotodo.com/media/products/2767508_picture_1779898357.png",
+  "pc": {
+   "socket": "AM5",
+   "chipset": "X870",
+   "form_factor": "ITX",
+   "memory_type": "DDR5",
+   "ram_slots": 2,
+   "max_ram_gb": 96,
+   "max_mem_mts": 6400,
+   "m2_slots": 2,
+   "sata_ports": 2,
+   "wifi": true,
+   "pcie_gen": 5
+  },
+  "ofertas_al_generar": 3,
+  "precio_al_generar": 567990
+ },
+ {
+  "slot": "motherboard",
+  "tipo": "motherboard",
+  "solotodo_id": 91913,
+  "name": "Gigabyte B550 Gaming X V2",
+  "brand": "Gigabyte",
+  "model": "B550 Gaming X V2",
+  "imagen": "https://media.solotodo.com/media/products/1276807_picture_1606340558.jpg",
+  "pc": {
+   "socket": "AM4",
+   "chipset": "B550",
+   "form_factor": "ATX",
+   "memory_type": "DDR4",
+   "ram_slots": 4,
+   "max_ram_gb": 128,
+   "max_mem_mts": 4400,
+   "m2_slots": 2,
+   "sata_ports": 4,
+   "wifi": false,
+   "pcie_gen": 4
+  },
+  "ofertas_al_generar": 2,
+  "precio_al_generar": 141989
+ },
+ {
+  "slot": "motherboard",
+  "tipo": "motherboard",
+  "solotodo_id": 153423,
+  "name": "Gigabyte B650 AORUS ELITE AX",
+  "brand": "Gigabyte",
+  "model": "B650 AORUS ELITE AX",
+  "imagen": "https://media.solotodo.com/media/products/1655550_picture_1666367090.webp",
+  "pc": {
+   "socket": "AM5",
+   "chipset": "B650",
+   "form_factor": "ATX",
+   "memory_type": "DDR5",
+   "ram_slots": 4,
+   "max_ram_gb": 192,
+   "max_mem_mts": 6400,
+   "m2_slots": 3,
+   "sata_ports": 4,
+   "wifi": true,
+   "pcie_gen": 4
+  },
+  "ofertas_al_generar": 3,
+  "precio_al_generar": 223890
+ },
+ {
+  "slot": "motherboard",
+  "tipo": "motherboard",
+  "solotodo_id": 278506,
+  "name": "Gigabyte X870I AORUS PRO ICE",
+  "brand": "Gigabyte",
+  "model": "X870I AORUS PRO ICE",
+  "imagen": "https://media.solotodo.com/media/products/2100313_picture_1751025000.png",
+  "pc": {
+   "socket": "AM5",
+   "chipset": "X870E",
+   "form_factor": "ITX",
+   "memory_type": "DDR5",
+   "ram_slots": 2,
+   "max_ram_gb": 96,
+   "max_mem_mts": 6400,
+   "m2_slots": 2,
+   "sata_ports": 2,
+   "wifi": false,
+   "pcie_gen": 5
+  },
+  "ofertas_al_generar": 4,
+  "precio_al_generar": 349990
+ },
+ {
+  "slot": "motherboard",
+  "tipo": "motherboard",
+  "solotodo_id": 416935,
+  "name": "MSI B550M GAMING PLUS WIFI6E",
+  "brand": "MSI",
+  "model": "B550M GAMING PLUS WIFI6E",
+  "imagen": "https://media.solotodo.com/media/products/2851439_picture_1792758283.png",
+  "pc": {
+   "socket": "AM4",
+   "chipset": "B550",
+   "form_factor": "mATX",
+   "memory_type": "DDR4",
+   "ram_slots": 4,
+   "max_ram_gb": 128,
+   "max_mem_mts": 4400,
+   "m2_slots": 2,
+   "sata_ports": 4,
+   "wifi": true,
+   "pcie_gen": 4
+  },
+  "ofertas_al_generar": 6,
+  "precio_al_generar": 115890
+ },
+ {
+  "slot": "motherboard",
+  "tipo": "motherboard",
+  "solotodo_id": 83694,
+  "name": "MSI B550M PRO-VDH WIFI",
+  "brand": "MSI",
+  "model": "B550M PRO-VDH WIFI",
+  "imagen": "https://media.solotodo.com/media/products/1200481_picture_1595054105.png",
+  "pc": {
+   "socket": "AM4",
+   "chipset": "B550",
+   "form_factor": "mATX",
+   "memory_type": "DDR4",
+   "ram_slots": 4,
+   "max_ram_gb": 128,
+   "max_mem_mts": 4400,
+   "m2_slots": 2,
+   "sata_ports": 4,
+   "wifi": true,
+   "pcie_gen": 4
+  },
+  "ofertas_al_generar": 3,
+  "precio_al_generar": 112500
+ },
+ {
+  "slot": "motherboard",
+  "tipo": "motherboard",
+  "solotodo_id": 256062,
+  "name": "MSI B650M GAMING WIFI",
+  "brand": "MSI",
+  "model": "B650M GAMING WIFI",
+  "imagen": "https://media.solotodo.com/media/products/1967866_picture_1728620664.jpg",
+  "pc": {
+   "socket": "AM5",
+   "chipset": "B650",
+   "form_factor": "mATX",
+   "memory_type": "DDR5",
+   "ram_slots": 2,
+   "max_ram_gb": 96,
+   "max_mem_mts": 6400,
+   "m2_slots": 2,
+   "sata_ports": 4,
+   "wifi": true,
+   "pcie_gen": 4
+  },
+  "ofertas_al_generar": 5,
+  "precio_al_generar": 134890
+ },
+ {
+  "slot": "motherboard",
+  "tipo": "motherboard",
+  "solotodo_id": 356069,
+  "name": "MSI B840M GAMING WIFI6E",
+  "brand": "MSI",
+  "model": "B840M GAMING WIFI6E",
+  "imagen": "https://media.solotodo.com/media/products/2554625_picture_1759232674.png",
+  "pc": {
+   "socket": "AM5",
+   "chipset": "B840",
+   "form_factor": "mATX",
+   "memory_type": "DDR5",
+   "ram_slots": 2,
+   "max_ram_gb": 96,
+   "max_mem_mts": 6400,
+   "m2_slots": 2,
+   "sata_ports": 4,
+   "wifi": true,
+   "pcie_gen": 3
+  },
+  "ofertas_al_generar": 12,
+  "precio_al_generar": 127990
+ },
+ {
+  "slot": "motherboard",
+  "tipo": "motherboard",
+  "solotodo_id": 265734,
+  "name": "MSI B860M GAMING PLUS WIFI",
+  "brand": "MSI",
+  "model": "B860M GAMING PLUS WIFI",
+  "imagen": "https://media.solotodo.com/media/products/2017495_picture_1739353832.jpg",
+  "pc": {
+   "socket": "LGA1851",
+   "chipset": "B860",
+   "form_factor": "mATX",
+   "memory_type": "DDR5",
+   "ram_slots": 4,
+   "max_ram_gb": 192,
+   "max_mem_mts": 6400,
+   "m2_slots": 3,
+   "sata_ports": 4,
+   "wifi": true,
+   "pcie_gen": 4
+  },
+  "ofertas_al_generar": 7,
+  "precio_al_generar": 179900
+ },
+ {
+  "slot": "motherboard",
+  "tipo": "motherboard",
+  "solotodo_id": 242057,
+  "name": "MSI MEG Z790 ACE",
+  "brand": "MSI",
+  "model": "MEG Z790 ACE",
+  "imagen": "https://media.solotodo.com/media/products/1908403_picture_1714406065.png",
+  "pc": {
+   "socket": "LGA1700",
+   "chipset": "Z790",
+   "form_factor": "E-ATX",
+   "memory_type": "DDR5",
+   "ram_slots": 4,
+   "max_ram_gb": 192,
+   "max_mem_mts": 6400,
+   "m2_slots": 5,
+   "sata_ports": 6,
+   "wifi": false,
+   "pcie_gen": 5
+  },
+  "ofertas_al_generar": 1,
+  "precio_al_generar": 529900
+ },
+ {
+  "slot": "motherboard",
+  "tipo": "motherboard",
+  "solotodo_id": 223962,
+  "name": "MSI PRO B760M-P DDR4",
+  "brand": "MSI",
+  "model": "PRO B760M-P DDR4",
+  "imagen": "https://media.solotodo.com/media/products/1839417_picture_1699504306.jpg",
+  "pc": {
+   "socket": "LGA1700",
+   "chipset": "B760",
+   "form_factor": "mATX",
+   "memory_type": "DDR4",
+   "ram_slots": 4,
+   "max_ram_gb": 128,
+   "max_mem_mts": 4400,
+   "m2_slots": 2,
+   "sata_ports": 4,
+   "wifi": false,
+   "pcie_gen": 4
+  },
+  "ofertas_al_generar": 5,
+  "precio_al_generar": 108900
+ },
+ {
+  "slot": "motherboard",
+  "tipo": "motherboard",
+  "solotodo_id": 180986,
+  "name": "MSI PRO Z790-P WIFI DDR4",
+  "brand": "MSI",
+  "model": "PRO Z790-P WIFI DDR4",
+  "imagen": "https://media.solotodo.com/media/products/1723439_picture_1676630300.png",
+  "pc": {
+   "socket": "LGA1700",
+   "chipset": "Z790",
+   "form_factor": "ATX",
+   "memory_type": "DDR4",
+   "ram_slots": 4,
+   "max_ram_gb": 128,
+   "max_mem_mts": 4400,
+   "m2_slots": 4,
+   "sata_ports": 6,
+   "wifi": true,
+   "pcie_gen": 5
+  },
+  "ofertas_al_generar": 1,
+  "precio_al_generar": 259990
+ },
+ {
+  "slot": "psu",
+  "tipo": "psu",
+  "solotodo_id": 376304,
+  "name": "ASUS ROG STRIX 1200W Platinum (90YE00W0-BTAA00/90YE00W0-B0AA00) (1200 W)",
+  "brand": "ASUS",
+  "model": "ROG STRIX 1200W Platinum (90YE00W0-BTAA00/90YE00W0-B0AA00) (1200 W)",
+  "imagen": "https://media.solotodo.com/media/products/2671829_picture_1769168294.jpg",
+  "pc": {
+   "watts": 1200,
+   "efficiency": "80 Plus Platinum",
+   "modular": true,
+   "form_factor": "ATX"
+  },
+  "ofertas_al_generar": 13,
+  "precio_al_generar": 225900
+ },
+ {
+  "slot": "psu",
+  "tipo": "psu",
+  "solotodo_id": 398678,
+  "name": "ASUS TUF-GAMING-850G-EVO (90YE00SA-B0AA00) (850 W)",
+  "brand": "ASUS",
+  "model": "TUF-GAMING-850G-EVO (90YE00SA-B0AA00) (850 W)",
+  "imagen": "https://media.solotodo.com/media/products/2792338_picture_1783793218.jpg",
+  "pc": {
+   "watts": 850,
+   "efficiency": "80 Plus Gold",
+   "modular": true,
+   "form_factor": "ATX"
+  },
+  "ofertas_al_generar": 15,
+  "precio_al_generar": 99990
+ },
+ {
+  "slot": "psu",
+  "tipo": "psu",
+  "solotodo_id": 419165,
+  "name": "Corsair SF Series SF750 (750 W)",
+  "brand": "Corsair",
+  "model": "SF Series SF750 (750 W)",
+  "imagen": "https://media.solotodo.com/media/products/2372054.jpg",
+  "pc": {
+   "watts": 750,
+   "efficiency": "80 Plus Platinum",
+   "modular": true,
+   "form_factor": "SFX"
+  },
+  "ofertas_al_generar": 1,
+  "precio_al_generar": 199990
+ },
+ {
+  "slot": "psu",
+  "tipo": "psu",
+  "solotodo_id": 378196,
+  "name": "DeepCool Gamer Storm PF500X (PF500X-HD) (500 W)",
+  "brand": "DeepCool",
+  "model": "Gamer Storm PF500X (PF500X-HD) (500 W)",
+  "imagen": "https://media.solotodo.com/media/products/2684483_picture_1769524191.jpg",
+  "pc": {
+   "watts": 500,
+   "efficiency": "80 Plus Bronze",
+   "modular": false,
+   "form_factor": "ATX"
+  },
+  "ofertas_al_generar": 2,
+  "precio_al_generar": 34900
+ },
+ {
+  "slot": "psu",
+  "tipo": "psu",
+  "solotodo_id": 378180,
+  "name": "DeepCool Gamer Storm PF700X (PF700X-HD) (700 W)",
+  "brand": "DeepCool",
+  "model": "Gamer Storm PF700X (PF700X-HD) (700 W)",
+  "imagen": "https://media.solotodo.com/media/products/2183096.jpg",
+  "pc": {
+   "watts": 700,
+   "efficiency": "80 Plus Bronze",
+   "modular": false,
+   "form_factor": "ATX"
+  },
+  "ofertas_al_generar": 2,
+  "precio_al_generar": 45500
+ },
+ {
+  "slot": "psu",
+  "tipo": "psu",
+  "solotodo_id": 15384,
+  "name": "EVGA 500 W1 (100-W1-0500-KR) (500 W)",
+  "brand": "EVGA",
+  "model": "500 W1 (100-W1-0500-KR) (500 W)",
+  "imagen": "https://media.solotodo.com/media/products/100-W1-0500-KR_XL_1.jpg",
+  "pc": {
+   "watts": 500,
+   "efficiency": "80 Plus",
+   "modular": false,
+   "form_factor": "ATX"
+  },
+  "ofertas_al_generar": 1,
+  "precio_al_generar": 50900
+ },
+ {
+  "slot": "psu",
+  "tipo": "psu",
+  "solotodo_id": 262652,
+  "name": "FSP Group Twins Pro 900W (FSP900-50REB) (900 W)",
+  "brand": "FSP Group",
+  "model": "Twins Pro 900W (FSP900-50REB) (900 W)",
+  "imagen": "https://media.solotodo.com/media/products/2003328_picture_1734370948.jpg",
+  "pc": {
+   "watts": 900,
+   "efficiency": "80 Plus Gold",
+   "modular": false,
+   "form_factor": "ATX"
+  },
+  "ofertas_al_generar": 1,
+  "precio_al_generar": 629000
+ },
+ {
+  "slot": "psu",
+  "tipo": "psu",
+  "solotodo_id": 279631,
+  "name": "Gamemax GS-650G (650 W)",
+  "brand": "Gamemax",
+  "model": "GS-650G (650 W)",
+  "imagen": "https://media.solotodo.com/media/products/2107593_picture_1768305062.png",
+  "pc": {
+   "watts": 650,
+   "efficiency": "80 Plus Gold",
+   "modular": true,
+   "form_factor": "SFX"
+  },
+  "ofertas_al_generar": 3,
+  "precio_al_generar": 70900
+ },
+ {
+  "slot": "psu",
+  "tipo": "psu",
+  "solotodo_id": 368943,
+  "name": "Gamemax GS-650G - White (650 W)",
+  "brand": "Gamemax",
+  "model": "GS-650G - White (650 W)",
+  "imagen": "https://media.solotodo.com/media/products/2623718_picture_1768304743.png",
+  "pc": {
+   "watts": 650,
+   "efficiency": "80 Plus Gold",
+   "modular": true,
+   "form_factor": "SFX"
+  },
+  "ofertas_al_generar": 3,
+  "precio_al_generar": 101500
+ },
+ {
+  "slot": "psu",
+  "tipo": "psu",
+  "solotodo_id": 384143,
+  "name": "Gamemax GS-750G (750 W)",
+  "brand": "Gamemax",
+  "model": "GS-750G (750 W)",
+  "imagen": "https://media.solotodo.com/media/products/2713664_picture_1773166046.webp",
+  "pc": {
+   "watts": 750,
+   "efficiency": "80 Plus Gold",
+   "modular": true,
+   "form_factor": "SFX"
+  },
+  "ofertas_al_generar": 3,
+  "precio_al_generar": 75900
+ },
+ {
+  "slot": "psu",
+  "tipo": "psu",
+  "solotodo_id": 85282,
+  "name": "Gamemax VP-450 (450 W)",
+  "brand": "Gamemax",
+  "model": "VP-450 (450 W)",
+  "imagen": "https://media.solotodo.com/media/products/1218489_picture_1598030777.png",
+  "pc": {
+   "watts": 450,
+   "efficiency": "Sin certificación",
+   "modular": false,
+   "form_factor": "ATX"
+  },
+  "ofertas_al_generar": 1,
+  "precio_al_generar": 32900
+ },
+ {
+  "slot": "psu",
+  "tipo": "psu",
+  "solotodo_id": 393680,
+  "name": "MSI MAG A1000GL PCIE5 WHITE (1000 W)",
+  "brand": "MSI",
+  "model": "MAG A1000GL PCIE5 WHITE (1000 W)",
+  "imagen": "https://media.solotodo.com/media/products/2767170_picture_1779888562.webp",
+  "pc": {
+   "watts": 1000,
+   "efficiency": "80 Plus Gold",
+   "modular": true,
+   "form_factor": "ATX"
+  },
+  "ofertas_al_generar": 2,
+  "precio_al_generar": 119900
+ },
+ {
+  "slot": "psu",
+  "tipo": "psu",
+  "solotodo_id": 366646,
+  "name": "MSI MAG A1000GLS PCIE5 (1000 W)",
+  "brand": "MSI",
+  "model": "MAG A1000GLS PCIE5 (1000 W)",
+  "imagen": "https://media.solotodo.com/media/products/2611343_picture_1766138063.png",
+  "pc": {
+   "watts": 1000,
+   "efficiency": "80 Plus Gold",
+   "modular": true,
+   "form_factor": "ATX"
+  },
+  "ofertas_al_generar": 21,
+  "precio_al_generar": 109650
+ },
+ {
+  "slot": "psu",
+  "tipo": "psu",
+  "solotodo_id": 403641,
+  "name": "MSI MAG A1200PLS PCIE5 (1200 W)",
+  "brand": "MSI",
+  "model": "MAG A1200PLS PCIE5 (1200 W)",
+  "imagen": "https://media.solotodo.com/media/products/2314302",
+  "pc": {
+   "watts": 1200,
+   "efficiency": "80 Plus Platinum",
+   "modular": true,
+   "form_factor": "ATX"
+  },
+  "ofertas_al_generar": 4,
+  "precio_al_generar": 187990
+ },
+ {
+  "slot": "psu",
+  "tipo": "psu",
+  "solotodo_id": 205987,
+  "name": "MSI MAG A650BN (650 W)",
+  "brand": "MSI",
+  "model": "MAG A650BN (650 W)",
+  "imagen": "https://media.solotodo.com/media/products/1761149_picture_1684049232.png",
+  "pc": {
+   "watts": 650,
+   "efficiency": "80 Plus Bronze",
+   "modular": false,
+   "form_factor": "ATX"
+  },
+  "ofertas_al_generar": 20,
+  "precio_al_generar": 43900
+ },
+ {
+  "slot": "psu",
+  "tipo": "psu",
+  "solotodo_id": 392635,
+  "name": "MSI MAG A750GLS PCIE5 (750 W)",
+  "brand": "MSI",
+  "model": "MAG A750GLS PCIE5 (750 W)",
+  "imagen": "https://media.solotodo.com/media/products/2759838_picture_1778776545.webp",
+  "pc": {
+   "watts": 750,
+   "efficiency": "80 Plus Gold",
+   "modular": true,
+   "form_factor": "ATX"
+  },
+  "ofertas_al_generar": 4,
+  "precio_al_generar": 85990
+ },
+ {
+  "slot": "psu",
+  "tipo": "psu",
+  "solotodo_id": 279873,
+  "name": "XPG PROBE PROBE700B-BKCEU / PROBE700B-BKCAR / PROBE700B-BKCCL (700 W)",
+  "brand": "XPG",
+  "model": "PROBE PROBE700B-BKCEU / PROBE700B-BKCAR / PROBE700B-BKCCL (700 W)",
+  "imagen": "https://media.solotodo.com/media/products/2109195_picture_1753283422.png",
+  "pc": {
+   "watts": 700,
+   "efficiency": "80 Plus Bronze",
+   "modular": false,
+   "form_factor": "ATX"
+  },
+  "ofertas_al_generar": 10,
+  "precio_al_generar": 42850
+ },
+ {
+  "slot": "psu",
+  "tipo": "psu",
+  "solotodo_id": 228694,
+  "name": "Xigmatek Fury GD 1100 (EN40535) (1100 W)",
+  "brand": "Xigmatek",
+  "model": "Fury GD 1100 (EN40535) (1100 W)",
+  "imagen": "https://media.solotodo.com/media/products/1859146_picture_1704170610.png",
+  "pc": {
+   "watts": 1100,
+   "efficiency": "80 Plus Gold",
+   "modular": true,
+   "form_factor": "ATX"
+  },
+  "ofertas_al_generar": 1,
+  "precio_al_generar": 219900
+ },
+ {
+  "slot": "psu",
+  "tipo": "psu",
+  "solotodo_id": 358068,
+  "name": "be quiet! System Power 11 U 650W (BP011/BP011U2) (650 W)",
+  "brand": "be quiet!",
+  "model": "System Power 11 U 650W (BP011/BP011U2) (650 W)",
+  "imagen": "https://media.solotodo.com/media/products/2567633_picture_1759863605.jpg",
+  "pc": {
+   "watts": 650,
+   "efficiency": "80 Plus Bronze",
+   "modular": false,
+   "form_factor": "ATX"
+  },
+  "ofertas_al_generar": 1,
+  "precio_al_generar": 41990
+ },
+ {
+  "slot": "ram",
+  "tipo": "ram",
+  "solotodo_id": 135966,
+  "name": "A-DATA AD4U320032G22-BGN (1 x 32GB | DIMM DDR4-3200)",
+  "brand": "A-DATA",
+  "model": "AD4U320032G22-BGN (1 x 32GB | DIMM DDR4-3200)",
+  "imagen": "https://media.solotodo.com/media/products/1298648_picture_1610218344.jpg",
+  "pc": {
+   "memory_type": "DDR4",
+   "capacity_gb": 32,
+   "modules": 1,
+   "speed_mts": 3200,
+   "cas": 22
+  },
+  "ofertas_al_generar": 1,
+  "precio_al_generar": 269900
+ },
+ {
+  "slot": "ram",
+  "tipo": "ram",
+  "solotodo_id": 266857,
+  "name": "A-DATA XPG Lancer Blade AX5U5600C468G-SLABBK (1 x 8 GB | DIMM DDR5-5600)",
+  "brand": "A-DATA",
+  "model": "XPG Lancer Blade AX5U5600C468G-SLABBK (1 x 8 GB | DIMM DDR5-5600)",
+  "imagen": "https://media.solotodo.com/media/products/2021872_picture_1740716984.png",
+  "pc": {
+   "memory_type": "DDR5",
+   "capacity_gb": 8,
+   "modules": 1,
+   "speed_mts": 5600,
+   "cas": 46
+  },
+  "ofertas_al_generar": 5,
+  "precio_al_generar": 144990
+ },
+ {
+  "slot": "ram",
+  "tipo": "ram",
+  "solotodo_id": 256061,
+  "name": "A-DATA XPG Lancer Blade RGB AX5U6000C4816G-SLABRBK (1 x 16 GB | DIMM DDR5-6000)",
+  "brand": "A-DATA",
+  "model": "XPG Lancer Blade RGB AX5U6000C4816G-SLABRBK (1 x 16 GB | DIMM DDR5-6000)",
+  "imagen": "https://media.solotodo.com/media/products/1967861_picture_1728620606.webp",
+  "pc": {
+   "memory_type": "DDR5",
+   "capacity_gb": 16,
+   "modules": 1,
+   "speed_mts": 6000,
+   "cas": 48
+  },
+  "ofertas_al_generar": 14,
+  "precio_al_generar": 284905
+ },
+ {
+  "slot": "ram",
+  "tipo": "ram",
+  "solotodo_id": 213784,
+  "name": "A-DATA XPG Spectrix D35G AX4U320016G16A-SBKD35G (1 x 16 GB | DIMM DDR4-3200)",
+  "brand": "A-DATA",
+  "model": "XPG Spectrix D35G AX4U320016G16A-SBKD35G (1 x 16 GB | DIMM DDR4-3200)",
+  "imagen": "https://media.solotodo.com/media/products/1770397_picture_1686720694.jpg",
+  "pc": {
+   "memory_type": "DDR4",
+   "capacity_gb": 16,
+   "modules": 1,
+   "speed_mts": 3200,
+   "cas": 16
+  },
+  "ofertas_al_generar": 9,
+  "precio_al_generar": 149490
+ },
+ {
+  "slot": "ram",
+  "tipo": "ram",
+  "solotodo_id": 220508,
+  "name": "Corsair Vengeance CMK16GX5M2B5200C40 (2 x 8 GB | DIMM DDR5-5200)",
+  "brand": "Corsair",
+  "model": "Vengeance CMK16GX5M2B5200C40 (2 x 8 GB | DIMM DDR5-5200)",
+  "imagen": "https://media.solotodo.com/media/products/1823214_picture_1696090854.jpg",
+  "pc": {
+   "memory_type": "DDR5",
+   "capacity_gb": 16,
+   "modules": 2,
+   "speed_mts": 5200,
+   "cas": 40
+  },
+  "ofertas_al_generar": 1,
+  "precio_al_generar": 286900
+ },
+ {
+  "slot": "ram",
+  "tipo": "ram",
+  "solotodo_id": 422963,
+  "name": "Corsair Vengeance CMK64GX5M2D6000Z40 (2 x 32 GB | DIMM DDR5-6000)",
+  "brand": "Corsair",
+  "model": "Vengeance CMK64GX5M2D6000Z40 (2 x 32 GB | DIMM DDR5-6000)",
+  "imagen": "https://media.solotodo.com/media/products/2365543.jpg",
+  "pc": {
+   "memory_type": "DDR5",
+   "capacity_gb": 64,
+   "modules": 2,
+   "speed_mts": 6000,
+   "cas": 40
+  },
+  "ofertas_al_generar": 1,
+  "precio_al_generar": 1399990
+ },
+ {
+  "slot": "ram",
+  "tipo": "ram",
+  "solotodo_id": 368563,
+  "name": "Corsair Vengeance CMK8GX5M1B5200C40 (1 x 8 GB | DIMM DDR5-5200)",
+  "brand": "Corsair",
+  "model": "Vengeance CMK8GX5M1B5200C40 (1 x 8 GB | DIMM DDR5-5200)",
+  "imagen": "https://media.solotodo.com/media/products/2621838_picture_1786034257.jpg",
+  "pc": {
+   "memory_type": "DDR5",
+   "capacity_gb": 8,
+   "modules": 1,
+   "speed_mts": 5200,
+   "cas": 40
+  },
+  "ofertas_al_generar": 2,
+  "precio_al_generar": 139990
+ },
+ {
+  "slot": "ram",
+  "tipo": "ram",
+  "solotodo_id": 225488,
+  "name": "Corsair Vengeance RGB CMH32GX5M2B5600Z40 (2 x 16 GB | DIMM DDR5-5600)",
+  "brand": "Corsair",
+  "model": "Vengeance RGB CMH32GX5M2B5600Z40 (2 x 16 GB | DIMM DDR5-5600)",
+  "imagen": "https://media.solotodo.com/media/products/1647680_picture_1664436667.jpg",
+  "pc": {
+   "memory_type": "DDR5",
+   "capacity_gb": 32,
+   "modules": 2,
+   "speed_mts": 5600,
+   "cas": 40
+  },
+  "ofertas_al_generar": 2,
+  "precio_al_generar": 637990
+ },
+ {
+  "slot": "ram",
+  "tipo": "ram",
+  "solotodo_id": 121655,
+  "name": "Corsair Vengeance RGB Pro CMW32GX4M2E3200C16-TUF (2 x 16GB | DIMM DDR4-3200)",
+  "brand": "Corsair",
+  "model": "Vengeance RGB Pro CMW32GX4M2E3200C16-TUF (2 x 16GB | DIMM DDR4-3200)",
+  "imagen": "https://media.solotodo.com/media/products/1452843_picture_1630935505.jpg",
+  "pc": {
+   "memory_type": "DDR4",
+   "capacity_gb": 32,
+   "modules": 2,
+   "speed_mts": 3200,
+   "cas": 16
+  },
+  "ofertas_al_generar": 1,
+  "precio_al_generar": 369900
+ },
+ {
+  "slot": "ram",
+  "tipo": "ram",
+  "solotodo_id": 120644,
+  "name": "Corsair Vengeance RGB Pro SL CMH32GX4M2E3200C16W (2 x 16GB | DIMM DDR4-3200)",
+  "brand": "Corsair",
+  "model": "Vengeance RGB Pro SL CMH32GX4M2E3200C16W (2 x 16GB | DIMM DDR4-3200)",
+  "imagen": "https://media.solotodo.com/media/products/1461074_picture_1632171641.jpg",
+  "pc": {
+   "memory_type": "DDR4",
+   "capacity_gb": 32,
+   "modules": 2,
+   "speed_mts": 3200,
+   "cas": 16
+  },
+  "ofertas_al_generar": 1,
+  "precio_al_generar": 339872
+ },
+ {
+  "slot": "ram",
+  "tipo": "ram",
+  "solotodo_id": 422960,
+  "name": "Crucial Ballistix Sport AT BLS4K8G4D32AESTK (4 x 8 GB | DIMM DDR4-3200)",
+  "brand": "Crucial",
+  "model": "Ballistix Sport AT BLS4K8G4D32AESTK (4 x 8 GB | DIMM DDR4-3200)",
+  "imagen": "https://media.solotodo.com/media/products/2365597.jpg",
+  "pc": {
+   "memory_type": "DDR4",
+   "capacity_gb": 32,
+   "modules": 4,
+   "speed_mts": 3200,
+   "cas": 16
+  },
+  "ofertas_al_generar": 1,
+  "precio_al_generar": 259990
+ },
+ {
+  "slot": "ram",
+  "tipo": "ram",
+  "solotodo_id": 413013,
+  "name": "EsGaming ESG32008S2 (1 x 8 GB | DIMM DDR4-3200)",
+  "brand": "EsGaming",
+  "model": "ESG32008S2 (1 x 8 GB | DIMM DDR4-3200)",
+  "imagen": "https://media.solotodo.com/media/products/2844095_picture_1791554159.jpg",
+  "pc": {
+   "memory_type": "DDR4",
+   "capacity_gb": 8,
+   "modules": 1,
+   "speed_mts": 3200,
+   "cas": 16
+  },
+  "ofertas_al_generar": 4,
+  "precio_al_generar": 63990
+ },
+ {
+  "slot": "ram",
+  "tipo": "ram",
+  "solotodo_id": 54485,
+  "name": "G.Skill TridentZ Royal F4-3200C16D-16GTRS (2 x 8GB | DIMM DDR4-3200)",
+  "brand": "G.Skill",
+  "model": "TridentZ Royal F4-3200C16D-16GTRS (2 x 8GB | DIMM DDR4-3200)",
+  "imagen": "https://media.solotodo.com/media/products/854447_picture_1545966450.jpg",
+  "pc": {
+   "memory_type": "DDR4",
+   "capacity_gb": 16,
+   "modules": 2,
+   "speed_mts": 3200,
+   "cas": 16
+  },
+  "ofertas_al_generar": 1,
+  "precio_al_generar": 199990
+ },
+ {
+  "slot": "ram",
+  "tipo": "ram",
+  "solotodo_id": 420320,
+  "name": "HyperX Predator HX430C15PBK4/32 (4 x 8 GB | DIMM DDR4-3000)",
+  "brand": "HyperX",
+  "model": "Predator HX430C15PBK4/32 (4 x 8 GB | DIMM DDR4-3000)",
+  "imagen": "https://media.solotodo.com/media/products/2858026_picture_1793727158.png",
+  "pc": {
+   "memory_type": "DDR4",
+   "capacity_gb": 32,
+   "modules": 4,
+   "speed_mts": 3000,
+   "cas": 15
+  },
+  "ofertas_al_generar": 1,
+  "precio_al_generar": 249990
+ },
+ {
+  "slot": "ram",
+  "tipo": "ram",
+  "solotodo_id": 122429,
+  "name": "Kingston Fury Beast KF432C16BB/16 (1 x 16GB | DIMM DDR4-3200)",
+  "brand": "Kingston",
+  "model": "Fury Beast KF432C16BB/16 (1 x 16GB | DIMM DDR4-3200)",
+  "imagen": "https://media.solotodo.com/media/products/1473181_picture_1633952073.jpg",
+  "pc": {
+   "memory_type": "DDR4",
+   "capacity_gb": 16,
+   "modules": 1,
+   "speed_mts": 3200,
+   "cas": 16
+  },
+  "ofertas_al_generar": 11,
+  "precio_al_generar": 159990
+ },
+ {
+  "slot": "ram",
+  "tipo": "ram",
+  "solotodo_id": 206512,
+  "name": "Kingston Fury Beast KF556C36BBE-16 (1 x 16 GB | DIMM DDR5-5600)",
+  "brand": "Kingston",
+  "model": "Fury Beast KF556C36BBE-16 (1 x 16 GB | DIMM DDR5-5600)",
+  "imagen": "https://media.solotodo.com/media/products/1755907_picture_1683275685.jpg",
+  "pc": {
+   "memory_type": "DDR5",
+   "capacity_gb": 16,
+   "modules": 1,
+   "speed_mts": 5600,
+   "cas": 36
+  },
+  "ofertas_al_generar": 10,
+  "precio_al_generar": 305900
+ },
+ {
+  "slot": "ram",
+  "tipo": "ram",
+  "solotodo_id": 383064,
+  "name": "Kingston Fury Beast KF556C36BBE-64 (1 x 64 GB | DIMM DDR5-5600)",
+  "brand": "Kingston",
+  "model": "Fury Beast KF556C36BBE-64 (1 x 64 GB | DIMM DDR5-5600)",
+  "imagen": "https://media.solotodo.com/media/products/1755907_picture_1683275685.jpg",
+  "pc": {
+   "memory_type": "DDR5",
+   "capacity_gb": 64,
+   "modules": 1,
+   "speed_mts": 5600,
+   "cas": 36
+  },
+  "ofertas_al_generar": 11,
+  "precio_al_generar": 1309620
+ },
+ {
+  "slot": "ram",
+  "tipo": "ram",
+  "solotodo_id": 219778,
+  "name": "Kingston Fury Beast RGB KF432C16BB2A/32 (1 x 32 GB | DIMM DDR4-3200)",
+  "brand": "Kingston",
+  "model": "Fury Beast RGB KF432C16BB2A/32 (1 x 32 GB | DIMM DDR4-3200)",
+  "imagen": "https://media.solotodo.com/media/products/1819087_picture_1695496351.jpg",
+  "pc": {
+   "memory_type": "DDR4",
+   "capacity_gb": 32,
+   "modules": 1,
+   "speed_mts": 3200,
+   "cas": 16
+  },
+  "ofertas_al_generar": 5,
+  "precio_al_generar": 299900
+ },
+ {
+  "slot": "ram",
+  "tipo": "ram",
+  "solotodo_id": 117457,
+  "name": "Kingston Fury Beast RGB KF432C16BBA/8 (1 x 8GB | DIMM DDR4-3200)",
+  "brand": "Kingston",
+  "model": "Fury Beast RGB KF432C16BBA/8 (1 x 8GB | DIMM DDR4-3200)",
+  "imagen": "https://media.solotodo.com/media/products/1437088_picture_1628627449.jpg",
+  "pc": {
+   "memory_type": "DDR4",
+   "capacity_gb": 8,
+   "modules": 1,
+   "speed_mts": 3200,
+   "cas": 16
+  },
+  "ofertas_al_generar": 1,
+  "precio_al_generar": 900000
+ },
+ {
+  "slot": "ram",
+  "tipo": "ram",
+  "solotodo_id": 378138,
+  "name": "Kingston Fury Beast RGB KF552C40BB2A-32 (1 x 32 GB | DIMM DDR5-5200)",
+  "brand": "Kingston",
+  "model": "Fury Beast RGB KF552C40BB2A-32 (1 x 32 GB | DIMM DDR5-5200)",
+  "imagen": "https://media.solotodo.com/media/products/1668564_picture_1668671759.jpg",
+  "pc": {
+   "memory_type": "DDR5",
+   "capacity_gb": 32,
+   "modules": 1,
+   "speed_mts": 5200,
+   "cas": 40
+  },
+  "ofertas_al_generar": 1,
+  "precio_al_generar": 499990
+ },
+ {
+  "slot": "ram",
+  "tipo": "ram",
+  "solotodo_id": 177938,
+  "name": "Kingston Fury Beast RGB KF556C40BBA-32 (1 x 32 GB | DIMM DDR5-5600)",
+  "brand": "Kingston",
+  "model": "Fury Beast RGB KF556C40BBA-32 (1 x 32 GB | DIMM DDR5-5600)",
+  "imagen": "https://media.solotodo.com/media/products/1718571_picture_1675743313.jpg",
+  "pc": {
+   "memory_type": "DDR5",
+   "capacity_gb": 32,
+   "modules": 1,
+   "speed_mts": 5600,
+   "cas": 40
+  },
+  "ofertas_al_generar": 1,
+  "precio_al_generar": 659990
+ },
+ {
+  "slot": "ram",
+  "tipo": "ram",
+  "solotodo_id": 265389,
+  "name": "Kingston Fury Beast RGB KF560C30BBEAK2-32 (2 x 16 GB | DIMM DDR5-6000)",
+  "brand": "Kingston",
+  "model": "Fury Beast RGB KF560C30BBEAK2-32 (2 x 16 GB | DIMM DDR5-6000)",
+  "imagen": "https://media.solotodo.com/media/products/2015520_picture_1738741837.webp",
+  "pc": {
+   "memory_type": "DDR5",
+   "capacity_gb": 32,
+   "modules": 2,
+   "speed_mts": 6000,
+   "cas": 30
+  },
+  "ofertas_al_generar": 6,
+  "precio_al_generar": 838990
+ },
+ {
+  "slot": "ram",
+  "tipo": "ram",
+  "solotodo_id": 265386,
+  "name": "Kingston Fury Beast RGB KF560C30BBEAK2-64 (2 x 32 GB | DIMM DDR5-6000)",
+  "brand": "Kingston",
+  "model": "Fury Beast RGB KF560C30BBEAK2-64 (2 x 32 GB | DIMM DDR5-6000)",
+  "imagen": "https://media.solotodo.com/media/products/2015520_picture_1764786330.webp",
+  "pc": {
+   "memory_type": "DDR5",
+   "capacity_gb": 64,
+   "modules": 2,
+   "speed_mts": 6000,
+   "cas": 30
+  },
+  "ofertas_al_generar": 1,
+  "precio_al_generar": 1699990
+ },
+ {
+  "slot": "ram",
+  "tipo": "ram",
+  "solotodo_id": 410156,
+  "name": "Patriot Signature Line PSD516G4800K (2 x 8 GB | DIMM DDR5-4800)",
+  "brand": "Patriot",
+  "model": "Signature Line PSD516G4800K (2 x 8 GB | DIMM DDR5-4800)",
+  "imagen": "https://media.solotodo.com/media/products/2350018.jpg",
+  "pc": {
+   "memory_type": "DDR5",
+   "capacity_gb": 16,
+   "modules": 2,
+   "speed_mts": 4800,
+   "cas": 40
+  },
+  "ofertas_al_generar": 1,
+  "precio_al_generar": 259990
+ },
+ {
+  "slot": "ram",
+  "tipo": "ram",
+  "solotodo_id": 76318,
+  "name": "Patriot Viper Steel PVS416G300C6K (2 x 8GB | DIMM DDR4-3000)",
+  "brand": "Patriot",
+  "model": "Viper Steel PVS416G300C6K (2 x 8GB | DIMM DDR4-3000)",
+  "imagen": "https://media.solotodo.com/media/products/1101227_picture_1583476315.jpg",
+  "pc": {
+   "memory_type": "DDR4",
+   "capacity_gb": 16,
+   "modules": 2,
+   "speed_mts": 3000,
+   "cas": 16
+  },
+  "ofertas_al_generar": 1,
+  "precio_al_generar": 139990
+ },
+ {
+  "slot": "storage",
+  "tipo": "hdd",
+  "solotodo_id": 4538,
+  "name": "Seagate Barracuda 1 TB (ST31000524AS)",
+  "brand": "Seagate",
+  "model": "Barracuda 1 TB (ST31000524AS)",
+  "imagen": "https://media.solotodo.com/media/products/c31a11e2d9d806d15bd2f4b9447df35b_13113987501296944409_1.jpg",
+  "pc": {
+   "interface": "SATA",
+   "form": "3.5",
+   "capacity_gb": 1000
+  },
+  "ofertas_al_generar": 1,
+  "precio_al_generar": 109990
+ },
+ {
+  "slot": "storage",
+  "tipo": "hdd",
+  "solotodo_id": 208855,
+  "name": "Western Digital Blue 2 TB (WD20EZBX)",
+  "brand": "Western Digital",
+  "model": "Blue 2 TB (WD20EZBX)",
+  "imagen": "https://media.solotodo.com/media/products/1764574_picture_1684907266.jpg",
+  "pc": {
+   "interface": "SATA",
+   "form": "3.5",
+   "capacity_gb": 2000
+  },
+  "ofertas_al_generar": 12,
+  "precio_al_generar": 193900
+ },
+ {
+  "slot": "storage",
+  "tipo": "hdd",
+  "solotodo_id": 382217,
+  "name": "Western Digital Red Plus 4 TB (WD40EFZZ)",
+  "brand": "Western Digital",
+  "model": "Red Plus 4 TB (WD40EFZZ)",
+  "imagen": "https://media.solotodo.com/media/products/2703565_picture_1771927771.webp",
+  "pc": {
+   "interface": "SATA",
+   "form": "3.5",
+   "capacity_gb": 4000
+  },
+  "ofertas_al_generar": 5,
+  "precio_al_generar": 259844
+ },
+ {
+  "slot": "storage",
+  "tipo": "ssd",
+  "solotodo_id": 52220,
+  "name": "A-DATA Ultimate SU650 240 GB (ASU650SS-240GT-R)",
+  "brand": "A-DATA",
+  "model": "Ultimate SU650 240 GB (ASU650SS-240GT-R)",
+  "imagen": "https://media.solotodo.com/media/products/829318_picture_1770221873.jpg",
+  "pc": {
+   "interface": "SATA",
+   "form": "2.5",
+   "capacity_gb": 240,
+   "read_mbps": 520
+  },
+  "ofertas_al_generar": 17,
+  "precio_al_generar": 39900
+ },
+ {
+  "slot": "storage",
+  "tipo": "ssd",
+  "solotodo_id": 422982,
+  "name": "Airflow Green 1 TB (1 TB SATA III M.2)",
+  "brand": "Airflow",
+  "model": "Green 1 TB (1 TB SATA III M.2)",
+  "imagen": "https://media.solotodo.com/media/products/2864034_picture_1794509092.jpg",
+  "pc": {
+   "interface": "SATA",
+   "form": "M.2",
+   "capacity_gb": 1000,
+   "read_mbps": 500
+  },
+  "ofertas_al_generar": 2,
+  "precio_al_generar": 138000
+ },
+ {
+  "slot": "storage",
+  "tipo": "ssd",
+  "solotodo_id": 422979,
+  "name": "Airflow Green 2 TB (2 TB SATA III M.2)",
+  "brand": "Airflow",
+  "model": "Green 2 TB (2 TB SATA III M.2)",
+  "imagen": "https://media.solotodo.com/media/products/2864034_picture_1794509092.jpg",
+  "pc": {
+   "interface": "SATA",
+   "form": "M.2",
+   "capacity_gb": 2000,
+   "read_mbps": 550
+  },
+  "ofertas_al_generar": 2,
+  "precio_al_generar": 239000
+ },
+ {
+  "slot": "storage",
+  "tipo": "ssd",
+  "solotodo_id": 400601,
+  "name": "Copious 512 GB (CPSA-512GB)",
+  "brand": "Copious",
+  "model": "512 GB (CPSA-512GB)",
+  "imagen": "https://media.solotodo.com/media/products/2292411.jpg",
+  "pc": {
+   "interface": "SATA",
+   "form": "2.5",
+   "capacity_gb": 512,
+   "read_mbps": 510
+  },
+  "ofertas_al_generar": 2,
+  "precio_al_generar": 65590
+ },
+ {
+  "slot": "storage",
+  "tipo": "ssd",
+  "solotodo_id": 75041,
+  "name": "Crucial BX500 2 TB (CT2000BX500SSD1)",
+  "brand": "Crucial",
+  "model": "BX500 2 TB (CT2000BX500SSD1)",
+  "imagen": "https://media.solotodo.com/media/products/816995_picture_1536947993.jpg",
+  "pc": {
+   "interface": "SATA",
+   "form": "2.5",
+   "capacity_gb": 2000,
+   "read_mbps": 540
+  },
+  "ofertas_al_generar": 4,
+  "precio_al_generar": 279900
+ },
+ {
+  "slot": "storage",
+  "tipo": "ssd",
+  "solotodo_id": 252386,
+  "name": "Crucial BX500 4 TB (CT4000BX500SSD1)",
+  "brand": "Crucial",
+  "model": "BX500 4 TB (CT4000BX500SSD1)",
+  "imagen": "https://media.solotodo.com/media/products/816995_picture_1536947993.jpg",
+  "pc": {
+   "interface": "SATA",
+   "form": "2.5",
+   "capacity_gb": 4000,
+   "read_mbps": 540
+  },
+  "ofertas_al_generar": 1,
+  "precio_al_generar": 369900
+ },
+ {
+  "slot": "storage",
+  "tipo": "ssd",
+  "solotodo_id": 265021,
+  "name": "Crucial E100 480 GB (CT480E100SSD8)",
+  "brand": "Crucial",
+  "model": "E100 480 GB (CT480E100SSD8)",
+  "imagen": "https://media.solotodo.com/media/products/2012990_picture_1737730921.jpg",
+  "pc": {
+   "interface": "NVMe",
+   "form": "M.2",
+   "capacity_gb": 480,
+   "read_mbps": 5000,
+   "pcie_gen": 4
+  },
+  "ofertas_al_generar": 9,
+  "precio_al_generar": 92500
+ },
+ {
+  "slot": "storage",
+  "tipo": "ssd",
+  "solotodo_id": 395519,
+  "name": "Dell 3840 GB (345-BGSV)",
+  "brand": "Dell",
+  "model": "3840 GB (345-BGSV)",
+  "imagen": "https://media.solotodo.com/media/products/2775865_picture_1780989537.png",
+  "pc": {
+   "interface": "SATA",
+   "form": "2.5",
+   "capacity_gb": 3840
+  },
+  "ofertas_al_generar": 3,
+  "precio_al_generar": 1491710
+ },
+ {
+  "slot": "storage",
+  "tipo": "ssd",
+  "solotodo_id": 211934,
+  "name": "Kingston DC600M 1920 GB (SEDC600M/1920G)",
+  "brand": "Kingston",
+  "model": "DC600M 1920 GB (SEDC600M/1920G)",
+  "imagen": "https://media.solotodo.com/media/products/1781204_picture_1689366200.webp",
+  "pc": {
+   "interface": "SATA",
+   "form": "2.5",
+   "capacity_gb": 1920,
+   "read_mbps": 560
+  },
+  "ofertas_al_generar": 17,
+  "precio_al_generar": 1149990
+ },
+ {
+  "slot": "storage",
+  "tipo": "ssd",
+  "solotodo_id": 211873,
+  "name": "Kingston DC600M 960 GB (SEDC600M/960G)",
+  "brand": "Kingston",
+  "model": "DC600M 960 GB (SEDC600M/960G)",
+  "imagen": "https://media.solotodo.com/media/products/1780884_picture_1689260365.jpg",
+  "pc": {
+   "interface": "SATA",
+   "form": "2.5",
+   "capacity_gb": 960,
+   "read_mbps": 560
+  },
+  "ofertas_al_generar": 15,
+  "precio_al_generar": 719480
+ },
+ {
+  "slot": "storage",
+  "tipo": "ssd",
+  "solotodo_id": 62011,
+  "name": "Kingston KC2000 250 GB (SKC2000M8/250G)",
+  "brand": "Kingston",
+  "model": "KC2000 250 GB (SKC2000M8/250G)",
+  "imagen": "https://media.solotodo.com/media/products/938246_picture_1559921089.jpg",
+  "pc": {
+   "interface": "NVMe",
+   "form": "M.2",
+   "capacity_gb": 250,
+   "read_mbps": 3000,
+   "pcie_gen": 3
+  },
+  "ofertas_al_generar": 1,
+  "precio_al_generar": 79900
+ },
+ {
+  "slot": "storage",
+  "tipo": "ssd",
+  "solotodo_id": 253373,
+  "name": "Kingston NV3 1 TB (SNV3S/1000G)",
+  "brand": "Kingston",
+  "model": "NV3 1 TB (SNV3S/1000G)",
+  "imagen": "https://media.solotodo.com/media/products/1948236_picture_1724531834.jpg",
+  "pc": {
+   "interface": "NVMe",
+   "form": "M.2",
+   "capacity_gb": 1000,
+   "read_mbps": 6000,
+   "pcie_gen": 4
+  },
+  "ofertas_al_generar": 32,
+  "precio_al_generar": 149800
+ },
+ {
+  "slot": "storage",
+  "tipo": "ssd",
+  "solotodo_id": 253374,
+  "name": "Kingston NV3 2 TB (SNV3S/2000G)",
+  "brand": "Kingston",
+  "model": "NV3 2 TB (SNV3S/2000G)",
+  "imagen": "https://media.solotodo.com/media/products/1948249_picture_1724531921.jpg",
+  "pc": {
+   "interface": "NVMe",
+   "form": "M.2",
+   "capacity_gb": 2000,
+   "read_mbps": 6000,
+   "pcie_gen": 4
+  },
+  "ofertas_al_generar": 18,
+  "precio_al_generar": 299900
+ },
+ {
+  "slot": "storage",
+  "tipo": "ssd",
+  "solotodo_id": 257282,
+  "name": "Kingston NV3 4 TB (SNV3S/4000G)",
+  "brand": "Kingston",
+  "model": "NV3 4 TB (SNV3S/4000G)",
+  "imagen": "https://media.solotodo.com/media/products/1975691_picture_1730867509.jpg",
+  "pc": {
+   "interface": "NVMe",
+   "form": "M.2",
+   "capacity_gb": 4000,
+   "read_mbps": 6000,
+   "pcie_gen": 4
+  },
+  "ofertas_al_generar": 19,
+  "precio_al_generar": 599000
+ },
+ {
+  "slot": "storage",
+  "tipo": "ssd",
+  "solotodo_id": 253375,
+  "name": "Kingston NV3 500 GB (SNV3S/500G)",
+  "brand": "Kingston",
+  "model": "NV3 500 GB (SNV3S/500G)",
+  "imagen": "https://media.solotodo.com/media/products/1948258_picture_1724532007.jpg",
+  "pc": {
+   "interface": "NVMe",
+   "form": "M.2",
+   "capacity_gb": 500,
+   "read_mbps": 5000,
+   "pcie_gen": 4
+  },
+  "ofertas_al_generar": 19,
+  "precio_al_generar": 99900
+ },
+ {
+  "slot": "storage",
+  "tipo": "ssd",
+  "solotodo_id": 213871,
+  "name": "MSI Spatium S270 480 GB (S78-440E350-P83)",
+  "brand": "MSI",
+  "model": "Spatium S270 480 GB (S78-440E350-P83)",
+  "imagen": "https://media.solotodo.com/media/products/1789646_picture_1690880892.png",
+  "pc": {
+   "interface": "SATA",
+   "form": "2.5",
+   "capacity_gb": 480,
+   "read_mbps": 500
+  },
+  "ofertas_al_generar": 15,
+  "precio_al_generar": 69900
+ },
+ {
+  "slot": "storage",
+  "tipo": "ssd",
+  "solotodo_id": 401906,
+  "name": "SK Hynix 256 GB (HFS256GEJ9X113N)",
+  "brand": "SK Hynix",
+  "model": "256 GB (HFS256GEJ9X113N)",
+  "imagen": "https://media.solotodo.com/media/products/2807993_picture_1786113052.jpg",
+  "pc": {
+   "interface": "NVMe",
+   "form": "M.2",
+   "capacity_gb": 256,
+   "read_mbps": 3500,
+   "pcie_gen": 4
+  },
+  "ofertas_al_generar": 1,
+  "precio_al_generar": 49990
+ },
+ {
+  "slot": "storage",
+  "tipo": "ssd",
+  "solotodo_id": 403576,
+  "name": "Samsung PM9C1a 512 GB (MZVL8512HDLU-00BLL)",
+  "brand": "Samsung",
+  "model": "PM9C1a 512 GB (MZVL8512HDLU-00BLL)",
+  "imagen": "https://media.solotodo.com/media/products/2814713_picture_1787240471.webp",
+  "pc": {
+   "interface": "NVMe",
+   "form": "M.2",
+   "capacity_gb": 512,
+   "read_mbps": 6000,
+   "pcie_gen": 4
+  },
+  "ofertas_al_generar": 1,
+  "precio_al_generar": 90990
+ },
+ {
+  "slot": "storage",
+  "tipo": "ssd",
+  "solotodo_id": 403229,
+  "name": "SanDisk SSD SATA 320 250 GB (SDSS31250GBB-000G0)",
+  "brand": "SanDisk",
+  "model": "SSD SATA 320 250 GB (SDSS31250GBB-000G0)",
+  "imagen": "https://media.solotodo.com/media/products/2311458.jpg",
+  "pc": {
+   "interface": "SATA",
+   "form": "2.5",
+   "capacity_gb": 250,
+   "read_mbps": 545
+  },
+  "ofertas_al_generar": 2,
+  "precio_al_generar": 99990
+ },
+ {
+  "slot": "storage",
+  "tipo": "ssd",
+  "solotodo_id": 153060,
+  "name": "Synology SNV3410 400 GB (SNV3410-400G)",
+  "brand": "Synology",
+  "model": "SNV3410 400 GB (SNV3410-400G)",
+  "imagen": "https://media.solotodo.com/media/products/1653232_picture_1666007138.jpg",
+  "pc": {
+   "interface": "NVMe",
+   "form": "M.2",
+   "capacity_gb": 400,
+   "read_mbps": 3000,
+   "pcie_gen": 3
+  },
+  "ofertas_al_generar": 1,
+  "precio_al_generar": 209000
+ },
+ {
+  "slot": "storage",
+  "tipo": "ssd",
+  "solotodo_id": 425733,
+  "name": "TWSC 512 GB (TS3011F512)",
+  "brand": "TWSC",
+  "model": "512 GB (TS3011F512)",
+  "imagen": "https://media.solotodo.com/media/products/2237853",
+  "pc": {
+   "interface": "SATA",
+   "form": "M.2",
+   "capacity_gb": 512
+  },
+  "ofertas_al_generar": 1,
+  "precio_al_generar": 104405
+ },
+ {
+  "slot": "storage",
+  "tipo": "ssd",
+  "solotodo_id": 123422,
+  "name": "Team CX2 256 GB (T253X6256G0C101)",
+  "brand": "Team",
+  "model": "CX2 256 GB (T253X6256G0C101)",
+  "imagen": "https://media.solotodo.com/media/products/1481491_picture_1634922489.png",
+  "pc": {
+   "interface": "SATA",
+   "form": "2.5",
+   "capacity_gb": 256,
+   "read_mbps": 520
+  },
+  "ofertas_al_generar": 4,
+  "precio_al_generar": 40900
+ },
+ {
+  "slot": "storage",
+  "tipo": "ssd",
+  "solotodo_id": 134855,
+  "name": "Western Digital Green 1 TB (WDS100T3G0A)",
+  "brand": "Western Digital",
+  "model": "Green 1 TB (WDS100T3G0A)",
+  "imagen": "https://media.solotodo.com/media/products/1564098_picture_1648817647.png",
+  "pc": {
+   "interface": "SATA",
+   "form": "2.5",
+   "capacity_gb": 1000,
+   "read_mbps": 545
+  },
+  "ofertas_al_generar": 4,
+  "precio_al_generar": 139900
+ },
+ {
+  "slot": "storage",
+  "tipo": "ssd",
+  "solotodo_id": 140976,
+  "name": "Western Digital Green 480 GB (WDS480G3G0B)",
+  "brand": "Western Digital",
+  "model": "Green 480 GB (WDS480G3G0B)",
+  "imagen": "https://media.solotodo.com/media/products/1598007_picture_1683745648.jpg",
+  "pc": {
+   "interface": "SATA",
+   "form": "M.2",
+   "capacity_gb": 480,
+   "read_mbps": 545
+  },
+  "ofertas_al_generar": 1,
+  "precio_al_generar": 149990
+ },
+ {
+  "slot": "storage",
+  "tipo": "ssd",
+  "solotodo_id": 361283,
+  "name": "Western Digital Green 500 GB (WDS500G5G0A)",
+  "brand": "Western Digital",
+  "model": "Green 500 GB (WDS500G5G0A)",
+  "imagen": "https://media.solotodo.com/media/products/2587361_picture_1762851543.png",
+  "pc": {
+   "interface": "SATA",
+   "form": "2.5",
+   "capacity_gb": 500,
+   "read_mbps": 545
+  },
+  "ofertas_al_generar": 2,
+  "precio_al_generar": 84900
+ }
+]

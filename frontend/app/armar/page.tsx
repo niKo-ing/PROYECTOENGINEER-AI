@@ -6,7 +6,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Bot, CircleCheck, CircleX, LoaderCircle, RefreshCw, Save, Sparkles, TriangleAlert } from "lucide-react";
 
-import { PartsList, ReportPanel, SavePcDialog, SLOT_META, specLine } from "@/components/pc/pc-ui";
+import { PartsList, PartThumb, ReportPanel, SavePcDialog, SLOT_META, specLine } from "@/components/pc/pc-ui";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -238,6 +238,7 @@ export default function BuilderPage() {
                         !option.compatible && "opacity-70",
                       )}
                     >
+                      <PartThumb part={option} className="size-12" />
                       <span className="min-w-0 flex-1">
                         <span className="flex flex-wrap items-center gap-2">
                           <span className="font-medium">{option.name}</span>
@@ -252,7 +253,10 @@ export default function BuilderPage() {
                           </span>
                         ) : null}
                       </span>
-                      <span className="shrink-0 text-right text-sm font-semibold tabular-nums">{option.price_clp ? formatCLP(option.price_clp) : "—"}</span>
+                      <span className="shrink-0 text-right">
+                        <span className="block text-sm font-semibold tabular-nums">{option.price_clp ? formatCLP(option.price_clp) : "Sin stock"}</span>
+                        {option.price_clp && option.store ? <span className="block max-w-32 truncate text-xs text-muted-foreground">en {option.store}</span> : null}
+                      </span>
                     </button>
                   </li>
                 );
@@ -266,7 +270,7 @@ export default function BuilderPage() {
           <Card>
             <CardHeader className="pb-3">
               <CardTitle className="text-base">Tu armado</CardTitle>
-              <CardDescription>Precios referenciales en pesos chilenos.</CardDescription>
+              <CardDescription>Precio más bajo de cada pieza en tiendas chilenas; confírmalo en la tienda antes de comprar.</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <PartsList parts={parts} onRemove={remove} />

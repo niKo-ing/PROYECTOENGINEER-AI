@@ -2,8 +2,9 @@
 
 SoloTodo reúne los precios de las tiendas chilenas (PC Factory, Winpy, MyShop, Infor-Ingen…) con fichas normalizadas.
 Se usa su API JSON pública, no se raspa HTML: consultas por lote (hasta 20 productos), con pausa entre ellas y un
-User-Agent que identifica el proyecto. Qué producto de SoloTodo corresponde a cada pieza está fijado y revisado en
-``solotodo_productos.json`` (lo genera ``scripts/solotodo_mapear.py``); aquí no se adivina.
+User-Agent que identifica el proyecto. Qué producto de SoloTodo corresponde a cada pieza está fijado: en producción, en
+``catalogo_solotodo.json`` (``scripts/solotodo_catalogo.py``); para la semilla del equipo, en ``solotodo_productos.json``
+(``scripts/solotodo_mapear.py``). Aquí no se adivina.
 
     python -m app.pcbuilder.solotodo        # sincroniza la base configurada
 
@@ -16,16 +17,19 @@ from __future__ import annotations
 
 import json
 import logging
+import os
+import tempfile
 import time
-from collections.abc import Iterable
-from datetime import datetime, timezone
+from collections.abc import Iterable, Iterator
+from contextlib import contextmanager
+from datetime import datetime, timedelta, timezone
 from decimal import Decimal
 from pathlib import Path
 from typing import Any
 from urllib.parse import urlparse
 
 import httpx
-from sqlalchemy import select
+from sqlalchemy import func, select, text
 from sqlalchemy.orm import Session, selectinload
 
 from app.models.catalog import PriceHistory, Product, Store, StoreOffer
@@ -111,7 +115,10 @@ def _precio(valor: Any) -> int | None:
 
 def sincronizar(db: Session, cliente: httpx.Client | None = None, mapa: dict[str, dict] | None = None, pausa: float = PAUSA_S) -> dict[str, int]:
     """Trae precios e imágenes de SoloTodo para las piezas emparejadas. Idempotente."""
-    mapa = mapa if mapa is not None else json.loads(MAPA.read_text(encoding="utf-8"))
+    if mapa is None:
+        from app.pcbuilder.solotodo_catalogo import mapa_instantanea
+
+        mapa = {**json.loads(MAPA.read_text(encoding="utf-8")), **mapa_instantanea()}
     propio = cliente is None
     cliente = cliente or httpx.Client(headers=HEADERS, timeout=30, follow_redirects=True)
     try:
@@ -130,6 +137,7 @@ def sincronizar(db: Session, cliente: httpx.Client | None = None, mapa: dict[str
     ahora = datetime.now(timezone.utc)
     cache: dict[str, Store] = {}
     resumen = {"piezas": len(por_solotodo), "con_tiendas": 0, "ofertas": 0, "imagenes": 0, "tiendas": 0}
+    omitidas = 0
     for item in items:
         info = item.get("product") or {}
         producto = por_solotodo.get(info.get("id"))
@@ -145,16 +153,24 @@ def sincronizar(db: Session, cliente: httpx.Client | None = None, mapa: dict[str
             precio = _precio(registro.get("offer_price"))
             if entidad.get("store_id") not in tiendas or not registro.get("is_available") or not entidad.get("is_visible", True) or not precio:
                 continue
-            tienda = _tienda(db, tiendas[entidad["store_id"]], entidad.get("external_url") or "", cache)
+            url = entidad.get("external_url") or ""
+            tienda = _tienda(db, tiendas[entidad["store_id"]], url, cache)
             oferta = next((o for o in producto.offers if o.store_id == tienda.id), None)
+            if tienda.id in vistas and oferta is not None and oferta.price <= precio:
+                continue  # la tienda publica el producto más de una vez: queda el precio más bajo
+            ajena = db.scalar(select(StoreOffer).where(StoreOffer.store_id == tienda.id, StoreOffer.url == url, StoreOffer.product_id != producto.id))
+            if ajena is not None:
+                # La tienda vende varias variantes en la misma página (p. ej. dos capacidades): no se sabe a cuál
+                # corresponde el precio, así que esta oferta no se publica.
+                omitidas += 1
+                continue
             normal = _precio(registro.get("normal_price"))
             cambio = oferta is None or oferta.price != precio
             if oferta is None:
-                oferta = StoreOffer(product=producto, store=tienda, currency="CLP", source=FUENTE, price=precio,
-                                    url=entidad.get("external_url") or "")
+                oferta = StoreOffer(product=producto, store=tienda, currency="CLP", source=FUENTE, price=precio, url=url)
                 db.add(oferta)
                 db.flush()  # fija store_id: una segunda oferta de la misma tienda actualiza esta, no la duplica
-            oferta.url = entidad.get("external_url") or oferta.url
+            oferta.url = url or oferta.url
             oferta.external_id = str(entidad.get("id"))
             oferta.price, oferta.original_price = precio, None
             oferta.payment_condition = f"Precio oferta; precio normal ${normal:,}".replace(",", ".") if normal and normal > precio else None
@@ -164,8 +180,9 @@ def sincronizar(db: Session, cliente: httpx.Client | None = None, mapa: dict[str
             if cambio:
                 db.flush()
                 db.add(PriceHistory(store_offer_id=oferta.id, price=precio, currency="CLP", observed_at=ahora))
+            if tienda.id not in vistas:
+                resumen["ofertas"] += 1
             vistas.add(tienda.id)
-            resumen["ofertas"] += 1
         # Ofertas de SoloTodo que ya no aparecen: sin stock (quedan en el historial). Referencia: solo si no hay tiendas.
         for oferta in producto.offers:
             if oferta.source == FUENTE and oferta.store_id not in vistas and oferta.availability:
@@ -175,9 +192,69 @@ def sincronizar(db: Session, cliente: httpx.Client | None = None, mapa: dict[str
                 oferta.availability = not vistas
         resumen["con_tiendas"] += int(bool(vistas))
     resumen["tiendas"] = len(cache)
+    if omitidas:
+        resumen["omitidas_url_compartida"] = omitidas
     db.commit()
     log.info("SoloTodo: %s", resumen)
     return resumen
+
+
+CANDADO_PG = 731_031  # clave del candado de Postgres: una sola sincronización a la vez entre réplicas
+
+
+@contextmanager
+def _turno(sesion: Session) -> Iterator[bool]:
+    """True si este proceso puede sincronizar ahora. En Postgres, candado de transacción (se suelta con el commit de
+    ``sincronizar``); en SQLite (una sola máquina), un archivo con ``flock`` que comparten los procesos de uvicorn."""
+    if sesion.get_bind().dialect.name == "postgresql":
+        yield bool(sesion.execute(text("SELECT pg_try_advisory_xact_lock(:k)"), {"k": CANDADO_PG}).scalar())
+        return
+    import fcntl
+
+    with open(os.path.join(tempfile.gettempdir(), "solotodo-sync.lock"), "w") as archivo:
+        try:
+            fcntl.flock(archivo, fcntl.LOCK_EX | fcntl.LOCK_NB)
+        except OSError:
+            yield False
+            return
+        yield True
+
+
+def sincronizado_hace_poco(sesion: Session, horas: float) -> bool:
+    """Otra réplica ya sincronizó en este ciclo: no se repite la consulta a SoloTodo."""
+    ultima = sesion.scalar(select(func.max(StoreOffer.last_checked_at)).where(StoreOffer.source == FUENTE))
+    if ultima is None:
+        return False
+    if ultima.tzinfo is None:
+        ultima = ultima.replace(tzinfo=timezone.utc)
+    return datetime.now(timezone.utc) - ultima < timedelta(hours=horas * 0.8)
+
+
+def sincronizar_si_toca(sesion: Session, horas: float, **opciones: Any) -> dict[str, int] | None:
+    with _turno(sesion) as puedo:
+        if not puedo or sincronizado_hace_poco(sesion, horas):
+            sesion.rollback()
+            return None
+        return sincronizar(sesion, **opciones)
+
+
+def sincronizar_periodicamente(horas: float | None = None) -> None:
+    """Hilo de fondo de la API en producción: sincroniza al arrancar (con una espera al azar) y luego cada
+    ``SOLOTODO_SYNC_HORAS`` horas (6 por defecto). Entre réplicas y procesos sincroniza uno solo por ciclo. Un fallo
+    solo se registra: la app sigue con los últimos precios."""
+    import random
+
+    from app.db import SessionLocal
+
+    horas = horas or float(os.getenv("SOLOTODO_SYNC_HORAS", "6"))
+    time.sleep(random.uniform(5, 60))
+    while True:
+        try:
+            with SessionLocal() as sesion:
+                sincronizar_si_toca(sesion, horas)
+        except Exception:  # noqa: BLE001 — sin SoloTodo la app sigue; se reintenta en el próximo ciclo
+            log.warning("No se pudo sincronizar con SoloTodo", exc_info=True)
+        time.sleep(horas * 3600)
 
 
 if __name__ == "__main__":
