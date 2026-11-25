@@ -25,7 +25,8 @@ tiendas chilenas; el caso es agregar un asesor que arme y revise equipos sin equ
 * RNF: no inventar compatibilidades ni precios, responder en segundos, proteger los datos personales y medir todo.
 
 **Desafíos.** Los LLM alucinan medidas y precios, la jerga y los montos en palabras confunden a un extractor por reglas,
-la cuota del plan gratuito de Gemini es limitada y la Ley 21.719 eleva las exigencias sobre datos personales.
+la cuota del plan gratuito de Gemini es limitada (Google, s. f.) y la Ley N.° 21.719 (2024) eleva las exigencias sobre
+datos personales.
 
 [EQUIPO: amplíen con su lectura del caso y de los usuarios objetivo.]
 
@@ -45,6 +46,9 @@ ajustaron con la evaluación: por ejemplo, la regla de avisar el exceso de presu
 entonces Gemini lo dijo en el 100 % de los casos (sección 4.2).
 
 ### 2.2 Pipeline RAG con fuentes internas y externas (IE2)
+
+El diseño sigue el esquema de generación aumentada por recuperación (Lewis et al., 2020): la evidencia recuperada se
+entrega al modelo como contexto.
 
 ```mermaid
 flowchart LR
@@ -136,7 +140,7 @@ perfil y panel) en `docs/entrega/capturas/`.
 
 ### 3.2 Memoria y recuperación de contexto (IE6)
 
-* **Corto plazo:** el checkpointer de LangGraph (SQLite local, Postgres en AWS) guarda el hilo; el usuario retoma la
+* **Corto plazo:** el checkpointer de LangGraph (LangChain, s. f.; SQLite local, Postgres en AWS) guarda el hilo; el usuario retoma la
   conversación con su `thread_id`.
 * **Largo plazo:** `LongTermMemory` guarda preferencias declaradas («prefiero AMD») con embeddings. Al inicio de cada
   turno, el nodo `recall` recupera las 4 más parecidas, y una red de seguridad las guarda aunque el modelo no llame a
@@ -153,7 +157,8 @@ perfil y panel) en `docs/entrega/capturas/`.
   pedidos de armado.
 * **El agente reflexiona después de cada herramienta:** `diagnose` detecta un armado incompatible o sobre el
   presupuesto y replanifica, como máximo 2 veces, con una pista concreta (p. ej. «busque un reemplazo para la pieza que
-  falla»). Si se acaban los 10 pasos, cierra con lo logrado.
+  falla»). Si se acaban los 10 pasos, cierra con lo logrado. El ciclo de razonar, usar una herramienta y observar
+  sigue el patrón ReAct (Yao et al., 2023).
 
 ### 3.4 Orquestación y flujo automatizado (IE8)
 
@@ -321,12 +326,12 @@ conviene un conjunto nuevo escrito por el equipo y corrido con 3 repeticiones.
 ### 4.3 Seguridad y uso responsable (IE11)
 
 * **Inyección de instrucciones:** las graves se bloquean sin llamar al modelo; las leves se tratan como datos (OWASP
-  LLM01). El hueco se midió dos veces: R14 en `prueba-3` y, ya ampliado el detector, 3 de 5 inyecciones nuevas en
+  Foundation, 2024, LLM01). El hueco se midió dos veces: R14 en `prueba-3` y, ya ampliado el detector, 3 de 5 inyecciones nuevas en
   `prueba-4`. En ninguna hubo fuga. El paso de entender devuelve JSON con una pregunta de hasta 220 caracteres, lo que
   **limita, pero no elimina**, lo que podría filtrarse. Por eso la siguiente defensa es una guarda sobre la respuesta,
   no otra expresión regular (mejora 5).
 * **Alucinaciones:** compatibilidad por reglas, explicación descartada si cita precios sin respaldo, fuentes citadas.
-* **Privacidad (Ley 19.628 y Ley 21.719):**
+* **Privacidad (Ley N.° 19.628, 1999; Ley N.° 21.719, 2024):**
   * seudónimo con sal en las trazas;
   * correos, RUT, teléfonos y tarjetas enmascarados (auditoría: 0 en los registros);
   * descarga y borrado total en `/perfil`.
@@ -350,7 +355,7 @@ el usuario confía ciegamente.]
 
 ## Declaración de uso de IA
 
-[Completen con lo que realmente usaron. Por ejemplo: «Usamos Claude Code (Anthropic) como asistente de programación
+[Completen con lo que realmente usaron. Por ejemplo: «Usamos Claude Code (Anthropic, 2026) como asistente de programación
 para el agente, el asistente de armado, la instrumentación, el panel, los scripts de evaluación y el notebook, y para un
 primer borrador de las secciones técnicas, que revisamos y validamos con las mediciones. Las justificaciones, las
 conclusiones y las reflexiones son nuestras. Gemini es parte de la solución evaluada.» Citen según
@@ -358,22 +363,28 @@ conclusiones y las reflexiones son nuestras. Gemini es parte de la solución eva
 
 ## Referencias
 
-> Verifiquen cada referencia antes de entregar.
+Anthropic. (2026). *Claude Code* [Asistente de generación de código]. <https://claude.com/product/claude-code>
 
-Google. (s. f.). *Gemini API documentation*. Recuperado el [fecha] de <https://ai.google.dev/gemini-api/docs>
+Google. (s. f.). *Gemini API documentation*. Google AI Studio. Recuperado el 25 de noviembre de 2026, de <https://aistudio.google.com/docs>
 
-LangChain. (s. f.). *LangGraph documentation*. Recuperado el [fecha] de <https://langchain-ai.github.io/langgraph/>
+LangChain. (s. f.). *LangGraph overview*. Recuperado el 25 de noviembre de 2026, de
+<https://docs.langchain.com/oss/python/langgraph/overview>
 
-Lewis, P., Perez, E., Piktus, A., Petroni, F., Karpukhin, V., Goyal, N., Küttler, H., Lewis, M., Yih, W., Rocktäschel,
+Lewis, P., Perez, E., Piktus, A., Petroni, F., Karpukhin, V., Goyal, N., Küttler, H., Lewis, M., Yih, W.-t., Rocktäschel,
 T., Riedel, S., & Kiela, D. (2020). Retrieval-augmented generation for knowledge-intensive NLP tasks. *Advances in
 Neural Information Processing Systems, 33*, 9459–9474.
+<https://proceedings.neurips.cc/paper/2020/hash/6b493230205f780e1bc26945df7481e5-Abstract.html>
 
-Yao, S., Zhao, J., Yu, D., Du, N., Shafran, I., Narasimhan, K., & Cao, Y. (2023). ReAct: Synergizing reasoning and acting
-in language models. *International Conference on Learning Representations*.
+Ley N.° 19.628. (1999, 28 de agosto). *Sobre protección de la vida privada*. Ministerio Secretaría General de la
+Presidencia. <https://www.bcn.cl/leychile/navegar?idNorma=141599>
 
-Ley N.° 19.628. Sobre protección de la vida privada. (1999). Biblioteca del Congreso Nacional de Chile.
+Ley N.° 21.719. (2024, 13 de diciembre). *Regula la protección y el tratamiento de los datos personales y crea la
+Agencia de Protección de Datos Personales*. Ministerio Secretaría General de la Presidencia.
+<https://www.bcn.cl/leychile/navegar?idNorma=1209272>
 
-Ley N.° 21.719. Regula la protección y el tratamiento de los datos personales y crea la Agencia de Protección de Datos
-Personales. (2024). Biblioteca del Congreso Nacional de Chile.
+OWASP Foundation. (2024). *OWASP Top 10 for LLM applications 2025*.
+<https://genai.owasp.org/resource/owasp-top-10-for-llm-applications-2025/>
 
-OWASP Foundation. (2025). *OWASP Top 10 for large language model applications*. <https://genai.owasp.org/llm-top-10/>
+Yao, S., Zhao, J., Yu, D., Du, N., Shafran, I., Narasimhan, K., & Cao, Y. (2023, 1–5 de mayo). *ReAct: Synergizing
+reasoning and acting in language models* [Ponencia]. 11th International Conference on Learning Representations (ICLR
+2023), Kigali, Ruanda. <https://arxiv.org/abs/2210.03629>
