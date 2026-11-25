@@ -59,7 +59,7 @@ h3 {{ font-size: 11pt; margin: 10pt 0 3pt; page-break-after: avoid }} p {{ margi
 table {{ border-collapse: collapse; width: 100%; font-size: 9pt; margin: 6pt 0 }} th,td {{ border: 1px solid #cfd4dc; padding: 3pt 5pt; text-align: left }} th {{ background:#eef1f7 }}
 img {{ max-width: 100%; }} .fig {{ text-align:center; font-size: 8.5pt; color:#555; margin: 6pt 0; page-break-inside: avoid }} .pb {{ page-break-before: always }}
 .nota {{ border-left: 3px solid #b7791f; background:#fdf6e7; padding: 4pt 8pt; margin: 6pt 0; page-break-inside: avoid }}
-.portada {{ margin-top: 60mm }} .mut {{ color:#667085 }}
+.ref {{ padding-left: 1.27cm; text-indent: -1.27cm }} .portada {{ margin-top: 60mm }} .mut {{ color:#667085 }}
 </style></head><body>
 
 <div class="portada"><h1>TodoBarato AI — Despliegue y optimización de un modelo de emparejamiento de productos</h1>
@@ -85,8 +85,8 @@ y la inferencia, en el contenedor con contrato SageMaker sobre EC2 con Auto Scal
 resuelve esa zona gris con costo y latencia mucho menores y con una explicación auditable.</p>
 <div class="fig"><img src="../diagramas/png/01-arquitectura.png"><br>Figura 1. Arquitectura de componentes.</div>
 <table><tr><th>Componente</th><th>Tecnología</th><th>Por qué</th></tr>
-<tr><td>API REST</td><td>FastAPI + OpenAPI (<code>/docs</code>)</td><td>Contrato documentado automáticamente, validación con Pydantic</td></tr>
-<tr><td>Modelo</td><td>scikit-learn Random Forest, contenedor propio con contrato <code>/ping</code> + <code>/invocations</code></td><td>Mismo contenedor sirve en SageMaker o EC2; tabular + poco dato: un bosque supera a una red neuronal</td></tr>
+<tr><td>API REST</td><td>FastAPI + OpenAPI (<code>/docs</code>) (Ramírez, s. f.)</td><td>Contrato documentado automáticamente, validación con Pydantic</td></tr>
+<tr><td>Modelo</td><td>scikit-learn (Pedregosa et al., 2011) Random Forest (Breiman, 2001), contenedor propio con contrato <code>/ping</code> + <code>/invocations</code></td><td>Mismo contenedor sirve en SageMaker o EC2; tabular + poco dato: un bosque supera a una red neuronal</td></tr>
 <tr><td>Mensajería</td><td>RabbitMQ (cola durable, ack manual, DLQ)</td><td>Desacopla la ingesta del cómputo del modelo; Amazon MQ y SQS están bloqueados en el laboratorio</td></tr>
 <tr><td>Asistente</td><td>LangGraph + Gemini</td><td>Plan priorizado, herramientas, memoria (corto y largo plazo)</td></tr>
 <tr><td>Dashboard</td><td>HTML servido por la API (<code>/api/v1/ml/dashboard</code>)</td><td>Sin Node en el servidor; un solo despliegue</td></tr></table>
@@ -177,7 +177,7 @@ Escenarios automatizados con modelo guionado (<code>tests/agent/test_escenarios_
 <p>La pantalla <code>/chat</code> resume esos pasos en lenguaje simple sobre cada respuesta y, en «Detalle técnico», muestra el plan con sus prioridades y cada herramienta en orden.</p>
 
 <h2>6. Plataforma AIaaS y costos</h2>
-<p><b>SageMaker (plan A).</b> Se diseñó el modelo con el contrato de SageMaker (<code>/ping</code>, <code>/invocations</code>, artefacto <code>model.tar.gz</code> en <code>/opt/ml/model</code>). El intento real falló:
+<p><b>SageMaker (plan A).</b> Se diseñó el modelo con el contrato de SageMaker (Amazon Web Services, s. f.): <code>/ping</code>, <code>/invocations</code> y el artefacto <code>model.tar.gz</code> en <code>/opt/ml/model</code>. El intento real falló:
 <code>sagemaker:CreateModel</code> → <b>AccessDeniedException</b>; la simulación de IAM del rol del laboratorio también deniega <code>CreateEndpoint</code>, <code>iam:PassRole</code> y <code>ecr:CreateRepository</code>, y no existe un rol de ejecución
 (<code>evidencia/sagemaker-intento.txt</code>, tres sesiones entre el 16 y el 23-11, generado por <code>infra/intentar_sagemaker.sh</code>).
 <b>Solución aplicada, por indicación del docente:</b> el <b>entrenamiento gestionado</b> corre en <b>Google Colab</b> (<code>notebooks/EP3_ITY1102_Colab.ipynb</code>: datos, búsqueda de hiperparámetros, métricas, matriz de confusión y <code>model.tar.gz</code>;
@@ -216,13 +216,14 @@ El mismo notebook consume la API desplegada en AWS. Para el lenguaje natural, el
 Los límites quedan explícitos: datos sintéticos de una sola tienda sin validación con pares reales, prueba de escalado desde un único generador de carga y SageMaker bloqueado por el laboratorio, que se resolvió entrenando en Colab y sirviendo el mismo artefacto con su contrato.</p>
 
 <h2>Referencias (APA)</h2>
-<p>Breiman, L. (2001). Random forests. <i>Machine Learning, 45</i>(1), 5–32. https://doi.org/10.1023/A:1010933404324</p>
-<p>Pedregosa, F., Varoquaux, G., Gramfort, A., Michel, V., Thirion, B., Grisel, O., … Duchesnay, É. (2011). Scikit-learn: Machine learning in Python. <i>Journal of Machine Learning Research, 12</i>, 2825–2830.</p>
-<p>Amazon Web Services. (2025). <i>Amazon SageMaker developer guide: Use your own inference code with hosting services</i>. https://docs.aws.amazon.com/sagemaker/</p>
-<p>Ramírez, S. (2025). <i>FastAPI documentation</i>. https://fastapi.tiangolo.com/</p>
+<p class="ref">Amazon Web Services. (s. f.). Custom inference code with hosting services. En <i>Amazon SageMaker AI developer guide</i>. Recuperado el 25 de noviembre de 2026, de https://docs.aws.amazon.com/sagemaker/latest/dg/your-algorithms-inference-code.html</p>
+<p class="ref">Anthropic. (2026). <i>Claude Code</i> [Asistente de generación de código]. https://claude.com/product/claude-code</p>
+<p class="ref">Breiman, L. (2001). Random forests. <i>Machine Learning, 45</i>(1), 5–32. https://doi.org/10.1023/A:1010933404324</p>
+<p class="ref">Pedregosa, F., Varoquaux, G., Gramfort, A., Michel, V., Thirion, B., Grisel, O., Blondel, M., Prettenhofer, P., Weiss, R., Dubourg, V., Vanderplas, J., Passos, A., Cournapeau, D., Brucher, M., Perrot, M., &amp; Duchesnay, É. (2011). Scikit-learn: Machine learning in Python. <i>Journal of Machine Learning Research, 12</i>, 2825–2830. https://jmlr.org/papers/v12/pedregosa11a.html</p>
+<p class="ref">Ramírez, S. (s. f.). <i>FastAPI</i>. Recuperado el 25 de noviembre de 2026, de https://fastapi.tiangolo.com/</p>
 
 <h2>Declaración de uso de IA</h2>
-<p>Se utilizó Claude (Anthropic) como asistente de programación para generar y revisar código, pruebas, scripts, el notebook de Colab y la redacción de este informe. El equipo definió el problema, revisó los resultados,
+<p>Se utilizó Claude Code (Anthropic, 2026) como asistente de programación para generar y revisar código, pruebas, scripts, el notebook de Colab y la redacción de este informe. El equipo definió el problema, revisó los resultados,
 ejecutó los experimentos y es responsable del contenido. Las cifras provienen de ejecuciones reales (<code>metrics.json</code>, el notebook ejecutado y los CSV de Locust del repositorio).</p>
 </body></html>"""
 out = R / "documento/EP3_ITY1102.html"

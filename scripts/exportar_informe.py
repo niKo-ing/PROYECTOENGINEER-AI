@@ -29,6 +29,7 @@ table { border-collapse: collapse; width: 100%; font-size: 9.5pt; margin: 6pt 0;
 th, td { border: 1px solid #bbb; padding: 3pt 5pt; text-align: left; vertical-align: top } th { background: #eef1f5 }
 tr { page-break-inside: avoid } code { font: 9pt 'DejaVu Sans Mono', monospace; background: #f1f3f6; padding: 0 2pt }
 img { max-width: 100%; } blockquote { margin: 6pt 0; padding: 2pt 10pt; border-left: 3px solid #c9a227; background: #fbf7e8 }
+.ref { padding-left: 1.27cm; text-indent: -1.27cm }
 .mermaid { text-align: center; margin: 8pt 0; page-break-inside: avoid } .mermaid svg { max-height: 115mm }
 """
 
@@ -38,6 +39,11 @@ def a_html(md_path: Path) -> str:
     # Los bloques ```mermaid pasan como <div class="mermaid"> para que Mermaid los dibuje.
     texto = re.sub(r"```mermaid\n(.*?)```", lambda m: f'<div class="mermaid">\n{html.escape(m.group(1))}</div>', texto, flags=re.S)
     cuerpo = markdown.markdown(texto, extensions=["tables", "fenced_code", "sane_lists", "md_in_html"])
+    # APA 7: la lista de referencias va con sangría francesa.
+    if "<h2>Referencias</h2>" in cuerpo:
+        antes, despues = cuerpo.split("<h2>Referencias</h2>", 1)
+        seccion, _, resto = despues.partition("<h2")
+        cuerpo = antes + "<h2>Referencias</h2>" + seccion.replace("<p>", '<p class="ref">') + (_ + resto if _ else "")
     titulo = html.escape(md_path.stem)
     return f"""<!doctype html><html lang="es"><head><meta charset="utf-8"><title>{titulo}</title>
 <base href="{md_path.parent.resolve().as_uri()}/"><style>{ESTILO}</style>
