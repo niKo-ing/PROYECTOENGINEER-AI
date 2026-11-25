@@ -8,11 +8,12 @@ import { Bookmark, Bot, LogIn, MessageSquarePlus, ShieldCheck, X } from "lucide-
 import { AgentReasoning } from "@/components/agent/agent-reasoning";
 import { AgentProducts } from "@/components/agent/agent-products";
 import { AgentSaved } from "@/components/agent/agent-saved";
+import { AgentThoughts, AgentWrites } from "@/components/agent/agent-thoughts";
 import { ChatComposer } from "@/components/chat/chat-composer";
 import { MarkdownContent } from "@/components/chat/markdown-content";
 import { TypingIndicator } from "@/components/chat/typing-indicator";
 import { Button } from "@/components/ui/button";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { EMPTY_STATE, fetchAgentState, newThreadId, runAgent, type AgentRun, type AgentState } from "@/lib/api/agent";
 import { newId } from "@/lib/utils";
 import { useSession } from "@/lib/auth/use-session";
@@ -29,8 +30,6 @@ const SUGGESTIONS = [
   { title: "Recordar lo que prefiero", prompt: "Prefiero Samsung y no quiero Xiaomi. Busco un celular, presupuesto $350.000." },
 ] as const;
 
-type PanelTab = "razonamiento" | "guardado";
-
 export function AgentScreen() {
   const { session, isLoading: isLoadingSession } = useSession();
   const searchParams = useSearchParams();
@@ -46,10 +45,10 @@ export function AgentScreen() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
   const [mobileView, setMobileView] = useState<"chat" | "detalle">("chat");
-  // El panel lateral («Cómo pensó» / «Guardado») no ocupa espacio hasta que hay algo que mostrar: se abre con la primera
-  // respuesta o con el botón «Guardado», y se puede cerrar.
+  // Cada respuesta trae su resumen plegado («Pensó en N pasos»). El panel lateral con el detalle técnico (plan con
+  // prioridades, herramientas y argumentos) solo se abre a pedido, y lo guardado vive en una ventana aparte.
   const [panelOpen, setPanelOpen] = useState(false);
-  const [panelTab, setPanelTab] = useState<PanelTab>("razonamiento");
+  const [savedOpen, setSavedOpen] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
 
   const accessToken = session?.access_token;
@@ -108,8 +107,6 @@ export function AgentScreen() {
       const id = newId();
       setMessages((current) => [...current, { id, role: "assistant", text: run.answer, run }]);
       setSelectedRunId(id);
-      setPanelOpen(true);
-      setPanelTab("razonamiento");
       await refreshState();
     } catch (requestError) {
       setError(requestError instanceof Error ? requestError.message : "No fue posible consultar al agente.");
@@ -121,23 +118,19 @@ export function AgentScreen() {
   const hasConversation = messages.length > 0;
   const savedCount = state.alerts.length + state.lists.length + state.memories.length;
 
-  function openPanel(tab: PanelTab) {
-    setPanelTab(tab);
+  function openDetails(messageId: string) {
+    setSelectedRunId(messageId);
     setPanelOpen(true);
     setMobileView("detalle");
   }
 
-  function togglePanel() {
-    if (panelOpen) {
-      setPanelOpen(false);
-      setMobileView("chat");
-    } else {
-      openPanel(hasConversation ? panelTab : "guardado");
-    }
+  function closeDetails() {
+    setPanelOpen(false);
+    setMobileView("chat");
   }
 
   const savedButton = (
-    <Button type="button" variant={panelOpen ? "secondary" : "ghost"} size="sm" onClick={togglePanel} aria-pressed={panelOpen} aria-label={savedCount ? `Guardado (${savedCount})` : "Guardado"} className="gap-1.5">
+    <Button type="button" variant="ghost" size="sm" onClick={() => setSavedOpen(true)} aria-label={savedCount ? `Guardado (${savedCount})` : "Guardado"} className="gap-1.5">
       <Bookmark className="size-4" aria-hidden="true" />
       <span className="hidden sm:inline">Guardado</span>
       {savedCount ? <span className="rounded-full bg-primary/10 px-1.5 text-xs font-semibold text-primary tabular-nums">{savedCount}</span> : null}
@@ -230,20 +223,10 @@ export function AgentScreen() {
                   <div
                     className={cn("min-w-0 flex-1 [overflow-wrap:anywhere] rounded-2xl rounded-bl-md bg-muted px-4 py-3", panelOpen && selectedRunId === message.id && "ring-2 ring-primary/40")}
                   >
+                    {message.run ? <AgentThoughts run={message.run} onDetails={() => openDetails(message.id)} /> : null}
                     <MarkdownContent markdown={message.text} />
                     {message.run?.products?.length ? <AgentProducts products={message.run.products} /> : null}
-                    {message.run ? (
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setSelectedRunId(message.id);
-                          openPanel("razonamiento");
-                        }}
-                        className="mt-2 text-xs font-medium text-primary underline underline-offset-2"
-                      >
-                        Ver cómo lo pensó ({message.run.steps} pasos{message.run.replans ? `, ${message.run.replans} replan${message.run.replans > 1 ? "es" : ""}` : ""})
-                      </button>
-                    ) : null}
+                    {message.run ? <AgentWrites wrote={message.run.wrote} onOpenSaved={() => setSavedOpen(true)} /> : null}
                   </div>
                 </article>
               )
@@ -269,27 +252,31 @@ export function AgentScreen() {
       {panelOpen ? (
         <aside
           className={cn("min-h-0 min-w-0 flex-col overflow-hidden bg-muted/30 lg:flex lg:border-l motion-safe:animate-panel-in", mobileView === "detalle" ? "flex" : "hidden")}
-          aria-label="Cómo pensó el asistente y lo guardado"
+          aria-label="Detalle técnico de la respuesta"
         >
-          <Tabs value={panelTab} onValueChange={(value) => setPanelTab(value as PanelTab)} className="flex min-h-0 flex-1 flex-col">
-            <div className="m-3 flex shrink-0 items-center gap-2">
-              <TabsList className="flex-1">
-                <TabsTrigger value="razonamiento">Cómo pensó</TabsTrigger>
-                <TabsTrigger value="guardado">Guardado{savedCount ? ` (${savedCount})` : ""}</TabsTrigger>
-              </TabsList>
-              <Button type="button" variant="ghost" size="icon" onClick={togglePanel} aria-label="Cerrar el panel" className="size-9 shrink-0">
-                <X className="size-4" aria-hidden="true" />
-              </Button>
-            </div>
-            <TabsContent value="razonamiento" className="min-h-0 flex-1 overflow-y-auto motion-safe:animate-fade-in">
-              <AgentReasoning run={selectedRun} loading={isLoading} />
-            </TabsContent>
-            <TabsContent value="guardado" className="min-h-0 flex-1 overflow-y-auto motion-safe:animate-fade-in">
-              <AgentSaved state={state} />
-            </TabsContent>
-          </Tabs>
+          <div className="flex shrink-0 items-center gap-2 border-b px-4 py-2.5">
+            <h2 className="min-w-0 flex-1 text-sm font-semibold">Detalle técnico</h2>
+            <Button type="button" variant="ghost" size="icon" onClick={closeDetails} aria-label="Cerrar el detalle técnico" className="size-9 shrink-0">
+              <X className="size-4" aria-hidden="true" />
+            </Button>
+          </div>
+          <div className="min-h-0 flex-1 overflow-y-auto motion-safe:animate-fade-in">
+            <AgentReasoning run={selectedRun} loading={isLoading} />
+          </div>
         </aside>
       ) : null}
+
+      <Dialog open={savedOpen} onOpenChange={setSavedOpen}>
+        <DialogContent className="max-h-[85dvh] overflow-y-auto sm:max-w-lg">
+          <DialogHeader>
+            <DialogTitle>Guardado en tu cuenta</DialogTitle>
+            <DialogDescription>Alertas de precio, listas de compra y lo que el asistente recuerda de tus preferencias.</DialogDescription>
+          </DialogHeader>
+          <div className="-mx-4">
+            <AgentSaved state={state} />
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
