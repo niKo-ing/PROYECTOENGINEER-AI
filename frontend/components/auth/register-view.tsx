@@ -14,7 +14,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { getFriendlyAuthMessage } from "@/lib/auth/auth-errors";
-import { createSupabaseBrowserClient } from "@/lib/supabase/client";
+import { auth } from "@/lib/auth/client";
 
 const registerSchema = z
   .object({
@@ -27,8 +27,8 @@ const registerSchema = z
       .string()
       .min(1, { error: "Ingresá tu correo." })
       .pipe(z.email({ error: "El correo no es válido." })),
-    password: z.string().min(6, { error: "La contraseña debe tener al menos 6 caracteres." }),
-    confirmPassword: z.string().min(6, { error: "Confirmá tu contraseña." }),
+    password: z.string().min(8, { error: "La contraseña debe tener al menos 8 caracteres." }),
+    confirmPassword: z.string().min(8, { error: "Confirmá tu contraseña." }),
   })
   .superRefine((values, ctx) => {
     if (values.password !== values.confirmPassword) {
@@ -59,11 +59,7 @@ export function RegisterView() {
     setSubmitting(true);
     setSubmitError("");
     try {
-      const { data, error } = await createSupabaseBrowserClient().auth.signUp({
-        email: values.email,
-        password: values.password,
-        options: { data: { name: values.name } },
-      });
+      const { data, error } = await auth.signUp({ email: values.email, password: values.password, name: values.name });
       if (error) {
         setSubmitError(getFriendlyAuthMessage(error, "register"));
         return;

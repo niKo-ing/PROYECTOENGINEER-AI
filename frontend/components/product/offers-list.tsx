@@ -21,6 +21,10 @@ const CONDITION_LABELS: Record<string, string> = {
   open_box: "Open box",
 };
 
+/** Precio de referencia del armador: no viene de ninguna tienda, así que no se muestra. */
+const REFERENCE_SOURCE = "semilla-armador";
+const isReference = (offer: StoreOfferRead) => offer.source === REFERENCE_SOURCE;
+
 export function OffersList({ offers, isLoading, isError }: { offers: StoreOfferRead[] | undefined; isLoading: boolean; isError: boolean }) {
   if (isLoading) {
     return (
@@ -36,15 +40,17 @@ export function OffersList({ offers, isLoading, isError }: { offers: StoreOfferR
     return <EmptyState title="No pudimos cargar las ofertas" description="Inténtalo nuevamente en unos momentos." />;
   }
 
-  if (!offers || offers.length === 0) {
-    return <EmptyState title="No hay ofertas disponibles" description="Este producto aún no tiene ofertas en ninguna tienda." />;
+  // Solo ofertas de páginas de tiendas: el precio de referencia no se muestra.
+  const storeOffers = (offers ?? []).filter((offer) => !isReference(offer));
+  if (storeOffers.length === 0) {
+    return <EmptyState title="Aún no hay tiendas con stock" description="Ninguna tienda chilena tiene este producto disponible por ahora." />;
   }
 
-  const lowest = Math.min(...offers.map((offer) => offer.price));
+  const lowest = Math.min(...storeOffers.map((offer) => offer.price));
 
   return (
     <ul className="space-y-3">
-      {offers.map((offer) => {
+      {storeOffers.map((offer) => {
         const isLowest = offer.price === lowest;
         const discount = discountPercent(offer.original_price, offer.price);
         const available = availabilityLabel(offer.stock_status, offer.availability);
@@ -87,7 +93,7 @@ export function OffersList({ offers, isLoading, isError }: { offers: StoreOfferR
             </div>
 
             <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-muted-foreground">
-              <span className={`flex items-center gap-1 font-medium ${isAvailable ? "text-emerald-600" : "text-rose-600"}`}>
+              <span className={`flex items-center gap-1 font-medium ${isAvailable ? "text-emerald-600 dark:text-emerald-400" : "text-rose-600 dark:text-rose-400"}`}>
                 {isAvailable ? <CheckCircle2 className="h-4 w-4" /> : <XCircle className="h-4 w-4" />}
                 {available}
               </span>

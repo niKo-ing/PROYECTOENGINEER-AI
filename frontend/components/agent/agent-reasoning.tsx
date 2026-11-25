@@ -13,6 +13,8 @@ const REASON_LABELS: Record<string, string> = {
   sin_stock: "Sin stock",
   precio_alto: "Precio alto según el historial",
   error_herramienta: "Falló una herramienta",
+  piezas_incompatibles: "Piezas incompatibles",
+  armado_fuera_de_presupuesto: "El equipo se pasa del presupuesto",
 };
 
 const TOOL_LABELS: Record<string, string> = {
@@ -27,9 +29,17 @@ const TOOL_LABELS: Record<string, string> = {
   create_price_alert: "Crear alerta",
   save_shopping_list: "Guardar lista",
   remember_preference: "Recordar preferencia",
+  search_pc_parts: "Buscar piezas",
+  check_pc_compatibility: "Revisar compatibilidad",
+  recommend_pc_build: "Armar PC",
+  suggest_pc_upgrade: "Sugerir mejora",
+  list_my_pcs: "Mis computadores",
+  save_pc_build: "Guardar PC",
+  search_compatibility_guide: "Guías de compatibilidad",
+  research_part_web: "Buscar en la web",
 };
 
-const WRITE_TOOLS = new Set(["create_price_alert", "save_shopping_list", "remember_preference"]);
+const WRITE_TOOLS = new Set(["create_price_alert", "save_shopping_list", "remember_preference", "save_pc_build"]);
 
 export function toolLabel(tool: string): string {
   return TOOL_LABELS[tool] ?? tool;
@@ -55,7 +65,7 @@ function Row({ icon, tone = "default", index = 0, children }: { icon: ReactNode;
         tone === "default" && "bg-muted/40 text-foreground"
       )}
     >
-      <span className={cn("mt-0.5 shrink-0", tone === "warn" ? "text-amber-600" : "text-primary")} aria-hidden="true">
+      <span className={cn("mt-0.5 shrink-0", tone === "warn" ? "text-amber-600 dark:text-amber-400" : "text-primary")} aria-hidden="true">
         {icon}
       </span>
       <div className="min-w-0 flex-1 [overflow-wrap:anywhere]">{children}</div>
@@ -68,7 +78,7 @@ function EventRow({ event, index }: { event: TraceEvent; index: number }) {
     case "recall":
       return (
         <Row index={index} icon={<Database className="size-4" />}>
-          <p className="font-medium">Recordó {event.memories.length === 0 ? "nada relevante" : `${event.memories.length} cosa${event.memories.length > 1 ? "s" : ""}`}</p>
+          <p className="font-medium">{event.memories.length === 0 ? "No había nada relevante en su memoria" : `Recordó ${event.memories.length} cosa${event.memories.length > 1 ? "s" : ""}`}</p>
           {event.budget_clp ? <p className="text-xs text-muted-foreground">Presupuesto detectado: ${event.budget_clp.toLocaleString("es-CL")}</p> : null}
         </Row>
       );
@@ -200,7 +210,7 @@ export function AgentReasoning({ run, loading = false }: { run: AgentRun | null;
               ) : (
                 <Circle className="mt-0.5 size-4 shrink-0 text-muted-foreground/50" aria-label="pendiente" />
               )}
-              <span className={cn("min-w-0 flex-1 [overflow-wrap:anywhere]", step.status === "hecho" ? "text-foreground" : "text-muted-foreground")}>{step.action}</span>
+              <span className={cn("min-w-0 flex-1 [overflow-wrap:anywhere]", step.status === "hecho" ? "text-foreground" : "text-muted-foreground")}>{toolLabel(step.action)}</span>
               <span className="shrink-0 rounded-full bg-muted px-1.5 py-0.5 text-[10px] font-medium text-muted-foreground">P{step.priority}</span>
             </li>
           ))}

@@ -1,0 +1,43 @@
+# Pila completa en UNA instancia EC2: API + dashboard (puerto 80), frontend (puerto 3000), modelo, worker y RabbitMQ.
+# Los secretos de la app (GEMINI_API_KEY, AUTH_JWT_SECRET, ADMIN_EMAILS) llegan en secretos.env, que desplegar.sh deja
+# en la instancia desde el bucket privado; no están en el repositorio.
+services:
+  rabbitmq:
+    image: rabbitmq:3.13-management
+    restart: unless-stopped
+    healthcheck: { test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"], interval: 10s, timeout: 5s, retries: 10 }
+  modelo:
+    build: { context: ../.., dockerfile: EP3_ITY1102/modelo/Dockerfile }
+    restart: unless-stopped
+  backend:
+    build: { context: ../.., dockerfile: Dockerfile }
+    restart: unless-stopped
+    ports: ["80:8000"]
+    environment: &env
+      # Sin DATABASE_URL en secretos.env, SQLite en el volumen (se pierde cuando el laboratorio limpia la cuenta);
+      # con la cadena del Session pooler de Supabase, los datos quedan fuera del laboratorio.
+      DATABASE_URL: ${DATABASE_URL:-sqlite:////data/ep3.db}
+      RABBITMQ_URL: amqp://guest:guest@rabbitmq:5672/%2F
+      MATCH_MODEL_URL: http://modelo:8080
+      ML_API_KEYS: ${ML_API_KEYS}
+      ML_RATE_LIMIT_PER_MINUTE: "600"   # por llave
+      INGESTION_SCHEDULER_ENABLED: "false"
+      PC_CATALOGO: solotodo   # el armador usa solo productos de SoloTodo con precios de tiendas reales (la API los sincroniza)
+      APP_ENV: production
+      GEMINI_MODEL: ${GEMINI_MODEL:-gemini-3.5-flash-lite}   # sin modelo, el asistente responde solo con reglas
+    env_file: [{ path: secretos.env, required: false }]
+    volumes: ["datos:/data"]
+    depends_on: { rabbitmq: { condition: service_healthy }, modelo: { condition: service_started } }
+  worker:
+    build: { context: ../.., dockerfile: Dockerfile }
+    restart: unless-stopped
+    command: python -m app.messaging.match_worker
+    environment: *env
+    volumes: ["datos:/data"]
+    depends_on: { rabbitmq: { condition: service_healthy }, backend: { condition: service_started } }
+  frontend:
+    build: { context: ../../frontend, args: { BACKEND_URL: "http://backend:8000" } }
+    restart: unless-stopped
+    ports: ["3000:3000"]
+    depends_on: { backend: { condition: service_started } }
+volumes: { datos: {} }

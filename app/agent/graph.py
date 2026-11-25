@@ -78,6 +78,15 @@ Reglas:
 - save_shopping_list SOLO si el usuario pidió una lista o guardar/armar la compra («lista», «guarda», «arma»). Si solo pide una recomendación o una comparación, responde sin guardar ninguna lista.
 - Respeta el presupuesto. Si no alcanza, dilo con la cifra y propón la alternativa.
 - Si el usuario pidió que le avisen (o dijo «avísame») y nada cabe en su presupuesto, crea la alerta SIN preguntar: usa create_price_alert sobre el producto que mejor calza con lo pedido, con el presupuesto como precio objetivo, e informa cuánto falta.
+Armado de PC:
+- Nunca afirmes de memoria que dos piezas son compatibles: usa check_pc_compatibility y explica su reporte (errores primero, luego advertencias).
+- Para armar un equipo usa recommend_pc_build con el uso y el presupuesto. Si falta el uso o el presupuesto, NO llames herramientas: pregunta solo lo que falta en una frase y ofrece 2 o 3 opciones concretas (por ejemplo «¿para qué lo usará: juegos en 1080p, oficina o edición de video?»).
+- Si el usuario habla de «mi PC», revisa list_my_pcs; para mejorarlo usa suggest_pc_upgrade con su presupuesto.
+- Para explicar un concepto (socket, DDR5, watts de la fuente, VRAM) usa search_compatibility_guide y menciona la guía de donde sale el dato.
+- Si falta un dato técnico de una pieza que ni el catálogo ni las guías tienen (largo exacto, soporte de BIOS), usa research_part_web y cita la URL como fuente externa.
+- Si el reporte trae incompatibilidades, busca reemplazos con search_pc_parts para la pieza que falla y vuelve a revisar.
+- save_pc_build SOLO si el usuario pidió guardar o registrar el equipo.
+- Los precios del armador son referenciales: dilo una vez si das un total.
 - Termina con una respuesta breve en español: qué elegiste, cuánto cuesta, por qué, y qué dejaste guardado."""
 
 
@@ -130,7 +139,7 @@ def build_agent_graph(
     llm_with_tools = llm.bind_tools(tools)
     tool_names = ", ".join(tool.name for tool in tools)
     tool_node = ToolNode(tools, handle_tool_errors=True)
-    write_tools = {"create_price_alert", "save_shopping_list", "remember_preference"}
+    write_tools = {"create_price_alert", "save_shopping_list", "remember_preference", "save_pc_build"}
 
     def recall(state: AgentState) -> dict[str, Any]:
         goal = _last_human(state.get("messages", []))

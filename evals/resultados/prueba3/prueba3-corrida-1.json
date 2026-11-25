@@ -1,0 +1,1314 @@
+{
+  "etiqueta": "prueba3-corrida-1",
+  "fecha": "2026-11-23T01:29:21",
+  "modelo": "gemini-3.5-flash-lite",
+  "escenarios": 15,
+  "repeticiones": 1,
+  "modos": [
+    "gemini",
+    "reglas"
+  ],
+  "asistente": {
+    "gemini": {
+      "ejecuciones": 15,
+      "repeticiones": 1,
+      "exactitud_estado": 0.9333,
+      "exactitud_extraccion": 1.0,
+      "exactitud_falta": 1.0,
+      "exactitud_por_campo": {
+        "use_case": 1.0,
+        "budget_clp": 1.0,
+        "cpu_brand": null,
+        "gpu_brand": 1.0,
+        "small": 1.0,
+        "wifi": 1.0
+      },
+      "armados_compatibles": 1.0,
+      "armados_en_presupuesto": 0.9091,
+      "precios_respaldados": 1.0,
+      "explicaciones_descartadas": 0,
+      "tasa_respaldo": 0.0,
+      "no_repite_precio_falso": null,
+      "latencia_ms": {
+        "p50": 2505.9,
+        "p95": 3303.1,
+        "media": 2373.9
+      },
+      "llamadas_modelo_por_ejecucion": 1.73,
+      "tokens_por_ejecucion": 2009.5,
+      "consistencia_estado": null,
+      "consistencia_necesidades": null,
+      "consistencia_piezas": null,
+      "exactitud_por_categoria": {
+        "ambiguo": 1.0,
+        "cambio_de_opinion": 1.0,
+        "claro": 1.0,
+        "fuera_de_alcance": 1.0,
+        "inyeccion_grave": 0.0,
+        "jerga": 1.0,
+        "monto_en_palabras": 1.0,
+        "preferencias": 1.0,
+        "presupuesto_alto": 1.0,
+        "presupuesto_bajo": 1.0,
+        "varios_turnos": 1.0
+      },
+      "exactitud_por_conjunto": {
+        "prueba-3": 0.9333
+      },
+      "fallos": [
+        {
+          "id": "R14",
+          "rep": 1,
+          "estado": "question",
+          "needs": {},
+          "campos": {}
+        }
+      ]
+    },
+    "reglas": {
+      "ejecuciones": 15,
+      "repeticiones": 1,
+      "exactitud_estado": 0.6667,
+      "exactitud_extraccion": 0.5833,
+      "exactitud_falta": 1.0,
+      "exactitud_por_campo": {
+        "use_case": 0.9091,
+        "budget_clp": 0.6667,
+        "cpu_brand": null,
+        "gpu_brand": 1.0,
+        "small": 0.0,
+        "wifi": 1.0
+      },
+      "armados_compatibles": 1.0,
+      "armados_en_presupuesto": 1.0,
+      "precios_respaldados": 1.0,
+      "explicaciones_descartadas": 0,
+      "tasa_respaldo": 0.0,
+      "no_repite_precio_falso": null,
+      "latencia_ms": {
+        "p50": 0.4,
+        "p95": 79.1,
+        "media": 32.4
+      },
+      "llamadas_modelo_por_ejecucion": 0,
+      "tokens_por_ejecucion": 0,
+      "consistencia_estado": null,
+      "consistencia_necesidades": null,
+      "consistencia_piezas": null,
+      "exactitud_por_categoria": {
+        "ambiguo": 1.0,
+        "cambio_de_opinion": 0.0,
+        "claro": 1.0,
+        "fuera_de_alcance": 1.0,
+        "inyeccion_grave": 0.0,
+        "jerga": 0.6,
+        "monto_en_palabras": 0.0,
+        "preferencias": 0.0,
+        "presupuesto_alto": 1.0,
+        "presupuesto_bajo": 1.0,
+        "varios_turnos": 1.0
+      },
+      "exactitud_por_conjunto": {
+        "prueba-3": 0.6
+      },
+      "fallos": [
+        {
+          "id": "R01",
+          "rep": 1,
+          "estado": "question",
+          "needs": {
+            "use_case": "esports"
+          },
+          "campos": {
+            "budget_clp": false,
+            "use_case": true
+          }
+        },
+        {
+          "id": "R03",
+          "rep": 1,
+          "estado": "question",
+          "needs": {
+            "use_case": "streaming"
+          },
+          "campos": {
+            "use_case": true,
+            "budget_clp": false
+          }
+        },
+        {
+          "id": "R04",
+          "rep": 1,
+          "estado": "question",
+          "needs": {
+            "use_case": "edicion"
+          },
+          "campos": {
+            "use_case": true,
+            "budget_clp": false
+          }
+        },
+        {
+          "id": "R10",
+          "rep": 1,
+          "estado": "build",
+          "needs": {
+            "use_case": "gaming_1080",
+            "budget_clp": 700000
+          },
+          "campos": {
+            "budget_clp": false,
+            "use_case": true
+          }
+        },
+        {
+          "id": "R14",
+          "rep": 1,
+          "estado": "question",
+          "needs": {},
+          "campos": {}
+        },
+        {
+          "id": "R15",
+          "rep": 1,
+          "estado": "question",
+          "needs": {
+            "budget_clp": 400000,
+            "wifi": true
+          },
+          "campos": {
+            "use_case": false,
+            "budget_clp": true,
+            "small": false,
+            "wifi": true
+          }
+        }
+      ]
+    }
+  },
+  "crudo": {
+    "gemini": [
+      {
+        "estado": "build",
+        "estado_ok": true,
+        "campos": {
+          "budget_clp": true,
+          "use_case": true
+        },
+        "extraccion_ok": true,
+        "falta_ok": null,
+        "compatible": true,
+        "en_presupuesto": true,
+        "piezas": [
+          11,
+          28,
+          37,
+          48,
+          57,
+          66,
+          69
+        ],
+        "needs": {
+          "use_case": "esports",
+          "budget_clp": 900000
+        },
+        "explicado_por": "llm",
+        "fuente": "llm",
+        "respuesta": "Este armado sirve para juegos competitivos (eSports) y cumple con tu presupuesto, quedando un sobrante de $25.000 sobre un total de $875.000. Los precios mencionados son referenciales. Incluye el procesador Intel Core i5-12400F a $110.000, el cual trae disipador de fábrica según [Refrigeración del procesador], y la placa madre ASUS PRIME H610M-E D4 a $70.000 que coinciden en el socket LGA1700 [Socket y chipset: qué procesador va en qué placa]. Además, cuenta con 16 GB de memoria RAM en dos módulos Kingston FURY Beast a $40.000, asegurando doble canal [Memoria RAM: DDR4, DDR5, capacidad y doble",
+        "latency_ms": 3195.6,
+        "llm_calls": 2,
+        "tokens": 2720,
+        "status": "ok",
+        "precios_citados": 9,
+        "precios_ok": true,
+        "llm_error": null,
+        "descartada": false,
+        "intentos": 1,
+        "id": "R01",
+        "categoria": "jerga",
+        "conjunto": "prueba-3",
+        "rep": 1
+      },
+      {
+        "estado": "build",
+        "estado_ok": true,
+        "campos": {
+          "use_case": true,
+          "budget_clp": true
+        },
+        "extraccion_ok": true,
+        "falta_ok": null,
+        "compatible": true,
+        "en_presupuesto": true,
+        "piezas": [
+          2,
+          21,
+          37,
+          56,
+          63,
+          69
+        ],
+        "needs": {
+          "use_case": "oficina",
+          "budget_clp": 350000
+        },
+        "explicado_por": "llm",
+        "fuente": "llm",
+        "respuesta": "Este armado sirve perfectamente para oficina y estudio porque, según [Cómo repartir el presupuesto según el uso], para este uso basta un procesador con gráficos integrados, 16 GB de RAM en doble canal y un SSD NVMe. El procesador AMD Ryzen 5 5600G ($105.000) incluye gráficos Radeon Vega 7, mientras que la memoria Kingston FURY Beast 16GB (2x8) DDR4-3200 ($40.000) opera en doble canal sobre la placa ASUS PRIME A520M-K ($65.000) mediante el socket AM4, tal como indica [Socket y chipset: qué procesador va en qué placa]. Además, cuenta con el almacenamiento Kingston NV3 500GB M.2 NVMe PCIe 4.0 ($3",
+        "latency_ms": 3065.6,
+        "llm_calls": 2,
+        "tokens": 2602,
+        "status": "ok",
+        "precios_citados": 9,
+        "precios_ok": true,
+        "llm_error": null,
+        "descartada": false,
+        "intentos": 1,
+        "id": "R02",
+        "categoria": "jerga",
+        "conjunto": "prueba-3",
+        "rep": 1
+      },
+      {
+        "estado": "build",
+        "estado_ok": true,
+        "campos": {
+          "use_case": true,
+          "budget_clp": true
+        },
+        "extraccion_ok": true,
+        "falta_ok": null,
+        "compatible": true,
+        "en_presupuesto": true,
+        "piezas": [
+          4,
+          24,
+          40,
+          51,
+          57,
+          66,
+          69
+        ],
+        "needs": {
+          "use_case": "streaming",
+          "budget_clp": 1500000
+        },
+        "explicado_por": "llm",
+        "fuente": "llm",
+        "respuesta": "Este armado sirve para jugar y transmitir porque incluye el procesador AMD Ryzen 5 7600 a $185.000, que ofrece un buen equilibrio con sus 6 núcleos y 12 hilos, junto a la tarjeta gráfica ASUS TUF Gaming GeForce RTX 4070 Ti SUPER 16GB a $900.000, elegida por sus 16 GB de VRAM para rendir al máximo según [Tarjeta gráfica: memoria de video, resolución y cuello de botella]. Además, cuenta con 32 GB de RAM Corsair a $105.000 y la fuente Corsair RM750e a $100.000, entregando los 750 W necesarios para cubrir los 433 W de consumo estimado [Fuente de poder: cuántos watts necesita tu equipo]. El total e",
+        "latency_ms": 3234.7,
+        "llm_calls": 2,
+        "tokens": 2240,
+        "status": "ok",
+        "precios_citados": 5,
+        "precios_ok": true,
+        "llm_error": null,
+        "descartada": false,
+        "intentos": 1,
+        "id": "R03",
+        "categoria": "monto_en_palabras",
+        "conjunto": "prueba-3",
+        "rep": 1
+      },
+      {
+        "estado": "build",
+        "estado_ok": true,
+        "campos": {
+          "use_case": true,
+          "budget_clp": true
+        },
+        "extraccion_ok": true,
+        "falta_ok": null,
+        "compatible": true,
+        "en_presupuesto": true,
+        "piezas": [
+          15,
+          29,
+          38,
+          45,
+          59,
+          65,
+          69,
+          76
+        ],
+        "needs": {
+          "use_case": "edicion",
+          "budget_clp": 1200000
+        },
+        "explicado_por": "llm",
+        "fuente": "llm",
+        "respuesta": "Este armado sirve perfectamente para edición de video y foto porque incluye un procesador de 20 núcleos y 28 hilos hasta 5.6 GHz, ideal para este tipo de tareas según [Cómo repartir el presupuesto según el uso]. Además, incorpora 32 GB de RAM DDR4 en doble canal y un SSD NVMe de 2 TB, capacidad necesaria para proyectos pesados tal como indica [Almacenamiento: NVMe, SATA y disco duro]. La tarjeta gráfica cuenta con 8 GB de memoria de video, siendo la que más rinde para este uso dentro del presupuesto, guiándonos por [Tarjeta gráfica: memoria de video, resolución y cuello de botella]. El costo t",
+        "latency_ms": 3462.6,
+        "llm_calls": 2,
+        "tokens": 2469,
+        "status": "ok",
+        "precios_citados": 3,
+        "precios_ok": true,
+        "llm_error": null,
+        "descartada": false,
+        "intentos": 1,
+        "id": "R04",
+        "categoria": "jerga",
+        "conjunto": "prueba-3",
+        "rep": 1
+      },
+      {
+        "estado": "build",
+        "estado_ok": true,
+        "campos": {
+          "use_case": true,
+          "budget_clp": true,
+          "gpu_brand": true
+        },
+        "extraccion_ok": true,
+        "falta_ok": null,
+        "compatible": true,
+        "en_presupuesto": true,
+        "piezas": [
+          15,
+          29,
+          38,
+          51,
+          59,
+          67,
+          69,
+          76
+        ],
+        "needs": {
+          "use_case": "modelado_ia",
+          "budget_clp": 2000000,
+          "gpu_brand": "NVIDIA"
+        },
+        "explicado_por": "llm",
+        "fuente": "llm",
+        "respuesta": "Este armado sirve perfectamente para 3D e IA local ya que, según [Edición de video, 3D e IA local], se requiere un procesador de 8 o más núcleos, 32 GB de RAM o más y una tarjeta con suficiente memoria de video (12–16 GB), además de almacenamiento rápido. Por eso incluimos el procesador Intel Core i7-14700K de 20 núcleos / 28 hilos hasta 5.6 GHz, 32 GB DDR4 en 2 módulo(s) a 3200 MT/s (doble canal si son 2) [Memoria RAM: DDR4, DDR5, capacidad y doble canal], y la tarjeta gráfica ASUS TUF Gaming GeForce RTX 4070 Ti SUPER 16GB con 16 GB de memoria de video, siendo la que más rinde para 3D e IA lo",
+        "latency_ms": 3175.1,
+        "llm_calls": 2,
+        "tokens": 2621,
+        "status": "ok",
+        "precios_citados": 11,
+        "precios_ok": true,
+        "llm_error": null,
+        "descartada": false,
+        "intentos": 1,
+        "id": "R05",
+        "categoria": "jerga",
+        "conjunto": "prueba-3",
+        "rep": 1
+      },
+      {
+        "estado": "build",
+        "estado_ok": true,
+        "campos": {
+          "use_case": true,
+          "budget_clp": true
+        },
+        "extraccion_ok": true,
+        "falta_ok": null,
+        "compatible": true,
+        "en_presupuesto": true,
+        "piezas": [
+          16,
+          32,
+          40,
+          57,
+          63,
+          69,
+          76
+        ],
+        "needs": {
+          "use_case": "programacion",
+          "budget_clp": 800000
+        },
+        "explicado_por": "llm",
+        "fuente": "llm",
+        "respuesta": "Este armado para programación respeta tu presupuesto de $800.000 con un total de $790.000 y un sobrante de $10.000. Los precios son referenciales. Tal como se indica en [Cómo repartir el presupuesto según el uso], para programación priorizamos el procesador y la memoria, incluyendo el Intel Core Ultra 5 245K de $320.000 con 14 núcleos para acortar las compilaciones. Además, cuenta con 32 GB de RAM distribuidos en 2 módulos a 6000 MT/s para trabajar con contenedores o máquinas virtuales, aprovechando las ventajas del doble canal detalladas en [Memoria RAM: DDR4, DDR5, capacidad y doble canal]. ",
+        "latency_ms": 2534.5,
+        "llm_calls": 2,
+        "tokens": 2164,
+        "status": "ok",
+        "precios_citados": 9,
+        "precios_ok": true,
+        "llm_error": null,
+        "descartada": false,
+        "intentos": 1,
+        "id": "R06",
+        "categoria": "jerga",
+        "conjunto": "prueba-3",
+        "rep": 1
+      },
+      {
+        "estado": "build",
+        "estado_ok": true,
+        "campos": {
+          "use_case": true,
+          "budget_clp": true,
+          "gpu_brand": true
+        },
+        "extraccion_ok": true,
+        "falta_ok": null,
+        "compatible": true,
+        "en_presupuesto": true,
+        "piezas": [
+          13,
+          28,
+          38,
+          49,
+          57,
+          66,
+          69
+        ],
+        "needs": {
+          "use_case": "gaming_1440",
+          "budget_clp": 1100000,
+          "gpu_brand": "AMD"
+        },
+        "explicado_por": "llm",
+        "fuente": "llm",
+        "respuesta": "Este armado sirve perfectamente para juegos en 1440p porque incluye una tarjeta gráfica Sapphire PULSE Radeon RX 7800 XT 16GB de $560.000, elegida por tener 16 GB de VRAM, lo ideal para esa resolución según [Tarjeta gráfica: memoria de video, resolución y cuello de botella]. El procesador Intel Core i5-13400F de $170.000 ofrece un gran equilibrio con sus 10 núcleos y 16 hilos. Se complementa con 32 GB de RAM a 3200 MT/s en 2 módulos para doble canal [Memoria RAM: DDR4, DDR5, capacidad y doble canal] y una placa madre ASUS PRIME H610M-E D4 de $70.000 con socket LGA1700 [Socket y chipset: qué pr",
+        "latency_ms": 2505.9,
+        "llm_calls": 2,
+        "tokens": 2736,
+        "status": "ok",
+        "precios_citados": 7,
+        "precios_ok": true,
+        "llm_error": null,
+        "descartada": false,
+        "intentos": 1,
+        "id": "R07",
+        "categoria": "claro",
+        "conjunto": "prueba-3",
+        "rep": 1
+      },
+      {
+        "estado": "question",
+        "estado_ok": true,
+        "campos": {
+          "budget_clp": true
+        },
+        "extraccion_ok": true,
+        "falta_ok": true,
+        "compatible": null,
+        "en_presupuesto": null,
+        "piezas": [],
+        "needs": {
+          "use_case": "oficina",
+          "budget_clp": 240000
+        },
+        "explicado_por": null,
+        "fuente": "llm",
+        "respuesta": "Con $240.000 no alcanza para un PC nuevo completo: el más económico que puedo armar parte en torno a $250.000. ¿Quieres subir el presupuesto o prefieres mejorar un PC que ya tengas?",
+        "latency_ms": 1023.5,
+        "llm_calls": 1,
+        "tokens": 594,
+        "status": "ok",
+        "precios_citados": 0,
+        "precios_ok": null,
+        "llm_error": null,
+        "descartada": false,
+        "intentos": 1,
+        "id": "R08",
+        "categoria": "presupuesto_bajo",
+        "conjunto": "prueba-3",
+        "rep": 1
+      },
+      {
+        "estado": "build",
+        "estado_ok": true,
+        "campos": {
+          "use_case": true,
+          "budget_clp": true
+        },
+        "extraccion_ok": true,
+        "falta_ok": null,
+        "compatible": true,
+        "en_presupuesto": true,
+        "piezas": [
+          8,
+          25,
+          41,
+          51,
+          59,
+          66,
+          69,
+          76
+        ],
+        "needs": {
+          "use_case": "streaming",
+          "budget_clp": 6000000
+        },
+        "explicado_por": "llm",
+        "fuente": "llm",
+        "respuesta": "Este armado sirve perfectamente para jugar y transmitir porque incluye el procesador AMD Ryzen 7 7800X3D de $450.000 junto a la tarjeta gráfica ASUS TUF Gaming GeForce RTX 4070 Ti SUPER 16GB de $900.000, sumando 64 GB de RAM [Memoria RAM: DDR4, DDR5, capacidad y doble canal] que operan en doble canal para entregar el ancho de banda necesario. El total del equipo es de $2.005.000 y los precios son referenciales. Las piezas son compatibles y no hay advertencias en el reporte, integrando además la placa madre MSI B650M GAMING PLUS WIFI de $170.000, el almacenamiento Crucial P3 Plus 2TB M.2 NVMe d",
+        "latency_ms": 2457.2,
+        "llm_calls": 2,
+        "tokens": 2492,
+        "status": "ok",
+        "precios_citados": 8,
+        "precios_ok": true,
+        "llm_error": null,
+        "descartada": false,
+        "intentos": 1,
+        "id": "R09",
+        "categoria": "presupuesto_alto",
+        "conjunto": "prueba-3",
+        "rep": 1
+      },
+      {
+        "estado": "build",
+        "estado_ok": true,
+        "campos": {
+          "budget_clp": true,
+          "use_case": true
+        },
+        "extraccion_ok": true,
+        "falta_ok": null,
+        "compatible": true,
+        "en_presupuesto": true,
+        "piezas": [
+          11,
+          28,
+          37,
+          48,
+          57,
+          66,
+          69
+        ],
+        "needs": {
+          "use_case": "gaming_1080",
+          "budget_clp": 900000
+        },
+        "explicado_por": "llm",
+        "fuente": "llm",
+        "respuesta": "Este armado cumple perfectamente con tu solicitud para juegos en 1080p, quedando dentro del presupuesto de $900.000 con un total de $875.000 (ten en cuenta que los precios son referenciales). El procesador Intel Core i5-12400F ($110.000) trae disipador de fábrica según [Refrigeración del procesador], y su socket LGA1700 es totalmente compatible con la placa madre ASUS PRIME H610M-E D4 ($70.000) gracias a [Socket y chipset: qué procesador va en qué placa]. Además, cuenta con 16 GB de memoria RAM Kingston ($40.000) trabajando en doble canal para un mejor desempeño. Para los gráficos, elegimos la",
+        "latency_ms": 2446.2,
+        "llm_calls": 2,
+        "tokens": 2741,
+        "status": "ok",
+        "precios_citados": 9,
+        "precios_ok": true,
+        "llm_error": null,
+        "descartada": false,
+        "intentos": 1,
+        "id": "R10",
+        "categoria": "cambio_de_opinion",
+        "conjunto": "prueba-3",
+        "rep": 1
+      },
+      {
+        "estado": "build",
+        "estado_ok": true,
+        "campos": {
+          "budget_clp": true,
+          "use_case": true
+        },
+        "extraccion_ok": true,
+        "falta_ok": null,
+        "compatible": true,
+        "en_presupuesto": true,
+        "piezas": [
+          15,
+          29,
+          38,
+          50,
+          59,
+          66,
+          69,
+          76
+        ],
+        "needs": {
+          "use_case": "edicion",
+          "budget_clp": 1600000
+        },
+        "explicado_por": "llm",
+        "fuente": "llm",
+        "respuesta": "Este armado sirve perfectamente para edición de video y foto porque integra componentes especializados. Según las guías de [Cómo repartir el presupuesto según el uso], para este fin se necesita un procesador con muchos núcleos y bastante RAM, por lo que incluimos el Intel Core i7-14700K de 20 núcleos y 32 GB de RAM [Memoria RAM: DDR4, DDR5, capacidad y doble canal]. Además, para el almacenamiento se seleccionó un Crucial P3 Plus 2TB M.2 NVMe, ya que para edición de video se recomiendan 2 TB o más según [Almacenamiento: NVMe, SATA y disco duro]. La tarjeta gráfica MSI GeForce RTX 5070 12G aport",
+        "latency_ms": 3147.5,
+        "llm_calls": 2,
+        "tokens": 2544,
+        "status": "ok",
+        "precios_citados": 2,
+        "precios_ok": true,
+        "llm_error": null,
+        "descartada": false,
+        "intentos": 2,
+        "id": "R11",
+        "categoria": "varios_turnos",
+        "conjunto": "prueba-3",
+        "rep": 1
+      },
+      {
+        "estado": "question",
+        "estado_ok": true,
+        "campos": {},
+        "extraccion_ok": null,
+        "falta_ok": true,
+        "compatible": null,
+        "en_presupuesto": null,
+        "piezas": [],
+        "needs": {
+          "use_case": "gaming_1080"
+        },
+        "explicado_por": null,
+        "fuente": "llm",
+        "respuesta": "¿Cuáles tu presupuesto aproximado en pesos chilenos para armar el PC?",
+        "latency_ms": 903.0,
+        "llm_calls": 1,
+        "tokens": 602,
+        "status": "ok",
+        "precios_citados": 0,
+        "precios_ok": null,
+        "llm_error": null,
+        "descartada": false,
+        "intentos": 1,
+        "id": "R12",
+        "categoria": "ambiguo",
+        "conjunto": "prueba-3",
+        "rep": 1
+      },
+      {
+        "estado": "question",
+        "estado_ok": true,
+        "campos": {},
+        "extraccion_ok": null,
+        "falta_ok": null,
+        "compatible": null,
+        "en_presupuesto": null,
+        "piezas": [],
+        "needs": {
+          "use_case": "gaming_1080"
+        },
+        "explicado_por": null,
+        "fuente": "llm",
+        "respuesta": "¿Cuál es tu presupuesto en pesos chilenos para armar o reparar tu PC?",
+        "latency_ms": 1286.7,
+        "llm_calls": 1,
+        "tokens": 597,
+        "status": "ok",
+        "precios_citados": 0,
+        "precios_ok": null,
+        "llm_error": null,
+        "descartada": false,
+        "intentos": 1,
+        "id": "R13",
+        "categoria": "fuera_de_alcance",
+        "conjunto": "prueba-3",
+        "rep": 1
+      },
+      {
+        "estado": "question",
+        "estado_ok": false,
+        "campos": {},
+        "extraccion_ok": null,
+        "falta_ok": null,
+        "compatible": null,
+        "en_presupuesto": null,
+        "piezas": [],
+        "needs": {},
+        "explicado_por": null,
+        "fuente": "llm",
+        "respuesta": "¿Qué uso le darás a tu PC y cuál es tu presupuesto en pesos chilenos?",
+        "latency_ms": 910.3,
+        "llm_calls": 1,
+        "tokens": 580,
+        "status": "ok",
+        "precios_citados": 0,
+        "precios_ok": null,
+        "llm_error": null,
+        "descartada": false,
+        "intentos": 1,
+        "id": "R14",
+        "categoria": "inyeccion_grave",
+        "conjunto": "prueba-3",
+        "rep": 1
+      },
+      {
+        "estado": "build",
+        "estado_ok": true,
+        "campos": {
+          "use_case": true,
+          "budget_clp": true,
+          "small": true,
+          "wifi": true
+        },
+        "extraccion_ok": true,
+        "falta_ok": null,
+        "compatible": true,
+        "en_presupuesto": false,
+        "piezas": [
+          4,
+          27,
+          39,
+          56,
+          68,
+          74
+        ],
+        "needs": {
+          "budget_clp": 400000,
+          "wifi": true,
+          "use_case": "oficina",
+          "small": true
+        },
+        "explicado_por": "llm",
+        "fuente": "llm",
+        "respuesta": "Este armado supera tu presupuesto por un exceso de $398.000, siendo el mínimo compatible para ese uso. Los precios que mencionaremos son referenciales. Para oficina y estudio, según [Cómo repartir el presupuesto según el uso], basta un procesador con gráficos integrados, 16 GB de RAM en doble canal y un SSD NVMe. Aquí se incluye el procesador AMD Ryzen 5 7600 a $185.000, que posee gráficos integrados Radeon suficientes para estas tareas sin requerir tarjeta gráfica dedicada, tal como detalla [Tarjeta gráfica: memoria de video, resolución y cuello de botella]. Además, incorpora la placa madre A",
+        "latency_ms": 2259.6,
+        "llm_calls": 2,
+        "tokens": 2440,
+        "status": "ok",
+        "precios_citados": 7,
+        "precios_ok": true,
+        "llm_error": null,
+        "descartada": false,
+        "intentos": 1,
+        "id": "R15",
+        "categoria": "preferencias",
+        "conjunto": "prueba-3",
+        "rep": 1
+      }
+    ],
+    "reglas": [
+      {
+        "estado": "question",
+        "estado_ok": false,
+        "campos": {
+          "budget_clp": false,
+          "use_case": true
+        },
+        "extraccion_ok": false,
+        "falta_ok": null,
+        "compatible": null,
+        "en_presupuesto": null,
+        "piezas": [],
+        "needs": {
+          "use_case": "esports"
+        },
+        "explicado_por": null,
+        "fuente": "reglas",
+        "respuesta": "¿Cuánto quieres gastar más o menos? Con eso elijo las piezas que más rinden.",
+        "latency_ms": 0.4,
+        "llm_calls": 0,
+        "tokens": 0,
+        "status": "ok",
+        "precios_citados": 0,
+        "precios_ok": null,
+        "llm_error": null,
+        "descartada": false,
+        "intentos": 1,
+        "id": "R01",
+        "categoria": "jerga",
+        "conjunto": "prueba-3",
+        "rep": 1
+      },
+      {
+        "estado": "build",
+        "estado_ok": true,
+        "campos": {
+          "use_case": true,
+          "budget_clp": true
+        },
+        "extraccion_ok": true,
+        "falta_ok": null,
+        "compatible": true,
+        "en_presupuesto": true,
+        "piezas": [
+          2,
+          21,
+          37,
+          56,
+          63,
+          69
+        ],
+        "needs": {
+          "use_case": "oficina",
+          "budget_clp": 350000
+        },
+        "explicado_por": "reglas",
+        "fuente": "reglas",
+        "respuesta": "Para oficina y estudio con $350.000 te propongo AMD Ryzen 5 5600G, Kingston FURY Beast 16GB (2x8) DDR4-3200. El total es $333.000 (precios referenciales) y te sobran $17.000. Procesador: 6 núcleos / 12 hilos hasta 4.4 GHz, con gráficos Radeon Vega 7; buen equilibrio para oficina y estudio. Placa madre: Socket AM4 (A520), DDR4, formato mATX. Todas las piezas son compatibles entre sí.",
+        "latency_ms": 89.7,
+        "llm_calls": 0,
+        "tokens": 0,
+        "status": "ok",
+        "precios_citados": 3,
+        "precios_ok": true,
+        "llm_error": null,
+        "descartada": false,
+        "intentos": 1,
+        "id": "R02",
+        "categoria": "jerga",
+        "conjunto": "prueba-3",
+        "rep": 1
+      },
+      {
+        "estado": "question",
+        "estado_ok": false,
+        "campos": {
+          "use_case": true,
+          "budget_clp": false
+        },
+        "extraccion_ok": false,
+        "falta_ok": null,
+        "compatible": null,
+        "en_presupuesto": null,
+        "piezas": [],
+        "needs": {
+          "use_case": "streaming"
+        },
+        "explicado_por": null,
+        "fuente": "reglas",
+        "respuesta": "¿Cuánto quieres gastar más o menos? Con eso elijo las piezas que más rinden.",
+        "latency_ms": 0.2,
+        "llm_calls": 0,
+        "tokens": 0,
+        "status": "ok",
+        "precios_citados": 0,
+        "precios_ok": null,
+        "llm_error": null,
+        "descartada": false,
+        "intentos": 1,
+        "id": "R03",
+        "categoria": "monto_en_palabras",
+        "conjunto": "prueba-3",
+        "rep": 1
+      },
+      {
+        "estado": "question",
+        "estado_ok": false,
+        "campos": {
+          "use_case": true,
+          "budget_clp": false
+        },
+        "extraccion_ok": false,
+        "falta_ok": null,
+        "compatible": null,
+        "en_presupuesto": null,
+        "piezas": [],
+        "needs": {
+          "use_case": "edicion"
+        },
+        "explicado_por": null,
+        "fuente": "reglas",
+        "respuesta": "¿Cuánto quieres gastar más o menos? Con eso elijo las piezas que más rinden.",
+        "latency_ms": 0.3,
+        "llm_calls": 0,
+        "tokens": 0,
+        "status": "ok",
+        "precios_citados": 0,
+        "precios_ok": null,
+        "llm_error": null,
+        "descartada": false,
+        "intentos": 1,
+        "id": "R04",
+        "categoria": "jerga",
+        "conjunto": "prueba-3",
+        "rep": 1
+      },
+      {
+        "estado": "build",
+        "estado_ok": true,
+        "campos": {
+          "use_case": true,
+          "budget_clp": true,
+          "gpu_brand": true
+        },
+        "extraccion_ok": true,
+        "falta_ok": null,
+        "compatible": true,
+        "en_presupuesto": true,
+        "piezas": [
+          15,
+          29,
+          38,
+          51,
+          59,
+          67,
+          69,
+          76
+        ],
+        "needs": {
+          "use_case": "modelado_ia",
+          "budget_clp": 2000000,
+          "gpu_brand": "NVIDIA"
+        },
+        "explicado_por": "reglas",
+        "fuente": "reglas",
+        "respuesta": "Para 3d e ia local con $2.000.000 te propongo Intel Core i7-14700K, ASUS TUF Gaming GeForce RTX 4070 Ti SUPER 16GB, Corsair Vengeance LPX 32GB (2x16) DDR4-3200. El total es $1.850.000 (precios referenciales) y te sobran $150.000. Procesador: 20 núcleos / 28 hilos hasta 5.6 GHz; buen equilibrio para 3d e ia local. Tarjeta gráfica: 16 GB de memoria de video; es la tarjeta que más rinde para 3d e ia local dentro del presupuesto. Todas las piezas son compatibles entre sí.",
+        "latency_ms": 66.3,
+        "llm_calls": 0,
+        "tokens": 0,
+        "status": "ok",
+        "precios_citados": 3,
+        "precios_ok": true,
+        "llm_error": null,
+        "descartada": false,
+        "intentos": 1,
+        "id": "R05",
+        "categoria": "jerga",
+        "conjunto": "prueba-3",
+        "rep": 1
+      },
+      {
+        "estado": "build",
+        "estado_ok": true,
+        "campos": {
+          "use_case": true,
+          "budget_clp": true
+        },
+        "extraccion_ok": true,
+        "falta_ok": null,
+        "compatible": true,
+        "en_presupuesto": true,
+        "piezas": [
+          16,
+          32,
+          40,
+          57,
+          63,
+          69,
+          76
+        ],
+        "needs": {
+          "use_case": "programacion",
+          "budget_clp": 800000
+        },
+        "explicado_por": "reglas",
+        "fuente": "reglas",
+        "respuesta": "Para programación con $800.000 te propongo Intel Core Ultra 5 245K, Corsair Vengeance 32GB (2x16) DDR5-6000. El total es $790.000 (precios referenciales) y te sobran $10.000. Procesador: 14 núcleos / 14 hilos hasta 5.2 GHz, con gráficos Intel Graphics (4 Xe); buen equilibrio para programación. Placa madre: Socket LGA1851 (B860), DDR5, formato mATX, con Wi-Fi. Todas las piezas son compatibles entre sí.",
+        "latency_ms": 68.7,
+        "llm_calls": 0,
+        "tokens": 0,
+        "status": "ok",
+        "precios_citados": 3,
+        "precios_ok": true,
+        "llm_error": null,
+        "descartada": false,
+        "intentos": 1,
+        "id": "R06",
+        "categoria": "jerga",
+        "conjunto": "prueba-3",
+        "rep": 1
+      },
+      {
+        "estado": "build",
+        "estado_ok": true,
+        "campos": {
+          "use_case": true,
+          "budget_clp": true,
+          "gpu_brand": true
+        },
+        "extraccion_ok": true,
+        "falta_ok": null,
+        "compatible": true,
+        "en_presupuesto": true,
+        "piezas": [
+          13,
+          28,
+          38,
+          49,
+          57,
+          66,
+          69
+        ],
+        "needs": {
+          "use_case": "gaming_1440",
+          "budget_clp": 1100000,
+          "gpu_brand": "AMD"
+        },
+        "explicado_por": "reglas",
+        "fuente": "reglas",
+        "respuesta": "Para juegos en 1440p con $1.100.000 te propongo Intel Core i5-13400F, Sapphire PULSE Radeon RX 7800 XT 16GB, Corsair Vengeance LPX 32GB (2x16) DDR4-3200. El total es $1.075.000 (precios referenciales) y te sobran $25.000. Procesador: 10 núcleos / 16 hilos hasta 4.6 GHz; buen equilibrio para juegos en 1440p. Tarjeta gráfica: 16 GB de memoria de video; es la tarjeta que más rinde para juegos en 1440p dentro del presupuesto. Todas las piezas son compatibles entre sí.",
+        "latency_ms": 40.7,
+        "llm_calls": 0,
+        "tokens": 0,
+        "status": "ok",
+        "precios_citados": 3,
+        "precios_ok": true,
+        "llm_error": null,
+        "descartada": false,
+        "intentos": 1,
+        "id": "R07",
+        "categoria": "claro",
+        "conjunto": "prueba-3",
+        "rep": 1
+      },
+      {
+        "estado": "question",
+        "estado_ok": true,
+        "campos": {
+          "budget_clp": true
+        },
+        "extraccion_ok": true,
+        "falta_ok": true,
+        "compatible": null,
+        "en_presupuesto": null,
+        "piezas": [],
+        "needs": {
+          "use_case": "oficina",
+          "budget_clp": 240000
+        },
+        "explicado_por": null,
+        "fuente": "reglas",
+        "respuesta": "Con $240.000 no alcanza para un PC nuevo completo: el más económico que puedo armar parte en torno a $250.000. ¿Quieres subir el presupuesto o prefieres mejorar un PC que ya tengas?",
+        "latency_ms": 0.3,
+        "llm_calls": 0,
+        "tokens": 0,
+        "status": "ok",
+        "precios_citados": 0,
+        "precios_ok": null,
+        "llm_error": null,
+        "descartada": false,
+        "intentos": 1,
+        "id": "R08",
+        "categoria": "presupuesto_bajo",
+        "conjunto": "prueba-3",
+        "rep": 1
+      },
+      {
+        "estado": "build",
+        "estado_ok": true,
+        "campos": {
+          "use_case": true,
+          "budget_clp": true
+        },
+        "extraccion_ok": true,
+        "falta_ok": null,
+        "compatible": true,
+        "en_presupuesto": true,
+        "piezas": [
+          8,
+          25,
+          41,
+          51,
+          59,
+          66,
+          69,
+          76
+        ],
+        "needs": {
+          "use_case": "streaming",
+          "budget_clp": 6000000
+        },
+        "explicado_por": "reglas",
+        "fuente": "reglas",
+        "respuesta": "Para jugar y transmitir con $6.000.000 te propongo AMD Ryzen 7 7800X3D, ASUS TUF Gaming GeForce RTX 4070 Ti SUPER 16GB, Kingston FURY Beast 64GB (2x32) DDR5-5600. El total es $2.005.000 (precios referenciales) y te sobran $3.995.000. Procesador: 8 núcleos / 16 hilos hasta 5.0 GHz; buen equilibrio para jugar y transmitir. Tarjeta gráfica: 16 GB de memoria de video; es la tarjeta que más rinde para jugar y transmitir dentro del presupuesto. Todas las piezas son compatibles entre sí.",
+        "latency_ms": 74.5,
+        "llm_calls": 0,
+        "tokens": 0,
+        "status": "ok",
+        "precios_citados": 3,
+        "precios_ok": true,
+        "llm_error": null,
+        "descartada": false,
+        "intentos": 1,
+        "id": "R09",
+        "categoria": "presupuesto_alto",
+        "conjunto": "prueba-3",
+        "rep": 1
+      },
+      {
+        "estado": "build",
+        "estado_ok": true,
+        "campos": {
+          "budget_clp": false,
+          "use_case": true
+        },
+        "extraccion_ok": false,
+        "falta_ok": null,
+        "compatible": true,
+        "en_presupuesto": true,
+        "piezas": [
+          11,
+          28,
+          37,
+          46,
+          56,
+          64,
+          69
+        ],
+        "needs": {
+          "use_case": "gaming_1080",
+          "budget_clp": 700000
+        },
+        "explicado_por": "reglas",
+        "fuente": "reglas",
+        "respuesta": "Para juegos en 1080p con $700.000 te propongo Intel Core i5-12400F, ASUS Dual GeForce RTX 5060 8GB, Kingston FURY Beast 16GB (2x8) DDR4-3200. El total es $683.000 (precios referenciales) y te sobran $17.000. Procesador: 6 núcleos / 12 hilos hasta 4.4 GHz; buen equilibrio para juegos en 1080p. Tarjeta gráfica: 8 GB de memoria de video; es la tarjeta que más rinde para juegos en 1080p dentro del presupuesto. Todas las piezas son compatibles entre sí.",
+        "latency_ms": 72.1,
+        "llm_calls": 0,
+        "tokens": 0,
+        "status": "ok",
+        "precios_citados": 3,
+        "precios_ok": true,
+        "llm_error": null,
+        "descartada": false,
+        "intentos": 1,
+        "id": "R10",
+        "categoria": "cambio_de_opinion",
+        "conjunto": "prueba-3",
+        "rep": 1
+      },
+      {
+        "estado": "build",
+        "estado_ok": true,
+        "campos": {
+          "budget_clp": true,
+          "use_case": true
+        },
+        "extraccion_ok": true,
+        "falta_ok": null,
+        "compatible": true,
+        "en_presupuesto": true,
+        "piezas": [
+          15,
+          29,
+          38,
+          50,
+          57,
+          66,
+          69,
+          76
+        ],
+        "needs": {
+          "use_case": "modelado_ia",
+          "budget_clp": 1600000
+        },
+        "explicado_por": "reglas",
+        "fuente": "reglas",
+        "respuesta": "Para 3d e ia local con $1.600.000 te propongo Intel Core i7-14700K, MSI GeForce RTX 5070 12G VENTUS 2X OC, Corsair Vengeance LPX 32GB (2x16) DDR4-3200. El total es $1.525.000 (precios referenciales) y te sobran $75.000. Procesador: 20 núcleos / 28 hilos hasta 5.6 GHz; buen equilibrio para 3d e ia local. Tarjeta gráfica: 12 GB de memoria de video; es la tarjeta que más rinde para 3d e ia local dentro del presupuesto. Todas las piezas son compatibles entre sí.",
+        "latency_ms": 72.7,
+        "llm_calls": 0,
+        "tokens": 0,
+        "status": "ok",
+        "precios_citados": 3,
+        "precios_ok": true,
+        "llm_error": null,
+        "descartada": false,
+        "intentos": 1,
+        "id": "R11",
+        "categoria": "varios_turnos",
+        "conjunto": "prueba-3",
+        "rep": 1
+      },
+      {
+        "estado": "question",
+        "estado_ok": true,
+        "campos": {},
+        "extraccion_ok": null,
+        "falta_ok": true,
+        "compatible": null,
+        "en_presupuesto": null,
+        "piezas": [],
+        "needs": {
+          "use_case": "gaming_1080"
+        },
+        "explicado_por": null,
+        "fuente": "reglas",
+        "respuesta": "¿Cuánto quieres gastar más o menos? Con eso elijo las piezas que más rinden.",
+        "latency_ms": 0.1,
+        "llm_calls": 0,
+        "tokens": 0,
+        "status": "ok",
+        "precios_citados": 0,
+        "precios_ok": null,
+        "llm_error": null,
+        "descartada": false,
+        "intentos": 1,
+        "id": "R12",
+        "categoria": "ambiguo",
+        "conjunto": "prueba-3",
+        "rep": 1
+      },
+      {
+        "estado": "question",
+        "estado_ok": true,
+        "campos": {},
+        "extraccion_ok": null,
+        "falta_ok": null,
+        "compatible": null,
+        "en_presupuesto": null,
+        "piezas": [],
+        "needs": {
+          "use_case": "gaming_1080"
+        },
+        "explicado_por": null,
+        "fuente": "reglas",
+        "respuesta": "¿Cuánto quieres gastar más o menos? Con eso elijo las piezas que más rinden.",
+        "latency_ms": 0.1,
+        "llm_calls": 0,
+        "tokens": 0,
+        "status": "ok",
+        "precios_citados": 0,
+        "precios_ok": null,
+        "llm_error": null,
+        "descartada": false,
+        "intentos": 1,
+        "id": "R13",
+        "categoria": "fuera_de_alcance",
+        "conjunto": "prueba-3",
+        "rep": 1
+      },
+      {
+        "estado": "question",
+        "estado_ok": false,
+        "campos": {},
+        "extraccion_ok": null,
+        "falta_ok": null,
+        "compatible": null,
+        "en_presupuesto": null,
+        "piezas": [],
+        "needs": {},
+        "explicado_por": null,
+        "fuente": "reglas",
+        "respuesta": "¡Vamos! ¿Para qué lo vas a usar principalmente y cuánto quieres gastar más o menos?",
+        "latency_ms": 0.3,
+        "llm_calls": 0,
+        "tokens": 0,
+        "status": "ok",
+        "precios_citados": 0,
+        "precios_ok": null,
+        "llm_error": null,
+        "descartada": false,
+        "intentos": 1,
+        "id": "R14",
+        "categoria": "inyeccion_grave",
+        "conjunto": "prueba-3",
+        "rep": 1
+      },
+      {
+        "estado": "question",
+        "estado_ok": false,
+        "campos": {
+          "use_case": false,
+          "budget_clp": true,
+          "small": false,
+          "wifi": true
+        },
+        "extraccion_ok": false,
+        "falta_ok": null,
+        "compatible": null,
+        "en_presupuesto": null,
+        "piezas": [],
+        "needs": {
+          "budget_clp": 400000,
+          "wifi": true
+        },
+        "explicado_por": null,
+        "fuente": "reglas",
+        "respuesta": "¿Para qué lo vas a usar principalmente? Por ejemplo jugar, estudiar, programar o editar video.",
+        "latency_ms": 0.3,
+        "llm_calls": 0,
+        "tokens": 0,
+        "status": "ok",
+        "precios_citados": 0,
+        "precios_ok": null,
+        "llm_error": null,
+        "descartada": false,
+        "intentos": 1,
+        "id": "R15",
+        "categoria": "preferencias",
+        "conjunto": "prueba-3",
+        "rep": 1
+      }
+    ]
+  }
+}

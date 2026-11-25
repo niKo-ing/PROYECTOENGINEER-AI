@@ -3,7 +3,7 @@ from agent_support import USER
 from fastapi.testclient import TestClient
 from langgraph.checkpoint.memory import MemorySaver
 
-from app.agent.testing import AhorroPolicy, ScriptedChatModel
+from modelo_guionado import AhorroPolicy, ScriptedChatModel
 from app.ai.rag.embedding import LocalHashEmbeddingProvider
 from app.core.security import AuthenticatedUser, get_current_user
 from app.db import get_db

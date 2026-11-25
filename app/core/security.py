@@ -68,10 +68,33 @@ def validate_supabase_token(token: str) -> AuthenticatedUser:
     return AuthenticatedUser(id=subject, email=email if isinstance(email, str) else None)
 
 
+def validate_local_token(token: str) -> AuthenticatedUser:
+    from app.core.local_auth import decode_local_token
+
+    try:
+        claims = decode_local_token(token)
+    except InvalidTokenError as error:
+        raise unauthorized() from error
+    subject = claims.get("sub")
+    if not isinstance(subject, str) or not subject:
+        raise unauthorized()
+    email = claims.get("email")
+    return AuthenticatedUser(id=subject, email=email if isinstance(email, str) else None)
+
+
+def validate_token(token: str) -> AuthenticatedUser:
+    """Token propio (emisor ``todobarato``) o, si el proyecto vuelve a tener Supabase, un token de Supabase."""
+    from app.core.local_auth import is_local_token
+
+    if is_local_token(token):
+        return validate_local_token(token)
+    return validate_supabase_token(token)
+
+
 def get_current_user(credentials: HTTPAuthorizationCredentials | None = Depends(bearer_scheme)) -> AuthenticatedUser:
     if credentials is None or credentials.scheme.lower() != "bearer":
         raise unauthorized("Se requiere un token Bearer")
-    return validate_supabase_token(credentials.credentials)
+    return validate_token(credentials.credentials)
 
 
 def get_current_admin(user: AuthenticatedUser = Depends(get_current_user)) -> AuthenticatedUser:

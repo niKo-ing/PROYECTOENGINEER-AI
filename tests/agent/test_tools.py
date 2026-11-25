@@ -56,7 +56,7 @@ def test_tools_never_run_at_the_same_time_on_the_shared_session(db, monkeypatch)
 
 def test_registry_has_read_reasoning_and_write_tools(tools):
     assert set(tools) == set(READ_TOOLS) | set(WRITE_TOOLS)
-    assert len(WRITE_TOOLS) == 3
+    assert len(WRITE_TOOLS) == 4  # alertas, listas, memoria y equipos del armador
 
 
 def test_search_returns_lowest_price_and_respects_price_cap(tools, catalog):

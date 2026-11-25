@@ -13,9 +13,14 @@ from app.routers.categories import router as categories_router
 from app.routers.user_profile import router as user_profile_router
 from app.routers.ai import router as ai_router
 from app.agent.security import enable_agent_rls
-from app.routers.agent import demo_router as agent_demo_router, router as agent_router
+from app.routers.agent import router as agent_router
 from app.routers.admin import router as admin_router
+from app.routers.ml import router as ml_router
 from app.routers.eventos import router as eventos_router
+from app.routers.auth import router as auth_router
+from app.routers.pc import router as pc_router
+from app.routers.observability import router as observability_router
+from app.routers.privacy import router as privacy_router
 
 log = logging.getLogger(__name__)
 
@@ -93,11 +98,9 @@ def _run_store_sync(store_id: int) -> None:
 
 def _get_connector_class(domain: str):
     """Map a store domain to its connector class. Returns None if unknown."""
-    from app.ingestion.connectors.spdigital.connector import SPDigitalConnector
     from app.ingestion.connectors.paris.connector import ParisConnector
 
     registry: dict[str, type] = {
-        "www.spdigital.cl": SPDigitalConnector,
         "www.paris.cl": ParisConnector,
     }
     return registry.get(domain)
@@ -105,11 +108,9 @@ def _get_connector_class(domain: str):
 
 def _get_url_discovery(domain: str):
     """Map a store domain to its URLDiscovery instance. Returns None if unknown."""
-    from app.ingestion.connectors.spdigital.url_discovery import SPDigitalURLDiscovery
     from app.ingestion.connectors.paris.url_discovery import ParisURLDiscovery
 
     registry: dict[str, object] = {
-        "www.spdigital.cl": SPDigitalURLDiscovery(),
         "www.paris.cl": ParisURLDiscovery(),
     }
     return registry.get(domain)
@@ -120,18 +121,6 @@ def _get_category_mapper(domain: str):
     from app.ingestion.category import CategoryMapper
 
     mappers = {
-        "www.spdigital.cl": CategoryMapper.build("www.spdigital.cl", {
-            "Tarjetas de Video": "tarjetas-graficas",
-            "Notebooks": "notebooks",
-            "Procesadores": "procesadores",
-            "Memoria RAM": "memoria-ram",
-            "SSD": "almacenamiento-ssd",
-            "Monitores": "monitores",
-            "Placas Madre": "placas-madre",
-            "Computadores de Escritorio": "pcs-de-escritorio",
-            "Celulares": "celulares",
-            "Consolas": "consolas",
-        }),
         "www.paris.cl": CategoryMapper.build("www.paris.cl", {
             "Computación": "notebooks",
             "Procesadores": "procesadores",
@@ -178,6 +167,20 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
         log.info("Ingestion scheduler disabled on this replica (INGESTION_SCHEDULER_ENABLED=false)")
     app.state.ingestion_scheduler = scheduler
     threading.Thread(target=_warm_agent_checkpointer, name="agent-warmup", daemon=True).start()
+    if os.getenv("PC_SEED_ON_START", "true").strip().lower() in {"1", "true", "yes", "on"}:
+        try:
+            from app.pcbuilder.catalog import ensure_seeded
+
+            with SessionLocal() as db:
+                ensure_seeded(db)
+        except Exception:
+            log.warning("No se pudo sembrar el catálogo del armador", exc_info=True)
+    from app.pcbuilder.solotodo_catalogo import catalogo_activo
+
+    if catalogo_activo() == "solotodo" and os.getenv("SOLOTODO_SYNC", "true").strip().lower() in {"1", "true", "yes", "on"}:
+        from app.pcbuilder.solotodo import sincronizar_periodicamente
+
+        threading.Thread(target=sincronizar_periodicamente, name="solotodo-sync", daemon=True).start()
     try:
         yield
     finally:
@@ -185,25 +188,29 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
 
 
 def create_app() -> FastAPI:
-    app = FastAPI(title="SoloTodo AI", version="0.1.0", lifespan=lifespan)
+    app = FastAPI(title="SoloTodo AI", version="0.2.0", description="API REST de SoloTodo AI: catálogo, asistente (agente LangGraph) y modelo de emparejamiento de productos (/ml).", lifespan=lifespan)
+    app.include_router(auth_router, prefix="/api/v1")
     app.include_router(products_router, prefix="/api/v1")
+    app.include_router(pc_router, prefix="/api/v1")
+    app.include_router(privacy_router, prefix="/api/v1")
+    app.include_router(observability_router, prefix="/api/v1")
     app.include_router(categories_router, prefix="/api/v1")
     app.include_router(user_profile_router, prefix="/api/v1")
     app.include_router(ai_router, prefix="/api/v1")
     app.include_router(agent_router, prefix="/api/v1")
-    app.include_router(agent_demo_router, prefix="/api/v1")
+    app.include_router(ml_router, prefix="/api/v1")
     app.include_router(admin_router, prefix="/api/v1")
     app.include_router(eventos_router, prefix="/api/v1")
 
     @app.get("/health", tags=["system"])
     def health() -> dict[str, str]:
-        # INSTANCIA y ZONA las fija el arranque de la EC2: muestran qué réplica respondió detrás del ALB.
-        return {
-            "status": "ok",
-            "instancia": os.getenv("INSTANCIA", "local"),
-            "zona": os.getenv("ZONA", "local"),
-            "rol": os.getenv("ROL", "local"),
-        }
+        # INSTANCIA, ZONA y ROL los fija el arranque de cada EC2 (IMDSv2): muestran qué instancia respondió detrás del
+        # ALB. Fuera de AWS no existen y no se inventan.
+        datos = {"status": "ok"}
+        for clave, variable in (("instancia", "INSTANCIA"), ("zona", "ZONA"), ("rol", "ROL")):
+            if valor := os.getenv(variable):
+                datos[clave] = valor
+        return datos
 
     return app
 

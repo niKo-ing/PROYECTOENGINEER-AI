@@ -1,7 +1,13 @@
 #!/usr/bin/env bash
 # Borra todo lo que creó desplegar.sh (todos los recursos llevan el prefijo tb-ep2 / etiqueta Proyecto=tb-ep2).
-#   bash EP2_ITY1102/infra/destruir.sh            # borra todo, menos el bucket S3 (imágenes y logs, céntimos)
-#   BORRAR_BUCKET=1 bash ...destruir.sh           # también vacía y borra el bucket
+#   CONFIRMO_BORRAR=si bash EP2_ITY1102/infra/destruir.sh                  # borra todo, menos el bucket S3
+#   CONFIRMO_BORRAR=si BORRAR_BUCKET=1 bash ...destruir.sh                 # también vacía y borra el bucket
+# No borrar nada sin una decisión explícita del equipo (23-11-2026): este script elimina la infraestructura y sus
+# datos sin respaldo. Además, la plataforma del laboratorio ya limpia la cuenta sola (EP3_ITY1102/evidencia/limpieza-laboratorio.txt).
+if [ "${CONFIRMO_BORRAR:-}" != "si" ]; then
+  echo "No se borró nada. Solo si el equipo lo decidió: CONFIRMO_BORRAR=si bash $0" >&2
+  exit 1
+fi
 source "$(dirname "$0")/comun.sh"
 set +e   # seguir aunque algún recurso ya no exista
 

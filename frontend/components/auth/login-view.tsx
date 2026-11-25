@@ -13,7 +13,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { getFriendlyAuthMessage } from "@/lib/auth/auth-errors";
-import { createSupabaseBrowserClient } from "@/lib/supabase/client";
+import { auth } from "@/lib/auth/client";
 
 const loginSchema = z.object({
   email: z
@@ -41,7 +41,7 @@ export function LoginView() {
     setSubmitting(true);
     setSubmitError("");
     try {
-      const { data, error } = await createSupabaseBrowserClient().auth.signInWithPassword(values);
+      const { data, error } = await auth.signInWithPassword(values);
       if (error) {
         setSubmitError(getFriendlyAuthMessage(error, "login"));
         return;

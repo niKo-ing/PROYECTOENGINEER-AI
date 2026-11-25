@@ -35,7 +35,7 @@ jobs:
       - name: Instalar dependencias
         run: |
           python -m pip install --upgrade pip
-          pip install -e ".[dev]"
+          pip install -e ".[dev,ml,mensajeria]"
 
       - name: Ejecutar tests
         env:
@@ -69,9 +69,6 @@ jobs:
 
       - name: Build
         run: pnpm build
-        env:
-          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
-          NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
 
   # ── Construcción y publicación en GitHub Container Registry ─────────────
   build-and-publish:
@@ -194,8 +191,7 @@ jobs:
         env:
           HAS_DEPLOY_SSH_KEY: ${{ secrets.DEPLOY_SSH_KEY != '' }}
           HAS_DATABASE_URL: ${{ secrets.DATABASE_URL != '' }}
-          HAS_SUPABASE_URL: ${{ secrets.SUPABASE_URL != '' }}
-          HAS_SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY != '' }}
+          HAS_AUTH_JWT_SECRET: ${{ secrets.AUTH_JWT_SECRET != '' }}
           HAS_LLM_PROVIDER: ${{ secrets.LLM_PROVIDER != '' }}
           HAS_GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY != '' }}
         run: |
@@ -211,8 +207,7 @@ jobs:
             done
             [ "$HAS_DEPLOY_SSH_KEY" = "true" ] || echo "- Secret \`DEPLOY_SSH_KEY\`"
             [ "$HAS_DATABASE_URL" = "true" ] || echo "- Secret \`DATABASE_URL\`"
-            [ "$HAS_SUPABASE_URL" = "true" ] || echo "- Secret \`SUPABASE_URL\`"
-            [ "$HAS_SUPABASE_ANON_KEY" = "true" ] || echo "- Secret \`SUPABASE_ANON_KEY\`"
+            [ "$HAS_AUTH_JWT_SECRET" = "true" ] || echo "- Secret \`AUTH_JWT_SECRET\`"
             [ "$HAS_LLM_PROVIDER" = "true" ] || echo "- Secret \`LLM_PROVIDER\`"
             [ "$HAS_GEMINI_API_KEY" = "true" ] || echo "- Secret \`GEMINI_API_KEY\`"
             echo ""
@@ -233,15 +228,13 @@ jobs:
         if: steps.cfg.outputs.ready == '1'
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
-          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
-          SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+          AUTH_JWT_SECRET: ${{ secrets.AUTH_JWT_SECRET }}
           LLM_PROVIDER: ${{ secrets.LLM_PROVIDER }}
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
         run: |
           : > .deploy-env.local
           printf 'DATABASE_URL=%s\n' "$DATABASE_URL" >> .deploy-env.local
-          printf 'SUPABASE_URL=%s\n' "$SUPABASE_URL" >> .deploy-env.local
-          printf 'SUPABASE_ANON_KEY=%s\n' "$SUPABASE_ANON_KEY" >> .deploy-env.local
+          printf 'AUTH_JWT_SECRET=%s\n' "$AUTH_JWT_SECRET" >> .deploy-env.local
           printf 'LLM_PROVIDER=%s\n' "$LLM_PROVIDER" >> .deploy-env.local
           printf 'GEMINI_API_KEY=%s\n' "$GEMINI_API_KEY" >> .deploy-env.local
 

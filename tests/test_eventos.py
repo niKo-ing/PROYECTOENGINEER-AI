@@ -106,3 +106,9 @@ def test_health_indica_la_replica(monkeypatch):
     monkeypatch.setenv("INSTANCIA", "i-123")
     monkeypatch.setenv("ZONA", "us-east-1a")
     assert client.get("/health").json()["instancia"] == "i-123"
+
+
+def test_health_fuera_de_aws_no_inventa_instancia(monkeypatch):
+    for variable in ("INSTANCIA", "ZONA", "ROL"):
+        monkeypatch.delenv(variable, raising=False)
+    assert client.get("/health").json() == {"status": "ok"}

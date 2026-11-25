@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { LogOut, UserRound } from "lucide-react";
+import { Activity, BookOpen, LogOut, Monitor, UserRound } from "lucide-react";
 import { useState } from "react";
 
 import { Button } from "@/components/ui/button";
@@ -14,8 +14,8 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { createSupabaseBrowserClient } from "@/lib/supabase/client";
-import { useSession } from "@/lib/supabase/use-session";
+import { auth } from "@/lib/auth/client";
+import { useSession } from "@/lib/auth/use-session";
 
 export function ProfileMenu() {
   const router = useRouter();
@@ -30,7 +30,7 @@ export function ProfileMenu() {
   async function signOut() {
     setPendingSignOut(true);
     try {
-      await createSupabaseBrowserClient().auth.signOut();
+      await auth.signOut();
       router.push("/login");
       router.refresh();
     } catch {
@@ -74,6 +74,31 @@ export function ProfileMenu() {
             {session.user.email}
           </span>
         </DropdownMenuLabel>
+        <DropdownMenuSeparator />
+        <DropdownMenuItem asChild>
+          <Link href="/perfil">
+            <UserRound className="size-4" aria-hidden="true" />
+            Mi perfil
+          </Link>
+        </DropdownMenuItem>
+        <DropdownMenuItem asChild>
+          <Link href="/mis-pc">
+            <Monitor className="size-4" aria-hidden="true" />
+            Mis computadores
+          </Link>
+        </DropdownMenuItem>
+        <DropdownMenuItem asChild>
+          <Link href="/guias">
+            <BookOpen className="size-4" aria-hidden="true" />
+            Guías de compatibilidad
+          </Link>
+        </DropdownMenuItem>
+        <DropdownMenuItem asChild>
+          <Link href="/observabilidad">
+            <Activity className="size-4" aria-hidden="true" />
+            Observabilidad de la IA
+          </Link>
+        </DropdownMenuItem>
         <DropdownMenuSeparator />
         <DropdownMenuItem
           disabled={pendingSignOut}

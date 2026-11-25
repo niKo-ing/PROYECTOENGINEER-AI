@@ -40,7 +40,7 @@ flowchart LR
 | Memoria | `app/agent/memory.py` | Largo plazo con recuperación semántica y ventana de corto plazo | IE3, IE4 |
 | Planificación y decisiones | `app/agent/planning.py` | Presupuesto, plan priorizado, diagnóstico de observaciones | IE5, IE7 |
 | Servicio | `app/agent/service.py` | Arma todo, ata cada hilo al usuario, entrega una traza | IE1 |
-| Modelo guionado | `app/agent/testing.py` | `BaseChatModel` determinista para pruebas y demos sin red | pruebas |
+| Modelo guionado | `tests/agent/modelo_guionado.py` | `BaseChatModel` determinista, solo para pruebas sin red | pruebas |
 | API | `app/routers/agent.py` | `POST /agent/run`, `GET /agent/memories` | — |
 | Datos | `app/models/agent.py`, migración `20260920_01` | `agent_memories`, `price_alerts`, `shopping_lists` | — |
 
@@ -99,7 +99,7 @@ flowchart TD
 
 Dos frenos evitan bucles: **máximo 2 replanificaciones** por pedido y **cada motivo solo replanifica una vez** (el segundo `sin_resultados` seguido se registra como `continuar_sin_replan`). Además hay un tope de pasos (`max_steps=10`).
 
-### Ejemplo trazado (historia 2 de la demo)
+### Ejemplo trazado (escenario 2 de las pruebas)
 
 ```mermaid
 sequenceDiagram
@@ -152,8 +152,7 @@ puntaje = 0,75 · similitud_coseno(consulta, recuerdo)
 ```bash
 uv venv --python 3.12 .venv && uv pip install -e '.[dev]'
 .venv/bin/python -m pytest tests/agent -q                      # 124 pruebas, sin red (5 opt-in omitidas)
-.venv/bin/python scripts/demo_agente.py                        # 5 historias, modelo guionado
-.venv/bin/python scripts/demo_agente.py --live --embeddings gemini   # con Gemini real (.env: GEMINI_API_KEY, GEMINI_MODEL)
+.venv/bin/python -m pytest tests/agent/test_escenarios_agente.py -q   # escenarios con modelo guionado
 RUN_LIVE=1 .venv/bin/python -m pytest tests/agent/test_live_gemini.py -q   # pruebas contra Gemini
 ```
 
@@ -162,7 +161,7 @@ API (con la app levantada y un token de Supabase):
 ```bash
 curl -X POST localhost:8000/api/v1/agent/run -H "Authorization: Bearer $TOKEN" \
   -H 'Content-Type: application/json' \
-  -d '{"message": "Quiero un notebook Lenovo, presupuesto $400.000. Arma una lista.", "thread_id": "demo-1"}'
+  -d '{"message": "Quiero un notebook Lenovo, presupuesto $400.000. Arma una lista.", "thread_id": "t-1"}'
 ```
 
 La respuesta trae `answer`, `plan`, `tools_used`, `wrote`, `replans`, `memories_used` y la `trace` completa del turno. Una cuota agotada del modelo responde `429` y otras fallas del proveedor `503`, no un error de servidor.
@@ -196,12 +195,12 @@ Qué demuestra cada grupo de pruebas:
 
 * **LangGraph en vez de un bucle propio.** El proyecto ya tenía un orquestador artesanal para el chat; para este agente se usó LangGraph porque el flujo tiene ciclo (`reflect → plan`), estado compartido y necesita un checkpointer persistente. Gemini se usa a través de `langchain-google-genai`, el mismo proveedor y las mismas variables `GEMINI_*` del resto de la app.
 * **Reglas deterministas para decidir, LLM para hablar y elegir.** `diagnose`, el veredicto de `analyze_price_trend` y el presupuesto son código: se prueban sin LLM y no dependen de que el modelo «adivine». El LLM propone el plan y elige herramientas.
-* **El modelo guionado no es una lista fija:** su política lee las observaciones y decide (por eso reacciona al replan), pero sigue siendo un doble de prueba. Lo que prueba es el grafo, no la calidad de Gemini; para eso están las pruebas y la demo en vivo.
+* **El modelo guionado no es una lista fija:** su política lee las observaciones y decide (por eso reacciona al replan), pero sigue siendo un doble de prueba (no se usa en la aplicación). Lo que prueba es el grafo, no la calidad de Gemini; para eso están las pruebas y la demo en vivo.
 * **Los embeddings locales no son semánticos** (hash de palabras). Con ellos la memoria funciona por coincidencia de palabras más la memoria núcleo; la recuperación por significado real requiere `EMBEDDING_PROVIDER=gemini`. Las pruebas del ranking semántico usan un embedder de prueba por conceptos y, aparte, hay una prueba opt-in con Gemini real.
 * **El progreso del plan es aproximado:** un paso se marca como hecho si nombra una herramienta que se ejecutó. Si el LLM redacta pasos sin nombrar herramientas, quedan pendientes (se prefiere no marcar de más).
 * **Escalabilidad del checkpointer.** `AGENT_CHECKPOINT=auto` elige `PostgresSaver` cuando la app usa Postgres/Supabase (varias réplicas comparten los hilos; probado con dos conexiones contra un Postgres 16 real) y `SqliteSaver` en desarrollo local. Postgres usa `prepare_threshold=0` por compatibilidad con el pooler de Supabase; esa configuración funciona con el pooler real de Supabase (verificada en uso real con la pantalla `/agente`).
 * **Las alertas se evalúan cuando el usuario las revisa**, no en segundo plano. Un cron que corra `check_price_alerts` tras cada ingesta sería el siguiente paso.
-* **Cuota gratuita de Gemini:** la demo completa en vivo supera el límite del plan gratuito; por eso la evidencia en vivo es parcial.
+* **Cuota gratuita de Gemini:** la corrida completa en vivo supera el límite del plan gratuito; por eso la evidencia en vivo es parcial.
 
 ## 9. Referencias
 

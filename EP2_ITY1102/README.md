@@ -19,10 +19,10 @@ ALERTA_EMAIL=nic.estefania@duocuc.cl bash EP2_ITY1102/infra/desplegar.sh   # ~15
 bash EP2_ITY1102/infra/estado.sh           # salud, reparto entre zonas, suscripción SNS, alarmas
 bash EP2_ITY1102/infra/prueba_carga.sh     # req/s y latencias contra el ALB
 bash EP2_ITY1102/infra/demo_failover.sh    # termina una réplica y mide la disponibilidad
-bash EP2_ITY1102/infra/destruir.sh         # SIEMPRE al terminar: el ALB y RDS cobran por hora (~USD 0,13/h)
+# destruir.sh: NO correrlo; borra todo sin respaldo (pide CONFIRMO_BORRAR=si). Ver «No borrar nada» en docs/entrega/DEPLOY_DEFENSA.md
 ```
 
-Para la defensa: correr `desplegar.sh` ~20 minutos antes, mostrar `http://<ALB>/health` (cambia de instancia y zona al recargar), el dashboard de CloudWatch y `demo_failover.sh`; después `destruir.sh`.
+Para la defensa: correr `desplegar.sh` ~20 minutos antes, mostrar `http://<ALB>/health` (cambia de instancia y zona al recargar), el dashboard de CloudWatch y `demo_failover.sh`. No se destruye después.
 
 ## Qué permite la cuenta (medido el 25-10-2026)
 

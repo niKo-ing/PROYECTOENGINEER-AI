@@ -1,5 +1,7 @@
 .env
 .env.local
+.env*
 .next
 node_modules
 tsconfig.tsbuildinfo
+*.log

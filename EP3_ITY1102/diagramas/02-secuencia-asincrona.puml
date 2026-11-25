@@ -1,0 +1,23 @@
+@startuml
+!theme plain
+title Flujo asíncrono: entrada → cola → modelo → resultado
+actor Cliente
+participant "API REST" as API
+queue RabbitMQ as MQ
+participant Worker as W
+participant "Modelo\n(/invocations)" as M
+database BD
+Cliente -> API : POST /ml/match/async {a, b}\nX-API-Key
+API -> API : autenticar + limitar tasa
+API -> MQ : publish (persistente)
+API --> Cliente : 202 {request_id}
+MQ -> W : basic_get
+W -> M : POST /invocations
+M --> W : {decision, probabilidad, razones}
+W -> BD : INSERT ai_match_decisions
+W -> MQ : ack
+Cliente -> API : GET /ml/decisions
+API -> BD : SELECT
+API --> Cliente : decisiones + profundidad de la cola
+note over W,MQ : 3 fallos → cola .dlq
+@enduml

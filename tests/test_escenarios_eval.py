@@ -1,0 +1,98 @@
+"""Banco de evaluación (evals/escenarios.json) y agregador de corridas (scripts/agregar_corridas.py)."""
+
+import json
+import statistics
+from pathlib import Path
+
+from app.observability.guardrails import check_input
+from app.pcbuilder.assistant import MAX_BUDGET
+from app.pcbuilder.recommender import USE_CASES
+from scripts.agregar_corridas import aggregate, to_markdown
+
+BANCO = json.loads((Path(__file__).resolve().parents[1] / "evals" / "escenarios.json").read_text(encoding="utf-8"))
+CONJUNTOS = {"desarrollo", "prueba", "prueba-2", "prueba-3", "prueba-4"}
+
+
+def test_escenarios_bien_formados():
+    casos = BANCO["asistente"]
+    assert len({c["id"] for c in casos}) == len(casos)
+    textos = [" / ".join(c["mensajes"]).strip().lower() for c in casos]
+    assert len(set(textos)) == len(textos), "hay un pedido repetido entre conjuntos"
+    for c in casos:
+        esperado = c["esperado"]
+        assert c["conjunto"] in CONJUNTOS and c["categoria"] and c["mensajes"]
+        assert esperado["estado"] in {"build", "question", "blocked"}
+        assert esperado.get("use_case") in (None, *USE_CASES)
+        assert all(u in USE_CASES for u in esperado.get("use_case_any", []))
+        assert esperado.get("budget_clp") is None or 0 < esperado["budget_clp"] <= MAX_BUDGET
+        assert set(esperado.get("falta", [])) <= {"use_case", "budget_clp"}
+        assert esperado.get("inyeccion") in (None, True, False)
+
+
+def test_el_detector_no_marca_pedidos_normales_del_banco():
+    """Ningún escenario que no sea inyección se marca, y las graves del banco se bloquean.
+
+    Excluye prueba-4: se escribió después de congelar el detector y se mide solo con la evaluación pre-registrada
+    (evals/preregistro-prueba-4.md). Si aquí se exigiera que pase, el detector se terminaría ajustando a esos casos."""
+    for c in (c for c in BANCO["asistente"] if c["conjunto"] != "prueba-4"):
+        checks = [check_input(m) for m in c["mensajes"]]
+        if c["categoria"] == "inyeccion_grave":
+            assert any(ch.blocked for ch in checks), c["id"]
+        elif c["categoria"] == "inyeccion_leve":
+            assert any(ch.injection for ch in checks) and not any(ch.blocked for ch in checks), c["id"]
+        else:
+            assert not any(ch.injection for ch in checks), c["id"]
+
+
+def test_prueba_3_tiene_15_casos_nuevos():
+    prueba3 = [c for c in BANCO["asistente"] if c["conjunto"] == "prueba-3"]
+    assert len(prueba3) == 15 and [c["id"] for c in prueba3] == [f"R{i:02d}" for i in range(1, 16)]
+
+
+def test_prueba_4_tiene_15_casos_que_fijan_la_deteccion():
+    prueba4 = [c for c in BANCO["asistente"] if c["conjunto"] == "prueba-4"]
+    assert [c["id"] for c in prueba4] == [f"S{i:02d}" for i in range(1, 16)]
+    assert all("inyeccion" in c["esperado"] for c in prueba4)
+    assert all(c["esperado"]["inyeccion"] == c["categoria"].startswith("inyeccion") for c in prueba4)
+
+
+def _fila(case_id, ok, latencia, tokens, estado="build", needs=None, piezas=(1, 2)):
+    return {"id": case_id, "categoria": "claro", "conjunto": "prueba-3", "estado": estado, "estado_ok": ok, "extraccion_ok": ok, "falta_ok": None,
+            "campos": {"use_case": ok}, "compatible": True, "en_presupuesto": True, "precios_ok": True, "status": "ok", "latency_ms": latencia,
+            "llm_calls": 2, "tokens": tokens, "needs": needs or {"use_case": "esports"}, "piezas": list(piezas)}
+
+
+def _corrida(etiqueta, filas):
+    return {"etiqueta": etiqueta, "fecha": "2026-11-23", "modelo": "m", "modos": ["gemini"], "crudo": {"gemini": filas}}
+
+
+def test_agregador_media_y_desviacion_entre_corridas():
+    corridas = [
+        _corrida("c1", [_fila("R01", True, 1000, 2000), _fila("R02", True, 3000, 2000)]),
+        _corrida("c2", [_fila("R01", True, 1000, 2100), _fila("R02", False, 3000, 2100, needs={"use_case": "oficina"})]),
+        _corrida("c3", [_fila("R01", True, 1000, 2200), _fila("R02", True, 3000, 2200)]),
+    ]
+    agg = aggregate(corridas, "prueba-3")
+    resumen = agg["por_modo"]["gemini"]["resumen"]
+    assert resumen["acierto"]["media"] == statistics.mean([1.0, 0.5, 1.0])
+    assert resumen["acierto"]["de"] == statistics.stdev([1.0, 0.5, 1.0])
+    assert resumen["tokens"]["media"] == 2100 and resumen["tokens"]["de"] == 100
+    casos = agg["por_modo"]["gemini"]["casos"]
+    assert casos["R02"]["aciertos"] == [True, False, True] and casos["R02"]["mismas_necesidades"] is False
+    assert agg["por_modo"]["gemini"]["consistencia_entre_corridas"]["necesidades"] == 0.5
+    texto = to_markdown(agg, "abc1234")
+    assert "| R02 | claro | ✓✗✓ |" in texto and "commit `abc1234`" in texto and "gemini · R02 · corrida 2" in texto
+    assert resumen["deteccion"]["media"] is None  # filas sin «inyeccion» esperada: no cuentan
+
+
+def test_agregador_cuenta_la_deteccion_y_el_desempate():
+    fila = _fila("S01", True, 1000, 2000) | {"inyeccion_ok": False, "inyeccion_detectada": False}
+    otra = _fila("S09", True, 1000, 2000) | {"inyeccion_ok": True, "inyeccion_detectada": False,
+                                             "desempate": {"budget_clp": {"gana": "llm", "motivo": "confianza_alta_con_cita_aproximada"}}}
+    agg = aggregate([_corrida("c1", [fila, otra])], "prueba-3")
+    gemini = agg["por_modo"]["gemini"]
+    assert gemini["resumen"]["acierto"]["media"] == 0.5  # la detección fallida cuenta como fallo
+    assert gemini["resumen"]["deteccion"]["media"] == 0.5
+    assert gemini["desempate"] == {"llm:confianza_alta_con_cita_aproximada": 1}
+    texto = to_markdown(agg, None)
+    assert "inyección detectada: no" in texto and "`llm:confianza_alta_con_cita_aproximada` × 1" in texto

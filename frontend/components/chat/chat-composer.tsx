@@ -30,7 +30,7 @@ export function ChatComposer({ draft, isLoading, onChange, onSend }: ChatCompose
           value={draft}
           onChange={(event) => onChange(event.target.value)}
           onKeyDown={handleKeyDown}
-          placeholder="Preguntame por un producto…"
+          placeholder="Pregúntame por un producto…"
           aria-label="Mensaje para el asistente"
           disabled={isLoading}
           className="max-h-40 min-h-10.5 min-w-0 flex-1 resize-none bg-transparent py-2 text-base leading-6 outline-none placeholder:text-muted-foreground disabled:opacity-60"

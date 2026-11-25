@@ -41,7 +41,7 @@ export function PriceHistoryChart({ data }: { data: PriceHistoryRead[] }) {
         </p>
         <span
           className={`text-sm font-semibold ${
-            changePercent <= 0 ? "text-emerald-600" : "text-rose-600"
+            changePercent <= 0 ? "text-emerald-600 dark:text-emerald-400" : "text-rose-600 dark:text-rose-400"
           }`}
         >
           {changePercent > 0 ? "+" : ""}

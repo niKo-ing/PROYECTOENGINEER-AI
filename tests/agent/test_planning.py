@@ -34,6 +34,23 @@ def test_extract_budget(text, expected):
     assert extract_budget_clp(text) == expected
 
 
+@pytest.mark.parametrize(
+    "text,expected",
+    [
+        # Casos que la evaluación con Gemini encontró (P10) y vecinos: cifras que no son plata.
+        ("quiero una bestia para jugar en 4K con todo en ultra, tengo 2,5 millones", 2_500_000),
+        ("jugar en 1440 con 800 mil", 800_000),
+        ("tengo una RTX 4060 y quiero gastar 300 mil", 300_000),
+        ("ryzen 5 5600 con ddr4 3200, fuente de 750 W, cuento con 900 lucas", 900_000),
+        ("tengo una RTX 3060", None),
+        ("monitor 4k", None),
+        ("tengo 800k", 800_000),
+    ],
+)
+def test_extract_budget_ignora_modelos_y_medidas(text, expected):
+    assert extract_budget_clp(text) == expected
+
+
 def test_budget_prefers_amount_next_to_budget_word():
     assert extract_budget_clp("Vi uno de $999.990 pero mi presupuesto es $500.000") == 500_000
 

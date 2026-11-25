@@ -1,0 +1,24 @@
+13:33:35 instancias=2	2 cpu=1.8872630528766212
+13:34:10 instancias=2	2 cpu=40.52516235948288
+13:34:43 instancias=2	2 cpu=40.52516235948288
+13:35:16 instancias=2	2 cpu=32.13323920819835
+13:35:48 instancias=2	2 cpu=32.13323920819835
+13:36:23 instancias=2	2 cpu=94.83939146445928
+13:36:56 instancias=2	2 cpu=94.83939146445928
+13:37:28 instancias=2	2 cpu=92.90557800024122
+13:38:00 instancias=2	2 cpu=98.24630983351338
+13:38:34 instancias=2	2 cpu=98.24630983351338
+13:39:06 instancias=4	4 cpu=99.26561437932062
+13:39:38 instancias=4	4 cpu=99.26561437932062
+13:40:11 instancias=4	4 cpu=99.78876190240786
+13:40:45 instancias=4	4 cpu=99.78876190240786
+13:41:17 instancias=4	4 cpu=99.85719605174236
+13:41:50 instancias=4	4 cpu=99.85719605174236
+13:42:23 instancias=4	4 cpu=51.04353914810004
+13:42:57 instancias=4	4 cpu=51.04353914810004
+
+# Actividad del Auto Scaling Group
+2026-11-16T13:29:17.515Z	At 2026-11-16T13:29:12Z a user request created an AutoScalingGroup changing the desired capacity from 0 to 2.  At 2026-11-16T13:29:15Z an instance was started in response to a difference between desired and actual capacity, increasing 
+2026-11-16T13:29:17.546Z	At 2026-11-16T13:29:12Z a user request created an AutoScalingGroup changing the desired capacity from 0 to 2.  At 2026-11-16T13:29:15Z an instance was started in response to a difference between desired and actual capacity, increasing 
+2026-11-16T13:38:52.804Z	At 2026-11-16T13:38:41Z a monitor alarm TargetTracking-tb-ep3-api-AlarmHigh-7978d769-5fc1-4095-a34e-906d7cc30cf6 in state ALARM triggered policy tb-ep3-cpu-50 changing the desired capacity from 2 to 4.  At 2026-11-16T13:38:50Z an insta
+2026-11-16T13:38:52.827Z	At 2026-11-16T13:38:41Z a monitor alarm TargetTracking-tb-ep3-api-AlarmHigh-7978d769-5fc1-4095-a34e-906d7cc30cf6 in state ALARM triggered policy tb-ep3-cpu-50 changing the desired capacity from 2 to 4.  At 2026-11-16T13:38:50Z an insta

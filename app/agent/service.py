@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import json
 import os
 import re
 import sqlite3
@@ -11,7 +12,7 @@ from functools import lru_cache
 from typing import Any
 
 from langchain_core.language_models import BaseChatModel
-from langchain_core.messages import AIMessage, HumanMessage
+from langchain_core.messages import AIMessage, HumanMessage, ToolMessage
 from langgraph.checkpoint.sqlite import SqliteSaver
 from sqlalchemy.orm import Session
 
@@ -23,6 +24,8 @@ from app.agent.security import enable_rls_on_connection
 from app.ai.rag.embedding import EmbeddingProvider
 from app.ai.rag.factory import get_embedding_provider
 from app.core.config import settings
+from app.observability.guardrails import BLOCKED_ANSWER, check_input, price_grounding, wrap_user_text
+from app.observability.tracer import RunTracer
 
 DEFAULT_CHECKPOINT_DB = os.getenv("AGENT_CHECKPOINT_DB", "agent_checkpoints.db")
 
@@ -44,9 +47,75 @@ class AgentRunResult:
     memories_used: list[str] = field(default_factory=list)
     steps: int = 0
     trace: list[dict[str, Any]] = field(default_factory=list)
+    products: list[dict[str, Any]] = field(default_factory=list)  # tarjetas que el chat unificado muestra bajo la respuesta
+    comparison: dict[str, Any] | None = None
+    pc: dict[str, Any] | None = None  # último resultado del armador en este turno (armado, compatibilidad o mejoras)
+    run_id: str = ""
+    guardrails: dict[str, Any] = field(default_factory=dict)
+    grounding: dict[str, Any] = field(default_factory=dict)
 
     def as_dict(self) -> dict[str, Any]:
         return asdict(self)
+
+
+MAX_CARDS = 6
+CARD_FIELDS = ("id", "name", "brand", "category", "image_url", "lowest_price", "lowest_price_store", "price_clp", "rating", "offer_count")
+
+
+def collect_products(messages: list[Any]) -> tuple[list[dict[str, Any]], dict[str, Any] | None]:
+    """Tarjetas de producto y comparación de ESTE turno, sacadas de lo que devolvieron las herramientas
+    (search_products / compare_products). Así el chat muestra lo mismo que el agente consultó, sin inventar nada."""
+    start = max((i for i, m in enumerate(messages) if isinstance(m, HumanMessage)), default=-1)
+    cards: dict[int, dict[str, Any]] = {}
+    comparison: dict[str, Any] | None = None
+    for message in messages[start + 1 :]:
+        if not isinstance(message, ToolMessage) or message.name not in ("search_products", "compare_products"):
+            continue
+        try:
+            data = json.loads(_text(message.content))
+        except (ValueError, TypeError):
+            continue
+        if not isinstance(data, dict):
+            continue
+        for item in data.get("items") or data.get("products") or []:
+            if isinstance(item, dict) and isinstance(item.get("id"), int) and "error" not in item:
+                cards.setdefault(item["id"], {key: item.get(key) for key in CARD_FIELDS})
+        if message.name == "compare_products" and data.get("comparison"):
+            comparison = data["comparison"]
+    return list(cards.values())[:MAX_CARDS], comparison
+
+
+PC_RESULT_TOOLS = ("recommend_pc_build", "check_pc_compatibility", "suggest_pc_upgrade", "save_pc_build")
+
+
+def turn_tool_messages(messages: list[Any]) -> list[ToolMessage]:
+    start = max((i for i, m in enumerate(messages) if isinstance(m, HumanMessage)), default=-1)
+    return [m for m in messages[start + 1 :] if isinstance(m, ToolMessage)]
+
+
+def collect_pc(messages: list[Any]) -> dict[str, Any] | None:
+    """Último resultado del armador del turno, para que el chat lo muestre como tarjeta."""
+    for message in reversed(turn_tool_messages(messages)):
+        if message.name in PC_RESULT_TOOLS:
+            try:
+                data = json.loads(_text(message.content))
+            except (ValueError, TypeError):
+                continue
+            if isinstance(data, dict):
+                return {"tool": message.name, "data": data}
+    return None
+
+
+def product_context(db: Session, product_id: int | None) -> str:
+    """Si el usuario llegó desde la ficha de un producto, el agente lo sabe y puede hablar de «este producto»."""
+    if not product_id:
+        return ""
+    from app.models.catalog import Product
+
+    product = db.get(Product, product_id)
+    if product is None:
+        return ""
+    return f"[Contexto: el usuario está mirando el producto #{product.id} «{product.name}». «Este producto» se refiere a él.]\n"
 
 
 def checkpointer_kind(database_url: str, mode: str = "auto") -> str:
@@ -92,6 +161,7 @@ class AgentService:
         max_steps: int = 10,
         max_replans: int = 2,
     ):
+        self.db = db
         self.user_id = user_id
         self.memory = LongTermMemory(db, user_id, embedder or get_embedding_provider())
         self.context = RunContext()
@@ -112,31 +182,56 @@ class AgentService:
         messages = (snapshot.values or {}).get("messages", [])
         return [{"role": m.type, "content": _text(m.content)} for m in messages if m.type in ("human", "ai") and _text(m.content)]
 
-    def run(self, message: str, thread_id: str | None = None) -> AgentRunResult:
+    def run(self, message: str, thread_id: str | None = None, product_id: int | None = None, *, eval_tag: str | None = None) -> AgentRunResult:
         thread = thread_id or uuid.uuid4().hex[:12]
-        # El hilo se ata al usuario: dos usuarios con el mismo thread_id nunca comparten historial.
-        config = {"configurable": {"thread_id": f"{self.user_id}:{thread}"}, "recursion_limit": 80}
-        try:
-            # durability="exit": el historial se guarda UNA vez al terminar la tarea y no en cada paso. Con una base
-            # remota (Supabase, ~150 ms por consulta) escribir en cada paso sumaba segundos a cada respuesta.
-            state = self.graph.invoke({"messages": [HumanMessage(message)]}, config, durability="exit")
-        except Exception as error:  # noqa: BLE001 — solo se traducen los fallos del proveedor; un bug propio sigue subiendo
-            if is_provider_error(error):
-                raise as_llm_error(error) from error
-            raise
-        turn = state.get("turn", 1)
-        trace = [event for event in state.get("trace", []) if event.get("turn") == turn]
-        tools_used = [call["tool"] for event in trace if event["node"] == "act" for call in event["tool_calls"]]
-        final = next((m for m in reversed(state["messages"]) if isinstance(m, AIMessage)), None)
-        return AgentRunResult(
-            thread_id=thread,
-            answer=_clean_answer(_text(final.content)) if final else "",
-            plan=state.get("plan", []),
-            plan_source=state.get("plan_source", ""),
-            tools_used=tools_used,
-            wrote=state.get("wrote", []),
-            replans=state.get("replans", 0),
-            memories_used=state.get("memories", []),
-            steps=state.get("steps", 0),
-            trace=trace,
-        )
+        check = check_input(message)
+        with RunTracer(self.db, flow="agente", user_id=self.user_id, user_text=message, eval_tag=eval_tag) as trace:
+            trace.set(guardrails=check.as_dict())
+            if check.blocked:
+                # Pedido de revelar o anular las instrucciones: se responde sin llamar al modelo.
+                trace.set(status="blocked", output_text=BLOCKED_ANSWER)
+                return AgentRunResult(thread_id=thread, answer=BLOCKED_ANSWER, run_id=trace.run_id, guardrails=check.as_dict())
+            # El hilo se ata al usuario: dos usuarios con el mismo thread_id nunca comparten historial.
+            config = {"configurable": {"thread_id": f"{self.user_id}:{thread}"}, "recursion_limit": 80, "callbacks": [trace.callback]}
+            try:
+                # durability="exit": el historial se guarda UNA vez al terminar la tarea y no en cada paso. Con una base
+                # remota (Supabase, ~150 ms por consulta) escribir en cada paso sumaba segundos a cada respuesta.
+                text = product_context(self.db, product_id) + wrap_user_text(message, check)
+                state = self.graph.invoke({"messages": [HumanMessage(text)]}, config, durability="exit")
+            except Exception as error:  # noqa: BLE001 — solo se traducen los fallos del proveedor; un bug propio sigue subiendo
+                if is_provider_error(error):
+                    llm_error = as_llm_error(error)
+                    trace.set(status="error", error_type="rate_limit" if llm_error.rate_limited else "proveedor_llm", error_message=str(llm_error)[:300])
+                    raise llm_error from error
+                raise
+            turn = state.get("turn", 1)
+            trace_events = [event for event in state.get("trace", []) if event.get("turn") == turn]
+            tools_used = [call["tool"] for event in trace_events if event["node"] == "act" for call in event["tool_calls"]]
+            products, comparison = collect_products(state["messages"])
+            final = next((m for m in reversed(state["messages"]) if isinstance(m, AIMessage)), None)
+            answer = _clean_answer(_text(final.content)) if final else ""
+            evidence = [_text(m.content) for m in turn_tool_messages(state["messages"])] + [message]
+            grounding = price_grounding(answer, evidence)
+            gave_up = any(event["node"] == "give_up" for event in trace_events)
+            trace.set(
+                status="fallback" if gave_up else "ok", steps=state.get("steps", 0), replans=state.get("replans", 0), plan_source=state.get("plan_source", ""),
+                output_text=answer, quality={"precios": grounding}, extra={"wrote": state.get("wrote", []), "gave_up": gave_up},
+            )
+            return AgentRunResult(
+                thread_id=thread,
+                answer=answer,
+                plan=state.get("plan", []),
+                plan_source=state.get("plan_source", ""),
+                tools_used=tools_used,
+                wrote=state.get("wrote", []),
+                replans=state.get("replans", 0),
+                memories_used=state.get("memories", []),
+                steps=state.get("steps", 0),
+                trace=trace_events,
+                products=products,
+                comparison=comparison,
+                pc=collect_pc(state["messages"]),
+                run_id=trace.run_id,
+                guardrails=check.as_dict(),
+                grounding=grounding,
+            )

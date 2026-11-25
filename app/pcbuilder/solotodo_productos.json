@@ -1,0 +1,362 @@
+{
+  "AMD Radeon RX 580 8GB": {
+    "nombre_solotodo": "AMD Radeon RX 580",
+    "puntaje": 1.0,
+    "solotodo_id": 123954
+  },
+  "AMD Ryzen 5 2600": {
+    "nombre_solotodo": "AMD Ryzen 5 2600 [YD2600BBAFBOX]",
+    "puntaje": 1.0,
+    "solotodo_id": 43659
+  },
+  "AMD Ryzen 5 3600": {
+    "nombre_solotodo": "AMD Ryzen 5 3600 [100-100000031BOX]",
+    "puntaje": 1.0,
+    "solotodo_id": 63490
+  },
+  "AMD Ryzen 5 5600": {
+    "nombre_solotodo": "AMD Ryzen 5 5600 [100-100000927BOX]",
+    "puntaje": 1.0,
+    "solotodo_id": 135981
+  },
+  "AMD Ryzen 5 5600G": {
+    "nombre_solotodo": "AMD Ryzen 5 5600GT [100-100001488BOX]",
+    "puntaje": 1.0,
+    "solotodo_id": 232390
+  },
+  "AMD Ryzen 5 7600": {
+    "nombre_solotodo": "AMD Ryzen 5 7600 [100-100001015BOX]",
+    "puntaje": 1.0,
+    "solotodo_id": 166287
+  },
+  "AMD Ryzen 5 8600G": {
+    "nombre_solotodo": "AMD Ryzen 5 8600G [100-100001237BOX]",
+    "puntaje": 1.0,
+    "solotodo_id": 232386
+  },
+  "AMD Ryzen 5 9600X": {
+    "nombre_solotodo": "AMD Ryzen 5 9600X [100-100001405WOF]",
+    "puntaje": 1.0,
+    "solotodo_id": 252401
+  },
+  "AMD Ryzen 7 5700X": {
+    "nombre_solotodo": "AMD Ryzen 7 5700X [100-100000926WOF]",
+    "puntaje": 1.0,
+    "solotodo_id": 135977
+  },
+  "AMD Ryzen 7 7700": {
+    "nombre_solotodo": "AMD Ryzen 7 7700 [100-100000592BOX]",
+    "puntaje": 1.0,
+    "solotodo_id": 166286
+  },
+  "AMD Ryzen 7 7800X3D": {
+    "nombre_solotodo": "AMD Ryzen 7 7800X3D [100-100000910WOF]",
+    "puntaje": 1.0,
+    "solotodo_id": 200671
+  },
+  "AMD Ryzen 9 7900X": {
+    "nombre_solotodo": "AMD Ryzen 9 7900X [100-100000589WOF]",
+    "puntaje": 1.0,
+    "solotodo_id": 151871
+  },
+  "ARCTIC Liquid Freezer III 240": {
+    "nombre_solotodo": "Arctic Liquid Freezer III 240 - Black (ACFRE00134A)",
+    "puntaje": 1.0,
+    "solotodo_id": 243975
+  },
+  "ASRock B650I Lightning WiFi": {
+    "nombre_solotodo": "ASRock B650I LIGHTNING WIFI",
+    "puntaje": 1.0,
+    "solotodo_id": 356068
+  },
+  "ASRock Radeon RX 6600 Challenger D 8GB": {
+    "nombre_solotodo": "ASRock Challenger D 8GB RX 6600",
+    "puntaje": 1.0,
+    "solotodo_id": 129038
+  },
+  "ASUS Dual GeForce RTX 5060 8GB": {
+    "nombre_solotodo": "ASUS Dual GeForce RTX 5060 8GB GDDR7 OC Edition [DUAL-RTX5060-O8G / 90YV0N12-M0AA00]",
+    "puntaje": 1.0,
+    "solotodo_id": 274360
+  },
+  "ASUS PRIME A520M-K": {
+    "nombre_solotodo": "ASUS PRIME A520M-K",
+    "puntaje": 1.0,
+    "solotodo_id": 85682
+  },
+  "ASUS PRIME B460M-A": {
+    "nombre_solotodo": "ASUS PRIME B460M-A",
+    "puntaje": 1.0,
+    "solotodo_id": 80996
+  },
+  "ASUS PRIME H610M-E D4": {
+    "nombre_solotodo": "ASUS PRIME H610M-E D4",
+    "puntaje": 1.0,
+    "solotodo_id": 131416
+  },
+  "ASUS TUF GAMING B650-PLUS WIFI": {
+    "nombre_solotodo": "ASUS TUF GAMING B650-PLUS WIFI",
+    "puntaje": 1.0,
+    "solotodo_id": 161764
+  },
+  "Cooler Master Hyper 212 Black": {
+    "nombre_solotodo": "Cooler Master Hyper 212 Black Edition (RR-212S-20PK-R1)",
+    "puntaje": 1.0,
+    "solotodo_id": 62318
+  },
+  "Cooler Master MWE 650 Bronze V2 650W": {
+    "nombre_solotodo": "Cooler Master MWE Bronze 650 V2 (MPE-6501-ACAAB-WO) (650 W)",
+    "puntaje": 1.0,
+    "solotodo_id": 65525
+  },
+  "Cooler Master MasterBox NR200P": {
+    "nombre_solotodo": "Cooler Master MasterBox NR200P (MCB-NR200P-KGNN-S00)",
+    "puntaje": 1.0,
+    "solotodo_id": 97493
+  },
+  "Cooler Master MasterBox Q300L": {
+    "nombre_solotodo": "Cooler Master MasterBox Q300L (MCB-Q300L-KANN-S00)",
+    "puntaje": 1.0,
+    "solotodo_id": 45731
+  },
+  "Corsair 4000D Airflow": {
+    "nombre_solotodo": "Corsair 4000D AIRFLOW - Black (CC-9011200-WW)",
+    "puntaje": 1.0,
+    "solotodo_id": 87038
+  },
+  "Corsair CV550 550W 80 Plus Bronze": {
+    "nombre_solotodo": "Corsair CV Series CV550 (CP-9020210-NA) (550 W)",
+    "puntaje": 1.0,
+    "solotodo_id": 75009
+  },
+  "Corsair RM750e 750W 80 Plus Gold ATX 3.0": {
+    "nombre_solotodo": "Corsair RMe Series RM750e (CP-9020248-NA) (750 W)",
+    "puntaje": 1.0,
+    "solotodo_id": 194575
+  },
+  "Corsair Vengeance 32GB (2x16) DDR5-6000": {
+    "nombre_solotodo": "Corsair Vengeance CMK32GX5M2B6000C38 (2 x 16 GB | DIMM DDR5-6000)",
+    "puntaje": 1.0,
+    "solotodo_id": 380890
+  },
+  "Corsair Vengeance LPX 32GB (2x16) DDR4-3200": {
+    "nombre_solotodo": "Corsair Vengeance LPX CMK32GX4M2B3200C16W (2 x 16 GB | DIMM DDR4-3200)",
+    "puntaje": 1.0,
+    "solotodo_id": 211492
+  },
+  "Cougar MX330-G Air": {
+    "nombre_solotodo": "Cougar MX330-G Air",
+    "puntaje": 1.0,
+    "solotodo_id": 85598
+  },
+  "Crucial P3 Plus 2TB M.2 NVMe": {
+    "nombre_solotodo": "Crucial P3 Plus 2 TB (CT2000P3PSSD8)",
+    "puntaje": 1.0,
+    "solotodo_id": 204466
+  },
+  "DeepCool AK400": {
+    "nombre_solotodo": "Deepcool AK400",
+    "puntaje": 1.0,
+    "solotodo_id": 155066
+  },
+  "Gigabyte A620M GAMING X": {
+    "nombre_solotodo": "Gigabyte A620M GAMING X",
+    "puntaje": 1.0,
+    "solotodo_id": 198955
+  },
+  "Gigabyte B365M DS3H": {
+    "nombre_solotodo": "Gigabyte B365M DS3H",
+    "puntaje": 1.0,
+    "solotodo_id": 68526
+  },
+  "Gigabyte B550 AORUS ELITE V2": {
+    "nombre_solotodo": "Gigabyte B550 AORUS ELITE V2",
+    "puntaje": 1.0,
+    "solotodo_id": 89560
+  },
+  "Gigabyte B760 GAMING X AX": {
+    "nombre_solotodo": "Gigabyte B760 GAMING X AX",
+    "puntaje": 1.0,
+    "solotodo_id": 168628
+  },
+  "Gigabyte GeForce RTX 4060 WINDFORCE OC 8G": {
+    "nombre_solotodo": "Gigabyte GeForce RTX 4060 WINDFORCE OC 8G [GV-N4060WF2OC-8GD]",
+    "puntaje": 1.0,
+    "solotodo_id": 211445
+  },
+  "Gigabyte P450B 450W 80 Plus Bronze": {
+    "nombre_solotodo": "Gigabyte GP-P450B (450 W)",
+    "puntaje": 1.0,
+    "solotodo_id": 84800
+  },
+  "Intel Core Ultra 5 245K": {
+    "nombre_solotodo": "Intel Core Ultra 5 245K [BX80768245K]",
+    "puntaje": 1.0,
+    "solotodo_id": 258694
+  },
+  "Intel Core i3-12100F": {
+    "nombre_solotodo": "Intel Core i3-12100F [BX8071512100F]",
+    "puntaje": 1.0,
+    "solotodo_id": 129578
+  },
+  "Intel Core i5-10400F": {
+    "nombre_solotodo": "Intel Core i5-10400F [BX8070110400F]",
+    "puntaje": 1.0,
+    "solotodo_id": 81377
+  },
+  "Intel Core i5-12400": {
+    "nombre_solotodo": "Intel Core i5-12400 [BX8071512400]",
+    "puntaje": 1.0,
+    "solotodo_id": 127943
+  },
+  "Intel Core i5-12400F": {
+    "nombre_solotodo": "Intel Core i5-12400F [BX8071512400F]",
+    "puntaje": 1.0,
+    "solotodo_id": 127944
+  },
+  "Intel Core i5-13400F": {
+    "nombre_solotodo": "Intel Core i5-13400F [BX8071513400F]",
+    "puntaje": 1.0,
+    "solotodo_id": 179023
+  },
+  "Intel Core i5-14600K": {
+    "nombre_solotodo": "Intel Core i5-14600K [BX8071514600K]",
+    "puntaje": 1.0,
+    "solotodo_id": 222319
+  },
+  "Intel Core i5-9400F": {
+    "nombre_solotodo": "Intel Core i5-9400F [BX80684I59400F]",
+    "puntaje": 1.0,
+    "solotodo_id": 56956
+  },
+  "Intel Core i7-14700K": {
+    "nombre_solotodo": "Intel Core i7-14700K [BX8071514700K]",
+    "puntaje": 1.0,
+    "solotodo_id": 222075
+  },
+  "Kingston A400 480GB SATA 2.5\"": {
+    "nombre_solotodo": "Kingston SSDNow A400 480 GB (SA400S37/480G)",
+    "puntaje": 1.0,
+    "solotodo_id": 33675
+  },
+  "Kingston FURY Beast 64GB (2x32) DDR5-5600": {
+    "nombre_solotodo": "Kingston Fury Beast KF556C40BBK2-64 (2 x 32 GB | DIMM DDR5-5600)",
+    "puntaje": 1.0,
+    "solotodo_id": 219987
+  },
+  "Kingston FURY Beast 8GB (1x8) DDR4-3200": {
+    "nombre_solotodo": "Kingston Fury Beast KF432C16BB/8 (1 x 8 GB | DIMM DDR4-3200)",
+    "puntaje": 1.0,
+    "solotodo_id": 117945
+  },
+  "Kingston NV3 1TB M.2 NVMe PCIe 4.0": {
+    "nombre_solotodo": "Kingston NV3 1 TB (SNV3S/1000G)",
+    "puntaje": 1.0,
+    "solotodo_id": 253373
+  },
+  "Kingston NV3 500GB M.2 NVMe PCIe 4.0": {
+    "nombre_solotodo": "Kingston NV3 500 GB (SNV3S/500G)",
+    "puntaje": 1.0,
+    "solotodo_id": 253375
+  },
+  "Lian Li Lancool 216": {
+    "nombre_solotodo": "Lian Li Lancool 216 - Black",
+    "puntaje": 1.0,
+    "solotodo_id": 217701
+  },
+  "MSI B450M PRO-VDH MAX": {
+    "nombre_solotodo": "MSI B450M PRO-VDH MAX",
+    "puntaje": 1.0,
+    "solotodo_id": 69113
+  },
+  "MSI B550M PRO-VDH WIFI": {
+    "nombre_solotodo": "MSI B550M PRO-VDH WIFI",
+    "puntaje": 1.0,
+    "solotodo_id": 83694
+  },
+  "MSI B650M GAMING PLUS WIFI": {
+    "nombre_solotodo": "MSI B650M GAMING PLUS WIFI",
+    "puntaje": 1.0,
+    "solotodo_id": 239776
+  },
+  "MSI GeForce RTX 3050 VENTUS 2X 6G OC": {
+    "nombre_solotodo": "MSI GeForce RTX 3050 VENTUS 2X 6G OC [912-V812-201]",
+    "puntaje": 1.0,
+    "solotodo_id": 235256
+  },
+  "MSI GeForce RTX 4060 Ti VENTUS 2X 8G": {
+    "nombre_solotodo": "MSI GeForce RTX 4060 Ti VENTUS 2X BLACK 8G [RTX 4060 Ti VENTUS 2X BLACK 8G]",
+    "puntaje": 1.0,
+    "solotodo_id": 210660
+  },
+  "MSI GeForce RTX 5070 12G VENTUS 2X OC": {
+    "nombre_solotodo": "MSI GeForce RTX 5070 12G VENTUS 2X OC [G5070-12V2C / 912-V532-009]",
+    "puntaje": 1.0,
+    "solotodo_id": 271705
+  },
+  "MSI MAG A850GL PCIE5 850W 80 Plus Gold": {
+    "nombre_solotodo": "MSI MAG A850GL PCIE5 (850 W)",
+    "puntaje": 1.0,
+    "solotodo_id": 221587
+  },
+  "MSI PRO B760M-A WIFI DDR4": {
+    "nombre_solotodo": "MSI PRO B760M-A WIFI DDR4",
+    "puntaje": 1.0,
+    "solotodo_id": 169754
+  },
+  "MSI PRO Z790-P WIFI": {
+    "nombre_solotodo": "MSI PRO Z790-P WIFI",
+    "puntaje": 1.0,
+    "solotodo_id": 153053
+  },
+  "NZXT H5 Flow": {
+    "nombre_solotodo": "NZXT H5 Flow - Black (CC-H51FB-01)",
+    "puntaje": 1.0,
+    "solotodo_id": 201596
+  },
+  "NZXT Kraken 360": {
+    "nombre_solotodo": "NZXT Kraken 360 - Black (RL-KN360-B1)",
+    "puntaje": 1.0,
+    "solotodo_id": 236674
+  },
+  "Noctua NH-D15": {
+    "nombre_solotodo": "Noctua NH-D15 chromax.black",
+    "puntaje": 1.0,
+    "solotodo_id": 98547
+  },
+  "Samsung 990 PRO 2TB M.2 NVMe": {
+    "nombre_solotodo": "Samsung 990 Pro 2 TB (MZ-V9P2T0BW)",
+    "puntaje": 1.0,
+    "solotodo_id": 158336
+  },
+  "Sapphire PULSE Radeon RX 7600 8GB": {
+    "nombre_solotodo": "Sapphire PULSE AMD Radeon RX 7600 8GB [11324-01-20G]",
+    "puntaje": 1.0,
+    "solotodo_id": 210456
+  },
+  "Sapphire PULSE Radeon RX 7800 XT 16GB": {
+    "nombre_solotodo": "Sapphire PULSE AMD Radeon RX 7800 XT 16GB [11330-02-20G]",
+    "puntaje": 1.0,
+    "solotodo_id": 219977
+  },
+  "Seagate BarraCuda 2TB HDD 3.5\" 7200 rpm": {
+    "nombre_solotodo": "Seagate Barracuda 2 TB (ST2000DM001)",
+    "puntaje": 1.0,
+    "solotodo_id": 5944
+  },
+  "Thermalright Peerless Assassin 120 SE": {
+    "nombre_solotodo": "Thermalright Peerless Assassin 120 SE",
+    "puntaje": 1.0,
+    "solotodo_id": 235885
+  },
+  "WD Black SN770 1TB M.2 NVMe": {
+    "nombre_solotodo": "Western Digital Black SN770 1 TB (WDS100T3X0E)",
+    "puntaje": 1.0,
+    "solotodo_id": 135906
+  },
+  "XFX Speedster QICK 319 Radeon RX 7700 XT 12GB": {
+    "nombre_solotodo": "XFX Speedster QICK 319 Radeon RX 7700 XT Black Edition [RX-77TQICKB9]",
+    "puntaje": 1.0,
+    "solotodo_id": 260531
+  }
+}

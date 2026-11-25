@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { ArrowRight, LayoutGrid, Sparkles } from "lucide-react";
+import { ArrowRight, BookOpen, Bot, Cpu, LayoutGrid, Sparkles, Wrench } from "lucide-react";
 
 import { EmptyState } from "@/components/product/empty-state";
 import { HomeSearchBar } from "@/components/product/home-search-bar";
@@ -44,6 +44,26 @@ export default function HomePage() {
       </section>
 
       <div className="mx-auto max-w-7xl px-4 py-10 sm:px-6">
+        <section className="mb-12" aria-labelledby="armar-titulo">
+          <SectionHeading icon={<Cpu className="h-5 w-5" />} title="Arma tu PC sin errores" id="armar-titulo" />
+          <div className="grid gap-4 md:grid-cols-3">
+            {[
+              { href: "/armar/asistente", icon: Bot, title: "Que la IA te lo arme", text: "Cuéntale para qué lo quieres y cuánto tienes. Te pregunta lo que falte y arma un PC compatible." },
+              { href: "/armar", icon: Wrench, title: "Ármalo pieza por pieza", text: "Cada opción te dice si calza: socket, tipo de memoria, medidas del gabinete y watts de la fuente." },
+              { href: "/guias", icon: BookOpen, title: "Aprende qué es compatible", text: "Guías cortas sobre sockets, DDR4 y DDR5, fuentes, gabinetes y refrigeración." },
+            ].map(({ href, icon: Icon, title, text }) => (
+              <Link key={href} href={href} className="group flex flex-col gap-2 rounded-xl border bg-card p-5 transition-colors hover:border-primary/50 hover:bg-muted/30">
+                <Icon className="h-6 w-6 text-primary" />
+                <h3 className="font-semibold">{title}</h3>
+                <p className="text-sm text-muted-foreground">{text}</p>
+                <span className="mt-auto inline-flex items-center gap-1 pt-2 text-sm font-medium text-primary">
+                  Empezar <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
+                </span>
+              </Link>
+            ))}
+          </div>
+        </section>
+
         <section className="mb-12">
           <SectionHeading
             icon={<LayoutGrid className="h-5 w-5" />}
@@ -95,14 +115,16 @@ function SectionHeading({
   icon,
   title,
   action,
+  id,
 }: {
   icon: React.ReactNode;
   title: string;
   action?: React.ReactNode;
+  id?: string;
 }) {
   return (
     <div className="mb-4 flex items-center justify-between gap-2">
-      <h2 className="flex items-center gap-2 text-lg font-semibold sm:text-xl">
+      <h2 id={id} className="flex items-center gap-2 text-lg font-semibold sm:text-xl">
         <span className="flex size-8 items-center justify-center rounded-lg bg-primary/10 text-primary">
           {icon}
         </span>

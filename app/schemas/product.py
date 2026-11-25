@@ -95,6 +95,8 @@ class StoreOfferRead(BaseModel):
     payment_condition: str | None
     seller_name: str | None
     last_checked_at: datetime
+    # «semilla-armador» = precio de referencia del armador (no es una tienda); otras = conector de la tienda.
+    source: str | None = None
 
 
 class PriceHistoryRead(BaseModel):

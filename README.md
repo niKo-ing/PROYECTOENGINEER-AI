@@ -1,107 +1,127 @@
-# SoloTodo AI
+# TodoBarato AI
 
-> **Evaluación Parcial 2 (ISY0101) — Agente de ahorro con LangGraph.** Un agente que busca, compara, razona sobre el historial de precios y **escribe** alertas y listas de compra, con memoria de corto y largo plazo y replanificación adaptativa. Arquitectura, diagramas, cómo ejecutarlo y evidencia: [`docs/agente/ARQUITECTURA.md`](docs/agente/ARQUITECTURA.md). Código en `app/agent/`, pruebas en `tests/agent/`, demo con `python scripts/demo_agente.py`.
+Comparador de precios de tecnología para Chile con un **armador de PC que no se equivoca de compatibilidad** y un
+**agente con Gemini** que pregunta lo que falta, arma el computador según tus necesidades, lo explica con fuentes y lo
+guarda en tu perfil («Mis computadores»). Cada consulta a la IA queda trazada y medida en un panel de observabilidad.
 
-### Ejecutar y validar el agente (paso a paso)
+**Equipos:** ISY0101 (Ingeniería de Soluciones con IA): Nicolás Estefanía y Ariel Espinoza · ITY1102 (Arquitectura de Sistemas
+de IA): Nicolás Estefanía, Diego Tapia y Ariel Espinoza.
 
-Requisitos: Python 3.12 y [uv](https://docs.astral.sh/uv/). Para la demo en vivo, una llave de Gemini.
+| Entrega | Qué cubre | Dónde está |
+|---|---|---|
+| **ISY0101 · Evaluación Parcial 3** (observabilidad) | Métricas de precisión, latencia, consistencia, errores y recursos; trazas y análisis de logs; dashboard; recomendaciones; seguridad y privacidad; bocetos de diseño | [`docs/entrega/ISY0101-EP3.md`](docs/entrega/ISY0101-EP3.md) · [`docs/bocetos/`](docs/bocetos/README.md) |
+| **ISY0101 · Evaluación Final Transversal** | Caso, prompts, RAG (fuentes internas y externas), arquitectura, agente con herramientas, memoria, planificación, observabilidad y seguridad; notebook de Colab | [`docs/entrega/ISY0101-EFT.md`](docs/entrega/ISY0101-EFT.md) · [`notebooks/EFT_ISY0101.ipynb`](notebooks/EFT_ISY0101.ipynb) |
+| **ITY1102 · Evaluación Parcial 3** (despliegue) | Modelo de emparejamiento entrenado en Colab, API `/ml`, RabbitMQ, despliegue medido en AWS, pruebas de carga | [`EP3_ITY1102/README.md`](EP3_ITY1102/README.md) · [`notebook de Colab`](EP3_ITY1102/notebooks/EP3_ITY1102_Colab.ipynb) · redespliegue para la defensa: [`docs/entrega/DEPLOY_DEFENSA.md`](docs/entrega/DEPLOY_DEFENSA.md) |
+| Matriz de cumplimiento de las tres pautas | Cada indicador con su evidencia (archivo, ruta o página) | [`docs/entrega/matriz-cumplimiento.md`](docs/entrega/matriz-cumplimiento.md) |
+| ISY0101 · Evaluación Parcial 2 (agente) | Arquitectura del agente LangGraph | [`docs/agente/ARQUITECTURA.md`](docs/agente/ARQUITECTURA.md) |
+
+## Qué hace
+
+| Página | Para qué |
+|---|---|
+| `/armar` | Armador pieza por pieza: cada opción dice si calza (socket, tipo de memoria, medidas del gabinete, watts de la fuente). |
+| `/armar/asistente` | Chat con Gemini: pregunta uso y presupuesto si faltan, arma un PC compatible y explica por qué, citando las guías. |
+| `/mis-pc` y `/mis-pc/[id]` | «Mis computadores»: tus equipos (propios o proyectos), su compatibilidad y una revisión con IA que propone mejoras. |
+| `/guias` | Guías de compatibilidad; son la base de conocimiento (RAG) que consulta la IA. |
+| `/chat` | Agente de ahorro y armado: busca, compara, revisa historial de precios, crea alertas y listas, y usa las herramientas del armador. |
+| `/perfil` | Cuenta, descarga y borrado de todos tus datos (Ley 19.628 y Ley 21.719) y cómo usamos la IA. |
+| `/observabilidad` | Panel para administradores: latencia p50/p95/p99, errores, respaldos, tokens, herramientas, objetivos de servicio y la cascada de cada ejecución. |
+
+<p>
+  <img src="docs/entrega/capturas/09-asistente.png" alt="Asistente de armado: pedido coloquial, PC compatible de $685.000 y explicación con guías citadas" width="49%">
+  <img src="docs/entrega/capturas/01b-panel-indicadores.png" alt="Panel de observabilidad: latencia p95, indicadores, objetivos de servicio y gráficos" width="49%">
+</p>
+
+Más capturas en [`docs/entrega/capturas/`](docs/entrega/capturas/).
+
+**La IA no decide la compatibilidad.** Un motor de reglas (`app/pcbuilder/`) revisa socket, chipset, memoria, medidas,
+refrigeración y consumo; Gemini entiende el pedido y explica el resultado. Si la explicación cita un precio que no está en
+los datos, se descarta y se responde con la explicación por reglas.
+
+## Inicio rápido (local, sin Docker)
+
+Requisitos: Python 3.12 con [uv](https://docs.astral.sh/uv/), Node 20+ con `pnpm` y, para la IA, una llave de Gemini.
 
 ```bash
-# 1. Entorno e instalación
+# 1. Backend
 uv venv --python 3.12 .venv
-uv pip install -e '.[dev]'
+uv pip install -e '.[dev,ml,mensajeria]'
+cp .env.example .env        # complete AUTH_JWT_SECRET y GEMINI_API_KEY (ver «Configuración»)
+DATABASE_URL=sqlite:///./todobarato.db .venv/bin/python -m uvicorn app.main:app --port 8000
+#    Al arrancar crea las tablas y siembra las piezas del armador; las guías se cargan en la primera búsqueda.
 
-# 2. Pruebas (sin red, ~10 s): deben dar 124 passed, 5 skipped
-#    (si su .env trae un DATABASE_URL de Supabase, anteponga DATABASE_URL=sqlite:///./dev_local.db)
-.venv/bin/python -m pytest tests/agent -q
-
-# 3. Demo guionada, sin red: 5 historias con la traza completa (plan, herramientas, replanes, memoria)
-.venv/bin/python scripts/demo_agente.py
-
-# 4. Demo con Gemini real: cree un .env con LLM_PROVIDER=gemini, GEMINI_API_KEY=... y GEMINI_MODEL=gemini-flash-lite-latest
-.venv/bin/python scripts/demo_agente.py --live --embeddings gemini
-
-# 5. Opcionales: pruebas contra Gemini y contra Postgres real
-RUN_LIVE=1 .venv/bin/python -m pytest tests/agent/test_live_gemini.py -q
-TEST_POSTGRES_URL=postgresql://usuario:clave@localhost:5432/base .venv/bin/python -m pytest tests/agent/test_checkpointer.py -q
-
-# 6. API (usa la base de DATABASE_URL, o SQLite local sin ella): POST /api/v1/agent/run
-.venv/bin/python -m uvicorn app.main:app --port 8000
+# 2. Frontend (otra terminal)
+cd frontend && pnpm install && pnpm dev     # http://localhost:3000
 ```
 
-### Probar la pantalla del agente (frontend)
+Cree una cuenta en `/register`. Sin `ADMIN_EMAILS` y con `APP_ENV` distinto de `production`, cualquier cuenta ve el panel
+`/observabilidad` (solo para desarrollo); en producción ponga ahí los correos de los administradores.
 
-Hace falta Node con `pnpm` y dos terminales. Si el `DATABASE_URL` de su `.env` apunta a Supabase y esa conexión no está disponible, fuerce una base SQLite local solo para esta prueba (el valor del entorno manda sobre el `.env` y no lo modifica):
+## Precios de tiendas e imágenes (SoloTodo)
+
+En producción (`PC_CATALOGO=solotodo`, lo fija el despliegue en AWS) el armador usa **solo productos que hoy se venden
+nuevos en tiendas chilenas**: unas 200 piezas tomadas de la API pública de SoloTodo (`publicapi.solotodo.com`, JSON; no
+se raspa HTML), con su ficha técnica, su foto y las ofertas de cada tienda (PC Factory, Winpy, MyShop, Infor-Ingen…).
+No hay precios inventados.
+
+- `app/pcbuilder/catalogo_solotodo.json` es la instantánea revisable del catálogo; la genera `scripts/solotodo_catalogo.py`
+  eligiendo los más populares por grupo (socket, con o sin gráficos integrados, DDR4/DDR5, formato, potencia…) y
+  descartando los que no tienen una oferta nueva en Chile. Las reglas que convierten la ficha de SoloTodo en los datos de
+  compatibilidad (y las que deducen lo que SoloTodo no publica) están en `app/pcbuilder/solotodo_catalogo.py`; una ficha
+  a la que le falta un dato necesario se descarta, no se rellena.
+- La API siembra esa instantánea al arrancar y, en segundo plano, sincroniza precios, tiendas e imágenes cada 6 horas
+  (`SOLOTODO_SYNC_HORAS`); entre réplicas sincroniza una sola. El armador cotiza la oferta nueva más barata (las usadas o
+  reacondicionadas se ven en la ficha, pero no fijan el precio) y omite la oferta de una página que vende varias variantes.
 
 ```bash
-# Una sola vez: catálogo de ejemplo en una base local aparte (dev_local.db)
-DATABASE_URL=sqlite:///./dev_local.db .venv/bin/python scripts/sembrar_catalogo_demo.py
-
-# Terminal 1: backend (el modo demo está disponible fuera de producción)
-DATABASE_URL=sqlite:///./dev_local.db .venv/bin/python -m uvicorn app.main:app --port 8000
-
-# Terminal 2: frontend
-cd frontend && pnpm install && pnpm dev
+python -m app.pcbuilder.solotodo                 # sincroniza a mano la base configurada
+python scripts/solotodo_catalogo.py              # regenera la instantánea (1 consulta/s); revisar el diff antes de subirla
 ```
 
-El chat de IA original sigue en **/chat**; el agente es una pantalla adicional en `/agente`.
+Las pruebas, las evaluaciones y el desarrollo local usan la semilla del equipo (`catalog_data.py`, con «Precio de
+referencia»), sin red, para que sus resultados se puedan repetir. SP Digital cerró: su conector ya no se registra.
 
-Abra **http://localhost:3000/agente** (también está el botón «Agente» en la barra superior). La pantalla usa Gemini real y pide iniciar sesión.
+## Observabilidad, evaluación y trazas
 
-- **Modo Demo**, oculto a los usuarios: se abre solo con **http://localhost:3000/agente?demo=1** (sin login, sin red, sin gastar cuota). Muestra un selector Demo / Gemini real: catálogo de ejemplo y modelo guionado. Pruebe las 5 historias de la pantalla. A la derecha, «Cómo pensó» muestra el plan, cada herramienta y los replanes; «Guardado» muestra alertas, listas y memoria. Tras la historia 2 pulse **Simular baja de precio** y pida «Revisa mis alertas de precio». **Reiniciar demo** deja todo de cero.
-- **Gemini real** (lo normal): requiere iniciar sesión (Supabase) y `GEMINI_API_KEY`; usa el endpoint autenticado `/api/v1/agent/run`. Con una base SQLite vacía no hay productos que buscar: siembre el catálogo de ejemplo con `.venv/bin/python scripts/sembrar_catalogo_demo.py` (solo SQLite local; no hace nada si ya hay productos).
-- El modo demo se apaga solo con `APP_ENV=production`, o con `AGENT_DEMO_ENABLED=false`.
+| Qué | Cómo |
+|---|---|
+| Panel | `/observabilidad` (o `GET /api/v1/observability/metrics?hours=24`, `/runs`, `/runs/{run_id}`) |
+| Prometheus / Grafana | `GET /api/v1/observability/prometheus` (formato de texto de Prometheus) |
+| Log de cada ejecución | `TRACE_LOG_FILE=logs/trazas.jsonl` (una línea JSON por ejecución, sin datos personales, con rotación) |
+| Evaluación con escenarios variables | `.venv/bin/python -m scripts.evaluar_ia --modos gemini,reglas --repeticiones 3 --agente` → `evals/resultados/<etiqueta>.md` y `.json` |
+| Análisis de los logs | `.venv/bin/python -m scripts.analizar_trazas --incluir-eval --salida evals/resultados/analisis.md` (o `--db`) |
+| Objetivos de servicio | `SLO_P95_MS` (8000), `SLO_ERROR_RATE` (0,05), `SLO_GROUNDED` (0,95), `SLO_FALLBACK_RATE` (0,20) |
 
-Scripts asociados: `scripts/demo_agente.py` (demo), `scripts/generar_diagramas.py` (diagramas PNG), `scripts/generar_informe.py` (informe .docx). Un `.env` con `DATABASE_URL` hace que las pruebas intenten conectarse a esa base: para probar, no lo defina. Detalle de arquitectura en [`docs/agente/ARQUITECTURA.md`](docs/agente/ARQUITECTURA.md) y de contratos en [`docs/agente/DISENO.md`](docs/agente/DISENO.md).
+La evaluación usa `evals/escenarios.json`: 70 casos del asistente en cinco conjuntos (desarrollo, prueba, prueba 2 y los ciegos
+pre-registrados prueba-3 y prueba-4) y 4 del agente. Compara Gemini contra el modo solo reglas. Gasta
+unas 150 llamadas a Gemini con 3 repeticiones; use `--solo P01,P02` para correr unos pocos.
 
-Base de infraestructura para un monolito modular. El backend usa FastAPI y SQLAlchemy; el frontend usa Next.js, React, TypeScript y Tailwind CSS. PostgreSQL en Supabase es la base de datos objetivo.
+## Configuración
+
+Variables principales de `.env` (plantilla completa en `.env.example`; **nunca** suba `.env` al repositorio):
+
+| Variable | Para qué |
+|---|---|
+| `DATABASE_URL` | PostgreSQL en producción (RDS); sin ella se usa SQLite local. |
+| `AUTH_JWT_SECRET` | Firma de los tokens de las cuentas propias. Obligatoria fuera de desarrollo (32+ caracteres aleatorios). |
+| `ADMIN_EMAILS` | Correos con acceso al panel de observabilidad y a `/admin`. |
+| `LLM_PROVIDER`, `GEMINI_API_KEY`, `GEMINI_MODEL` | Modelo de la IA (`gemini`, `gemini-3.5-flash-lite`). Sin llave, el asistente responde solo con reglas. |
+| `ASSISTANT_LLM_TIMEOUT_SECONDS` | Tiempo máximo de una llamada del asistente antes de responder con reglas (10 s). |
+| `TRACE_LOG_FILE`, `TRACE_PERSIST`, `TRACE_SALT` | Log JSONL de trazas, guardarlas en la base y la sal del seudónimo del usuario. |
+| `RESEARCH_ENABLED`, `MAX_RESEARCH_QUERIES` | Búsqueda en la web (fuente externa del RAG) y su tope de consultas. |
+| `PC_AI_RATE_LIMIT_PER_MINUTE` | Límite de consultas a la IA por usuario y minuto (15). |
+
+**Cuentas:** el login es propio (`/api/v1/auth/*`, contraseñas con scrypt y sal aleatoria, tokens JWT firmados). El proyecto de Supabase que se
+usaba antes ya no existe; si vuelve, el backend también acepta sus tokens (`SUPABASE_URL`).
 
 ## Inicio rápido con Docker
 
-Esta es la forma recomendada para ejecutar la app en otro computador, tanto en Windows como en Linux. Solo requiere tener Docker instalado.
-
-### 1. Requisitos
-
-- Windows: instalar **Docker Desktop** y dejarlo abierto.
-- Linux: instalar **Docker Engine** y el plugin `docker compose`.
-- Tener el archivo `.env` en la raíz del proyecto con las credenciales reales.
-
-### 2. Preparar variables de entorno
-
-Copie el archivo de ejemplo:
+Solo requiere Docker (Docker Desktop en Windows, Docker Engine + `docker compose` en Linux) y el archivo `.env`:
 
 ```bash
-cp .env.example .env
-```
-
-En Windows PowerShell:
-
-```powershell
-Copy-Item .env.example .env
-```
-
-Luego edite `.env` y configure, como mínimo:
-
-```env
-SUPABASE_URL=https://TU-PROYECTO.supabase.co
-NEXT_PUBLIC_SUPABASE_URL=https://TU-PROYECTO.supabase.co
-NEXT_PUBLIC_SUPABASE_ANON_KEY=TU_ANON_KEY
-LLM_PROVIDER=gemini
-GEMINI_API_KEY=TU_API_KEY
-GEMINI_MODEL=gemini-flash-lite-latest
-```
-
-Si no configura `DATABASE_URL`, el backend usa SQLite local dentro del contenedor y parte con datos locales del contenedor. Para que otro computador vea el mismo catalogo, usuarios y conversaciones, configure `DATABASE_URL` con Supabase/PostgreSQL.
-
-### 3. Levantar backend y frontend
-
-Linux, macOS o Windows PowerShell:
-
-```bash
+cp .env.example .env    # complete AUTH_JWT_SECRET y GEMINI_API_KEY
 docker compose up --build
 ```
-
-Abrir:
 
 ```text
 Frontend: http://localhost:3000
@@ -109,54 +129,33 @@ Backend:  http://localhost:8000/health
 API docs: http://localhost:8000/docs
 ```
 
-Para detener:
+Detener con `docker compose down`; reconstruir desde cero con `docker compose build --no-cache`. Sin `DATABASE_URL`, el
+backend usa SQLite dentro del contenedor.
 
-```bash
-docker compose down
-```
-
-Para reconstruir desde cero si cambian dependencias:
-
-```bash
-docker compose build --no-cache
-docker compose up
-```
-
-> No suba `.env` al repositorio. Ese archivo contiene claves reales.
-
-## Arquitectura actual
+## Arquitectura
 
 ```text
-frontend/ (Next.js) → backend FastAPI → SQLAlchemy → PostgreSQL (Supabase)
+frontend/ (Next.js 16) → API FastAPI (/api/v1) → SQLAlchemy → PostgreSQL (RDS) o SQLite
+                            ├─ app/agent/       agente LangGraph (recordar → planificar → actuar → reflexionar → guardar)
+                            ├─ app/pcbuilder/   motor de compatibilidad, recomendador, asistente y guías
+                            ├─ app/ai/rag/      base de conocimiento (búsqueda híbrida) · app/ai/research/ búsqueda web
+                            ├─ app/observability/ trazas, métricas, objetivos de servicio, guardas y enmascarado
+                            └─ ml/ + /ml        modelo de emparejamiento de productos (ITY1102)
 ```
 
-El backend mantiene `routers/`, `services/`, `repositories/`, `schemas/`, `models/` y `core/`. La autenticación se realiza con tokens de Supabase Auth y los perfiles se almacenan con SQLAlchemy, separados de las credenciales. El catálogo separa la identidad del producto de sus ofertas: `Category → Product → StoreOffer → PriceHistory`, con especificaciones flexibles, tiendas, contratos de ingesta y matching determinista. El AI Engine usa Gemini por defecto mediante un adapter configurable y un registro cerrado de tools para catálogo y perfil; también conserva el adapter OpenAI. No incorpora RAG, pgvector ni recomendaciones.
+El catálogo separa la identidad del producto de sus ofertas (`Category → Product → StoreOffer → PriceHistory`). El agente
+usa Gemini con herramientas de consulta (catálogo, precios, piezas, guías, web), razonamiento (compatibilidad,
+recomendación, tendencia de precios) y escritura (alertas, listas, «Mis computadores»), con memoria de corto plazo
+(checkpointer) y largo plazo (preferencias con embeddings).
 
 ## Migraciones
 
-`create_all` se conserva temporalmente para compatibilidad de primera ejecución. Los cambios de esquema deben aplicarse mediante Alembic, no con creación automática de tablas existentes:
+Los cambios de esquema van por Alembic (`alembic/versions/`); `create_all` se conserva para el primer arranque local:
 
 ```bash
-alembic revision --autogenerate -m "describe el cambio"
 alembic upgrade head
+alembic revision --autogenerate -m "describe el cambio"
 ```
-
-Antes de desplegar el catálogo sobre una base ya creada, genere y revise una migración que convierta productos y precios heredados en categorías y ofertas. El backend no ejecuta esa transformación automáticamente al iniciar.
-
-## Configuración de Supabase
-
-```bash
-cp .env.example .env
-```
-
-Configure **una** de estas opciones, sin versionar `.env`:
-
-- `DATABASE_URL`: URL completa de SQLAlchemy, recomendada para Supabase.
-- `POSTGRES_USER`, `POSTGRES_PASSWORD`, `POSTGRES_HOST`, `POSTGRES_PORT` y `POSTGRES_DB`: el backend construye la URL si `DATABASE_URL` está vacío.
-
-Obtenga host, puerto, usuario, contraseña y nombre de base desde **Supabase Dashboard → Connect**. Use el host/puerto del pooler cuando Supabase lo indique. Sin esas credenciales, el backend usa SQLite local exclusivamente para desarrollo y pruebas; para una demo en otro computador conviene usar PostgreSQL/Supabase.
-
-Para habilitar `POST /api/v1/ai/chat`, defina `GEMINI_API_KEY` y `GEMINI_MODEL` en `.env` con `LLM_PROVIDER=gemini`. El endpoint permanece inactivo con estado `503` mientras falte una de esas variables. Para cambiar de proveedor, use `LLM_PROVIDER=openai` y configure las variables OpenAI correspondientes.
 
 ## Desarrollo local sin Docker
 
@@ -168,7 +167,7 @@ Desde la raíz del proyecto:
 
 ```bash
 python -m venv .venv
-.venv/bin/python -m pip install -e '.[dev]'
+.venv/bin/python -m pip install -e '.[dev,ml,mensajeria]'
 .venv/bin/python -m uvicorn app.main:app --host 127.0.0.1 --port 8000 --reload
 ```
 
@@ -178,7 +177,7 @@ Desde la raíz del proyecto:
 
 ```powershell
 python -m venv .venv
-.\.venv\Scripts\python.exe -m pip install -e ".[dev]"
+.\.venv\Scripts\python.exe -m pip install -e ".[dev,ml,mensajeria]"
 .\.venv\Scripts\python.exe -m uvicorn app.main:app --host 127.0.0.1 --port 8000 --reload
 ```
 
@@ -283,13 +282,11 @@ Configurables en GitHub → Settings → Secrets and variables → Actions:
 | Variable | `DEPLOY_USER` | Usuario SSH |
 | Variable | `DEPLOY_PATH` | Ruta de trabajo en el host |
 | Secret | `DEPLOY_SSH_KEY` | Llave privada SSH (nunca se imprime) |
-| Secret | `DATABASE_URL` | Cadena PostgreSQL/Supabase |
-| Secret | `SUPABASE_URL` | URL del proyecto Supabase |
-| Secret | `SUPABASE_ANON_KEY` | Anon key de Supabase |
+| Secret | `DATABASE_URL` | Cadena PostgreSQL (RDS u otra) |
+| Secret | `AUTH_JWT_SECRET` | Firma de los tokens de las cuentas propias (32+ caracteres aleatorios) |
 | Secret | `LLM_PROVIDER` | `gemini` / `openai` |
 | Secret | `GEMINI_API_KEY` | (u otra credencial equivalente) |
 
-También se requieren los mismos secrets que usa CI hoy para el build del frontend: `NEXT_PUBLIC_SUPABASE_URL` y `NEXT_PUBLIC_SUPABASE_ANON_KEY`.
 
 **Nunca** se agregan secretos reales al repositorio ni se imprimen en los logs (se pasan por `env` y se escriben en archivos temporales con máscara de ejecución).
 
@@ -341,11 +338,8 @@ Cada imagen publicada queda inmutable con la etiqueta `sha-<sha del commit>`:
 ## Pruebas
 
 ```bash
-.venv/bin/pytest -q
+DATABASE_URL=sqlite:///./dev_test.db .venv/bin/python -m pytest -q    # backend (sin red)
+cd frontend && pnpm lint && pnpm build                               # frontend
 ```
 
-En Windows:
-
-```powershell
-.\.venv\Scripts\python.exe -m pytest -q
-```
+En Windows: `.\.venv\Scripts\python.exe -m pytest -q`.

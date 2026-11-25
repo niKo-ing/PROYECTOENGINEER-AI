@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import re
 
-from app.agent.demo_data import add_product  # noqa: F401 — reexportado para los tests
+from catalogo import add_product  # noqa: F401 — reexportado para los tests
 
 USER = "user-ahorro-1"
 

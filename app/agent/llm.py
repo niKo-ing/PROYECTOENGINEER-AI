@@ -1,8 +1,8 @@
 """Modelo de chat del agente.
 
 LangGraph/LangChain solo piden un ``BaseChatModel``: producción usa Gemini (el mismo
-proveedor y las mismas variables ``GEMINI_*`` del resto de la app); las pruebas y la
-demo sin red usan ``ScriptedChatModel`` (ver ``testing.py``).
+proveedor y las mismas variables ``GEMINI_*`` del resto de la app); las
+pruebas sin red usan ``ScriptedChatModel`` (ver ``tests/agent/modelo_guionado.py``).
 """
 
 from __future__ import annotations
@@ -38,7 +38,7 @@ def as_llm_error(error: BaseException) -> AgentLLMError:
     return AgentLLMError("Se agotó la cuota del modelo; intenta de nuevo en un rato." if limited else f"El modelo no respondió: {text[:200]}", rate_limited=limited)
 
 
-def get_chat_model(cfg: Settings | None = None, *, temperature: float = 0.2) -> BaseChatModel:
+def get_chat_model(cfg: Settings | None = None, *, temperature: float = 0.2, timeout: float | None = None, max_retries: int = 2) -> BaseChatModel:
     cfg = cfg or default_settings
     if not cfg.gemini_api_key:
         raise AgentNotConfiguredError("GEMINI_API_KEY no está configurada")
@@ -50,6 +50,6 @@ def get_chat_model(cfg: Settings | None = None, *, temperature: float = 0.2) -> 
         model=cfg.gemini_model,
         google_api_key=cfg.gemini_api_key,
         temperature=temperature,
-        timeout=cfg.llm_timeout_seconds,
-        max_retries=2,
+        timeout=timeout or cfg.llm_timeout_seconds,
+        max_retries=max_retries,
     )

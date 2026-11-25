@@ -14,3 +14,27 @@ prueba 1/
 
 # EP2 ITY1102: estado del despliegue (clave de RDS, volcados, imágenes)
 EP2_ITY1102/infra/.salida/
+
+# Basura de herramientas y bases locales
+*.db-shm
+*.db-wal
+*.tsbuildinfo
+.opencode/
+.plan
+=*
+"?"/
+EP2_ITY1102/diagramas/?/
+.java/
+EP3_ITY1102/infra/.salida/
+ep3_data.db
+
+# Trazas locales de la IA (TRACE_LOG_FILE)
+logs/
+
+# Secretos de la app para el despliegue en AWS (los crea desplegar.sh)
+EP3_ITY1102/infra/secretos.env
+modelo_colab/
+# Salidas de los notebooks al ejecutarlos (se ven dentro del notebook)
+analisis_colab.md
+evals/resultados/colab.json
+evals/resultados/colab.md

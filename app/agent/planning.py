@@ -27,6 +27,8 @@ REASON_OVER_BUDGET = "sobre_presupuesto"
 REASON_NO_STOCK = "sin_stock"
 REASON_HIGH_PRICE = "precio_alto"
 REASON_TOOL_ERROR = "error_herramienta"
+REASON_INCOMPATIBLE = "piezas_incompatibles"
+REASON_PC_OVER_BUDGET = "armado_fuera_de_presupuesto"
 
 REPLAN_HINTS = {
     REASON_NO_RESULTS: "La búsqueda no devolvió productos. Repetir con términos más generales, sin filtro de marca ni de precio mínimo, y avisar al usuario si se relajó algún criterio.",
@@ -34,7 +36,44 @@ REPLAN_HINTS = {
     REASON_NO_STOCK: "La oferta elegida no tiene stock. Descartarla y elegir la siguiente tienda o el siguiente candidato.",
     REASON_HIGH_PRICE: "El análisis histórico dice 'esperar': el precio está alto. No recomendar comprar ahora; crear una alerta de precio con un objetivo cercano al promedio histórico.",
     REASON_TOOL_ERROR: "Una herramienta falló. Corregir los parámetros según el mensaje de error y reintentar una sola vez.",
+    REASON_INCOMPATIBLE: "El reporte de compatibilidad tiene errores. Para cada pieza que falla, buscar un reemplazo compatible con search_pc_parts (mismo socket, tipo de RAM o medida que exige el reporte), volver a revisar con check_pc_compatibility y explicar el cambio.",
+    REASON_PC_OVER_BUDGET: "El presupuesto no alcanza para un equipo compatible para ese uso. Informar el mínimo con la cifra exacta y ofrecer dos salidas: un uso menos exigente con el mismo presupuesto, o armar por etapas (primero lo esencial).",
 }
+
+PC_GOAL = re.compile(
+    r"\bpc\b|computador(?:a)? de escritorio|\b[aá]rm(?:ar|ame|a|o)\b.{0,25}\b(?:pc|equipo|computador)|compatib|\bsocket\b|placa madre|\bprocesador|tarjeta (?:gr[aá]fica|de video)|\bgpu\b|fuente de poder|\bgabinete|\bddr[45]\b|\bmi(?:s)? (?:pc|computador)",
+    re.IGNORECASE,
+)
+
+
+def pc_plan(goal: str, *, budget_clp: int | None, reason: str | None = None) -> list[tuple[str, int]]:
+    """Pasos para un pedido de armado de PC."""
+    text = goal.lower()
+    actions: list[tuple[str, int]] = []
+    if reason:
+        actions.append((f"Adaptación por '{reason}': {REPLAN_HINTS[reason]}", 1))
+    if re.search(r"\bmi(?:s)? (?:pc|computador)|el que tengo|mejorar|upgrade|actualizar", text):
+        actions.append(("Revisar los computadores guardados del usuario con list_my_pcs", 1))
+        if re.search(r"mejor|upgrade|actualiz|cambiar|subir", text):
+            actions.append(("Proponer mejoras dentro del presupuesto con suggest_pc_upgrade", 2))
+    if re.search(r"compatib|sirve con|funciona con|calza|entra en|cabe", text):
+        actions.append(("Identificar las piezas mencionadas con search_pc_parts", 1))
+        actions.append(("Revisar la compatibilidad con check_pc_compatibility", 1))
+    if re.search(r"\b[aá]rm|recomiend|quiero un pc|necesito un pc|cotiza|presupuesto", text) and not re.search(r"\bmi(?:s)? (?:pc|computador)", text):
+        if budget_clp:
+            actions.append((f"Armar el equipo con recommend_pc_build (presupuesto ${budget_clp:,})".replace(",", "."), 1))
+        else:
+            actions.append(("Preguntar el presupuesto y el uso principal antes de armar (sin herramientas)", 1))
+    if re.search(r"qu[eé] es|explica|diferencia|cu[aá]ntos watts|por qu[eé]|ddr|socket|doble canal|vram", text):
+        actions.append(("Buscar la explicación en las guías con search_compatibility_guide", 2))
+    if SAVE_WORDS.search(text):
+        actions.append(("Guardar el equipo en «Mis computadores» con save_pc_build", 3))
+    actions.append(("Responder con el resultado, los avisos de compatibilidad y el total referencial", 3))
+    return actions
+
+
+SAVE_WORDS = re.compile(r"\bguard\w*|\bregistr\w*|\banot\w*|mis computadores", re.IGNORECASE)
+
 
 
 @dataclass(frozen=True)
@@ -48,7 +87,10 @@ class Diagnosis:
 
 
 # -- presupuesto -------------------------------------------------------------------------
-_BUDGET_WORDS = ("presupuesto", "hasta", "maximo", "máximo", "menos de", "bajo", "no mas de", "no más de", "tope", "gastar")
+_BUDGET_WORDS = ("presupuesto", "hasta", "maximo", "máximo", "menos de", "bajo", "no mas de", "no más de", "tope", "gastar", "tengo", "cuento con", "dispongo", "me alcanza", "junté", "junte")
+# Cifras que no son plata: modelos de piezas (RTX 4060, DDR4 3200) y medidas con unidad (750 W, 1440p, 6000 MT/s).
+_MODEL_BEFORE = re.compile(r"(?:rtx|gtx|rx|arc|ryzen\s*\d?|core\s*i\d|i[3579]|ddr\d?|pcie|gen\s*\d?|\d{1,2}\s*gb)[\s-]*$", re.IGNORECASE)
+_UNIT_AFTER = re.compile(r"^\s*(?:mhz|mt/?s|w\b|watts?\b|mm\b|gb\b|tb\b|rpm\b|hz\b|fps\b|p\b|x\d)", re.IGNORECASE)
 _AMOUNT = re.compile(
     r"(?P<sym>\$\s*)?(?P<num>\d{1,3}(?:[.\s]\d{3})+|\d+(?:[.,]\d+)?)\s*(?P<unit>millones|millon|millón|mil|lucas|luca|palos|palo|k)?\b",
     re.IGNORECASE,
@@ -74,13 +116,19 @@ def extract_budget_clp(text: str) -> int | None:
     lowered = text.lower()
     best: tuple[int, int] | None = None  # (distancia a palabra de presupuesto, monto)
     for match in _AMOUNT.finditer(text):
-        amount = _amount_to_clp(match.group("num"), match.group("unit"))
+        unit, num = (match.group("unit") or "").lower(), match.group("num")
+        if unit == "k" and not match.group("sym") and re.fullmatch(r"\d", num):
+            continue  # «4K», «8k»: resolución, no 4.000 pesos
+        if not unit and not match.group("sym") and (_MODEL_BEFORE.search(text[: match.start()]) or _UNIT_AFTER.match(text[match.end():])):
+            continue
+        amount = _amount_to_clp(num, unit)
         if amount is None:
             continue
         start = match.start()
         distances = [start - (lowered.rfind(word, 0, start) + len(word)) for word in _BUDGET_WORDS if lowered.rfind(word, 0, start) != -1]
         distance = min(distances) if distances else 10_000
-        if best is None or distance < best[0]:
+        # Sin palabra de presupuesto cerca, gana el monto mayor (antes ganaba el primero: «4K… 2,5 millones» daba $4.000).
+        if best is None or distance < best[0] or (distance == best[0] and amount > best[1]):
             best = (distance, amount)
     return best[1] if best else None
 
@@ -118,6 +166,8 @@ def heuristic_plan(goal: str, *, has_memories: bool, budget_clp: int | None, rea
             actions.append(("Si alguna se cumplió, decir cuál producto, en qué tienda y a qué precio bajó", 2))
             actions.append(("Responder con el resultado de la revisión", 3))
             return [_step(i + 1, action, priority) for i, (action, priority) in enumerate(actions)]
+    if PC_GOAL.search(goal) and not re.search(r"\bnotebook|\bcelular|\btel[eé]fono", text):
+        return [_step(i + 1, action, priority) for i, (action, priority) in enumerate(pc_plan(goal, budget_clp=budget_clp, reason=reason)[:MAX_PLAN_STEPS])]
     if reason:
         actions.append((f"Adaptación por '{reason}': {REPLAN_HINTS[reason]}", 1))
     else:
@@ -215,4 +265,9 @@ def diagnose(tool_messages: list[ToolMessage], budget_clp: int | None) -> Diagno
                 return Diagnosis(REASON_NO_STOCK, "Todas las ofertas del producto están sin stock")
         elif name == "analyze_price_trend" and data.get("verdict") == "esperar":
             return Diagnosis(REASON_HIGH_PRICE, data.get("reason", "Precio sobre el promedio histórico"))
+        elif name == "check_pc_compatibility" and data.get("compatible") is False:
+            first = next((i.get("message", "") for i in data.get("issues") or [] if i.get("level") == "error"), "")
+            return Diagnosis(REASON_INCOMPATIBLE, first[:200] or "Hay piezas incompatibles")
+        elif name == "recommend_pc_build" and data.get("within_budget") is False:
+            return Diagnosis(REASON_PC_OVER_BUDGET, f"El equipo mínimo cuesta ${data.get('total_clp', 0):,} y el presupuesto es ${data.get('budget_clp', 0):,}".replace(",", "."))
     return None

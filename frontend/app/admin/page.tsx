@@ -25,7 +25,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { fetchAdminDashboard, fetchSpecReviewQueue, verifySpecValue, type VerifySpecValuePayload } from "@/lib/api/admin";
-import { createSupabaseBrowserClient } from "@/lib/supabase/client";
+import { auth } from "@/lib/auth/client";
 import type { AdminActivityItem, AdminDashboardResponse, AdminSpecValue } from "@/types/admin";
 
 type AdminSection = "dashboard" | "products" | "categories" | "review" | "conflicts" | "stores" | "offers" | "ingestion" | "stats";
@@ -56,7 +56,7 @@ export default function AdminPage() {
     let cancelled = false;
     async function loadSession() {
       try {
-        const { data } = await createSupabaseBrowserClient().auth.getSession();
+        const { data } = await auth.getSession();
         if (!cancelled) setAccessToken(data.session?.access_token ?? null);
       } catch {
         if (!cancelled) setAccessToken(null);
@@ -174,7 +174,7 @@ function AuthRequiredCard({ manualToken, setManualToken, setAccessToken }: { man
       </CardHeader>
       <CardContent className="space-y-4">
         <p className="text-sm text-muted-foreground">
-          Iniciá sesión con Supabase o pegá temporalmente un access token para consultar endpoints protegidos.
+          Inicia sesión con tu cuenta o pega temporalmente un token de acceso para consultar endpoints protegidos.
         </p>
         <div className="flex gap-2">
           <Input value={manualToken} onChange={(event) => setManualToken(event.target.value)} placeholder="Bearer token" />
@@ -259,7 +259,7 @@ function DashboardPanel({ dashboard, reviewItems }: { dashboard: AdminDashboardR
             {reviewItems.slice(0, 5).map((item) => (
               <div key={item.id} className="rounded-xl border bg-muted/20 p-3">
                 <div className="flex items-center justify-between gap-2">
-                  <Badge variant={item.conflict_status === "pending" ? "outline" : "secondary"} className={item.conflict_status === "pending" ? "border-amber-300 bg-amber-50 text-amber-700" : ""}>
+                  <Badge variant={item.conflict_status === "pending" ? "outline" : "secondary"} className={item.conflict_status === "pending" ? "border-amber-300 dark:border-amber-500/40 bg-amber-50 dark:bg-amber-500/15 text-amber-700 dark:text-amber-300" : ""}>
                     {item.conflict_status === "pending" ? "Conflicto" : "Revisión"}
                   </Badge>
                   <span className="text-xs text-muted-foreground">{item.group}</span>
@@ -277,7 +277,7 @@ function DashboardPanel({ dashboard, reviewItems }: { dashboard: AdminDashboardR
 }
 
 function MetricCard({ label, value, Icon, tone }: { label: string; value: number; Icon: typeof Boxes; tone?: "warning" | "success" | "danger" }) {
-  const toneClass = tone === "warning" ? "text-amber-700" : tone === "success" ? "text-emerald-700" : tone === "danger" ? "text-destructive" : "text-foreground";
+  const toneClass = tone === "warning" ? "text-amber-700 dark:text-amber-300" : tone === "success" ? "text-emerald-700 dark:text-emerald-300" : tone === "danger" ? "text-destructive" : "text-foreground";
   return (
     <Card className="shadow-none">
       <CardContent className="p-4">
@@ -366,7 +366,7 @@ function ReviewCard({ item, verifying, onVerify }: { item: AdminSpecValue; verif
           <div className="p-4 sm:p-5">
             <div className="mb-3 flex flex-wrap items-center gap-2">
               <Badge variant="secondary">{item.group}</Badge>
-              <Badge variant={hasConflict ? "outline" : "secondary"} className={hasConflict ? "border-amber-300 bg-amber-50 text-amber-700" : ""}>
+              <Badge variant={hasConflict ? "outline" : "secondary"} className={hasConflict ? "border-amber-300 dark:border-amber-500/40 bg-amber-50 dark:bg-amber-500/15 text-amber-700 dark:text-amber-300" : ""}>
                 {hasConflict ? "Conflicto" : statusLabel(item.verification_status)}
               </Badge>
               <Badge variant="outline">{sourceLabel(item.source_type)}</Badge>
@@ -494,7 +494,7 @@ function PlaceholderPanel({ section }: { section: AdminSection }) {
 function EmptyPanel({ title, description }: { title: string; description: string }) {
   return (
     <div className="rounded-2xl border bg-muted/30 p-10 text-center">
-      <CheckCircle2 className="mx-auto size-9 text-emerald-600" aria-hidden="true" />
+      <CheckCircle2 className="mx-auto size-9 text-emerald-600 dark:text-emerald-400" aria-hidden="true" />
       <h2 className="mt-3 font-semibold">{title}</h2>
       <p className="mt-1 text-sm text-muted-foreground">{description}</p>
     </div>

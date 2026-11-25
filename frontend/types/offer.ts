@@ -18,6 +18,8 @@ export interface StoreOfferRead {
   payment_condition: string | null;
   seller_name: string | null;
   last_checked_at: string;
+  /** «semilla-armador»: precio de referencia del armador, no una tienda. */
+  source?: string | null;
 }
 
 export interface PriceHistoryRead {
