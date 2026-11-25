@@ -4,11 +4,14 @@ Comparador de precios de tecnología para Chile con un **armador de PC que no se
 **agente con Gemini** que pregunta lo que falta, arma el computador según tus necesidades, lo explica con fuentes y lo
 guarda en tu perfil («Mis computadores»). Cada consulta a la IA queda trazada y medida en un panel de observabilidad.
 
+**Equipos:** ISY0101 (Ingeniería de Soluciones con IA): Nicolás Estefanía y Ariel Espinoza · ITY1102 (Arquitectura de Sistemas
+de IA): Nicolás Estefanía, Diego Tapia y Ariel Espinoza.
+
 | Entrega | Qué cubre | Dónde está |
 |---|---|---|
-| **ISY0101 · Evaluación Parcial 3** (observabilidad) | Métricas de precisión, latencia, consistencia, errores y recursos; trazas y análisis de logs; dashboard; recomendaciones; seguridad y privacidad | [`docs/entrega/ISY0101-EP3.md`](docs/entrega/ISY0101-EP3.md) |
+| **ISY0101 · Evaluación Parcial 3** (observabilidad) | Métricas de precisión, latencia, consistencia, errores y recursos; trazas y análisis de logs; dashboard; recomendaciones; seguridad y privacidad; bocetos de diseño | [`docs/entrega/ISY0101-EP3.md`](docs/entrega/ISY0101-EP3.md) · [`docs/bocetos/`](docs/bocetos/README.md) |
 | **ISY0101 · Evaluación Final Transversal** | Caso, prompts, RAG (fuentes internas y externas), arquitectura, agente con herramientas, memoria, planificación, observabilidad y seguridad; notebook de Colab | [`docs/entrega/ISY0101-EFT.md`](docs/entrega/ISY0101-EFT.md) · [`notebooks/EFT_ISY0101.ipynb`](notebooks/EFT_ISY0101.ipynb) |
-| **ITY1102 · Evaluación Parcial 3** (despliegue) | Modelo de emparejamiento, API `/ml`, RabbitMQ, despliegue medido en AWS, pruebas de carga | [`EP3_ITY1102/README.md`](EP3_ITY1102/README.md) · redespliegue para la defensa: [`docs/entrega/DEPLOY_DEFENSA.md`](docs/entrega/DEPLOY_DEFENSA.md) |
+| **ITY1102 · Evaluación Parcial 3** (despliegue) | Modelo de emparejamiento entrenado en Colab, API `/ml`, RabbitMQ, despliegue medido en AWS, pruebas de carga | [`EP3_ITY1102/README.md`](EP3_ITY1102/README.md) · [`notebook de Colab`](EP3_ITY1102/notebooks/EP3_ITY1102_Colab.ipynb) · redespliegue para la defensa: [`docs/entrega/DEPLOY_DEFENSA.md`](docs/entrega/DEPLOY_DEFENSA.md) |
 | Matriz de cumplimiento de las tres pautas | Cada indicador con su evidencia (archivo, ruta o página) | [`docs/entrega/matriz-cumplimiento.md`](docs/entrega/matriz-cumplimiento.md) |
 | ISY0101 · Evaluación Parcial 2 (agente) | Arquitectura del agente LangGraph | [`docs/agente/ARQUITECTURA.md`](docs/agente/ARQUITECTURA.md) |
 
@@ -89,8 +92,8 @@ referencia»), sin red, para que sus resultados se puedan repetir. SP Digital ce
 | Análisis de los logs | `.venv/bin/python -m scripts.analizar_trazas --incluir-eval --salida evals/resultados/analisis.md` (o `--db`) |
 | Objetivos de servicio | `SLO_P95_MS` (8000), `SLO_ERROR_RATE` (0,05), `SLO_GROUNDED` (0,95), `SLO_FALLBACK_RATE` (0,20) |
 
-La evaluación usa `evals/escenarios.json`: 40 casos del asistente en tres conjuntos (desarrollo, prueba y prueba 2, este
-último escrito después de corregir y corrido a ciegas) y 4 del agente. Compara Gemini contra el modo solo reglas. Gasta
+La evaluación usa `evals/escenarios.json`: 70 casos del asistente en cinco conjuntos (desarrollo, prueba, prueba 2 y los ciegos
+pre-registrados prueba-3 y prueba-4) y 4 del agente. Compara Gemini contra el modo solo reglas. Gasta
 unas 150 llamadas a Gemini con 3 repeticiones; use `--solo P01,P02` para correr unos pocos.
 
 ## Configuración

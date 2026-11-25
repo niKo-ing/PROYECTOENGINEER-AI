@@ -9,11 +9,11 @@ Rutas de la API con prefijo `/api/v1`. Páginas del frontend en `frontend/app/`.
 
 | Indicador | Peso | Evidencia | Estado |
 |---|---|---|---|
-| IE1 Métricas de precisión, consistencia y frecuencia de errores con datos variables | 15 % | `scripts/evaluar_ia.py` + `evals/escenarios.json` (55 casos en 14 categorías y 4 conjuntos; Gemini contra solo reglas; 3 repeticiones para medir consistencia). Conjuntos ciegos `prueba-3` y `prueba-4` pre-registrados y corridos 3 veces en limpio, con media ± desviación (`scripts/agregar_corridas.py`); `prueba-4` mide las correcciones con umbrales fijados antes: R10 cumple, R14 no generaliza (se informa tal cual). Resultados: `evals/resultados/eval-2026-11-22.md`, `eval-2026-11-23-correcciones.md`, `eval-2026-11-23-desempate.md`, `eval-2026-11-23-prueba3.md` y `eval-2026-11-23-prueba4.md`. Errores y respaldos por ejecución en `agent_runs.status`. | Listo |
+| IE1 Métricas de precisión, consistencia y frecuencia de errores con datos variables | 15 % | `scripts/evaluar_ia.py` + `evals/escenarios.json` (70 casos del asistente en 15 categorías y 5 conjuntos, más 4 del agente; Gemini contra solo reglas; 3 repeticiones para medir consistencia). Conjuntos ciegos `prueba-3` y `prueba-4` pre-registrados y corridos 3 veces en limpio, con media ± desviación (`scripts/agregar_corridas.py`); `prueba-4` mide las correcciones con umbrales fijados antes: R10 cumple, R14 no generaliza (se informa tal cual). Resultados: `evals/resultados/eval-2026-11-22.md`, `eval-2026-11-23-correcciones.md`, `eval-2026-11-23-desempate.md`, `eval-2026-11-23-prueba3.md` y `eval-2026-11-23-prueba4.md`. Errores y respaldos por ejecución en `agent_runs.status`. | Listo |
 | IE2 Latencia y uso de recursos | 10 % | `app/observability/tracer.py` mide la latencia de punta a punta, la de cada llamada a Gemini, herramienta y etapa, el CPU del proceso y los tokens de entrada y salida. Percentiles p50/p95/p99 en `app/observability/metrics.py`; tabla en los informes de evaluación. | Listo |
 | IE3 Examina logs y eventos para encontrar fallas | 15 % | Log JSONL (`TRACE_LOG_FILE`) y tablas `agent_runs`/`agent_spans`. `scripts/analizar_trazas.py`: errores agrupados, anomalías (> 2 × p95), herramientas, precios sin respaldo, inyecciones, auditoría de privacidad → `evals/resultados/analisis-trazas-2026-11-22.md`. Hallazgos y correcciones en `docs/entrega/ISY0101-EP3.md` §2. | Listo |
 | IE4 Dashboard visual | 10 % | `/observabilidad` (`frontend/app/observabilidad/page.tsx`): latencia p95 destacada, objetivos de servicio con alerta, ejecuciones y latencia en el tiempo, tablas por flujo, herramienta y etapa, y la cascada de cada ejecución. Exportable a Grafana: `GET /observability/prometheus`. Capturas en `docs/entrega/capturas/` (01–03: panel, cascada de 21,9 s y celular). | Listo |
-| IE5 Informe técnico con recomendaciones justificadas | 10 % | `docs/entrega/ISY0101-EP3.md`: ~4 páginas en A4 (Arial 11); dentro del máximo de 5 quedan ~350 palabras para conclusiones y reflexiones. Referencias APA y declaración de IA. | Borrador; **equipo**: conclusiones y reflexiones |
+| IE5 Informe técnico con recomendaciones justificadas | 10 % | `docs/entrega/ISY0101-EP3.md`: ~4 páginas en A4 (Arial 11); dentro del máximo de 5 quedan ~350 palabras para conclusiones y reflexiones. Referencias APA y declaración de IA. | Borrador; **equipo**: conclusiones y reflexiones. PDF: `scripts/exportar_informe.py docs/entrega/ISY0101-EP3.md` (hoy 5 págs. con ~¾ de la última libre para ~350 palabras) |
 | IE6 Patrones o anomalías y su vínculo con áreas críticas (presentación) | 10 % | Las 4 fallas encontradas (P05, P10, cola de latencia de Gemini, cuota 429) con sus trazas y la corrección de cada una: informe §2. | **Equipo** (exposición) |
 | IE7 Mejoras de desempeño y escalabilidad (presentación) | 10 % | Informe §4: implementadas (límite de tiempo, reglas, aviso de presupuesto, métrica de desacuerdo) y propuestas (caché, una sola llamada, cola con reintentos, plan pagado). | **Equipo** (exposición) |
 | IE8 Seguridad, ética y privacidad (presentación) | 10 % | `app/observability/guardrails.py` (inyección, precios con respaldo), `redaction.py` (enmascarado y seudónimo), `app/routers/privacy.py` (descargar y borrar datos), aviso de IA en `/perfil` y `/armar/asistente`, límites por minuto. | **Equipo** (exposición) |
@@ -38,7 +38,7 @@ Encargo 20 % (en pareja) · Defensa 80 % (individual). Pesos: encargo / defensa.
 | IE11 Seguridad y uso responsable | 2 % / 5 % | Igual que IE8 de la EP3. | Listo |
 | IE12 Propuesta de mejoras | 1 % / 5 % | Informe EFT §4.2: el desempate reglas/Gemini ya está implementado y medido (`evals/resultados/eval-2026-11-23-desempate.md`); quedan 4 propuestas con su dato. | Borrador; **equipo**: priorizar |
 | IE13–IE15 Fundamentación, exposición y respuestas | 15 % | Prototipo funcionando + panel. | **Equipo** (defensa individual) |
-| Formato: PDF + código en Jupyter/Colab | — | `notebooks/EFT_ISY0101.ipynb` (clona, instala, prueba, evalúa y grafica). | Listo; **equipo**: exportar el informe a PDF |
+| Formato: PDF + código en Jupyter/Colab | — | `notebooks/EFT_ISY0101.ipynb`, **ejecutado con Gemini y con sus resultados guardados** (prueba, RAG, asistente, agente, seguridad, métricas y análisis de trazas); en Colab clona `master`. PDF: `scripts/exportar_informe.py docs/entrega/ISY0101-EFT.md`. | Listo; **equipo**: completar sus secciones y exportar |
 
 ## ITY1102 · Evaluación Parcial 3: despliegue
 
@@ -49,10 +49,21 @@ Detalle en [`EP3_ITY1102/README.md`](../../EP3_ITY1102/README.md) y en el inform
 | IE1 Modelo de IA funcional | 10 % | `ml/`, `EP3_ITY1102/modelo/` (modelo, `metrics.json` con accuracy, precision, recall y F1). | Listo |
 | IE2 Consumo de resultados en la aplicación | 10 % | API `/ml`, dashboard `/api/v1/ml/dashboard`; ahora también el armador y el asistente consumen Gemini y el motor de reglas. | Listo |
 | IE3 Contexto y arquitectura (presentación) | 10 % | `EP3_ITY1102/diagramas/`. | **Equipo** |
-| IE4 Plataforma AIaaS (SageMaker) | 5 % | Contenedor con contrato SageMaker (`/ping`, `/invocations`); `CreateModel` denegado por IAM del laboratorio (`EP3_ITY1102/evidencia/sagemaker-intento.txt`). | **Brecha**: pedir al docente un rol con permisos de SageMaker o aceptar la justificación |
+| IE4 Plataforma AIaaS (SageMaker) | 5 % | Contenedor con contrato SageMaker (`/ping`, `/invocations`); `CreateModel` denegado por IAM del laboratorio (`EP3_ITY1102/evidencia/sagemaker-intento.txt`). | Resuelto **por indicación del docente**: entrenamiento gestionado en Google Colab (`EP3_ITY1102/notebooks/EP3_ITY1102_Colab.ipynb`, ejecutado: reproduce las métricas desplegadas y exporta `model.tar.gz`) + inferencia con el contrato de SageMaker en EC2 con Auto Scaling. Informe §6 y lámina 6. **Equipo**: citar la fecha o el correo de la indicación |
 | IE5 Infraestructura mínima y escalabilidad | 5 % | ALB + Auto Scaling 2→4 + RDS + CloudFront; Locust sin fallos (`EP3_ITY1102/pruebas/resultados/`, `evidencia/asg-escalado.txt`, `cloudwatch.txt`). | Listo; **volver a desplegar antes de la defensa** (la plataforma del laboratorio borra la cuenta al cerrar la sesión: `EP3_ITY1102/evidencia/limpieza-laboratorio.txt`; no destruir nada): [`DEPLOY_DEFENSA.md`](DEPLOY_DEFENSA.md) |
 | IE7 APIs REST y comunicación entre servicios | 10 % | Swagger `/docs`, RabbitMQ + worker (`app/messaging/`), límite de tasa y TLS por CloudFront. | Listo |
-| IE10 Testing y calidad | 10 % | Pruebas unitarias e integración (`tests/`), Locust, métricas p50/p95/p99 y tasa de error; ahora también la evaluación de la IA. | Listo |
+| IE10 Testing y calidad | 10 % | 1.110 pruebas (`tests/`) y tabla de 10 casos con entrada, esperado y resultado en el informe §5.1; Locust, métricas p50/p95/p99 y tasa de error; evaluación de la IA. | Listo |
 | IE6, IE8, IE11 Justificaciones (presentación) | 15 % | Informe §Costos y decisiones. | **Equipo** |
 | IE9 Demostración en vivo | 10 % | Requiere el sistema desplegado en AWS: `desplegar.sh` (API, modelo y frontend) + `verificar_defensa.sh`; guía en [`DEPLOY_DEFENSA.md`](DEPLOY_DEFENSA.md), con plan B local. | **Equipo**; redesplegar |
 | IE12, IE13 Lenguaje técnico y respuestas | 15 % | — | **Equipo** |
+
+## Repositorio (las tres pautas)
+
+| Exigencia | Dónde |
+|---|---|
+| README con instrucciones para ejecutar | `README.md` y `EP3_ITY1102/README.md` |
+| Bocetos de diseño (ISY0101 EP3) | `docs/bocetos/` (asistente, panel de observabilidad y armador) |
+| Evidencia de pruebas | `tests/`, `docs/agente/evidencia/`, `evals/resultados/`, `EP3_ITY1102/pruebas/resultados/` |
+| Evidencia en AWS con URL e instancia visibles | `EP3_ITY1102/infra/capturar_evidencia.sh` tras desplegar (genera `aws-*.png` y `cw-*.png`) |
+| Dockerfile | `Dockerfile`, `frontend/Dockerfile`, `EP3_ITY1102/modelo/Dockerfile` |
+

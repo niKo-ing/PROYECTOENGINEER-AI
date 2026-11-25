@@ -1,7 +1,7 @@
 # TodoBarato AI: agente con Gemini para armar computadores compatibles
 
 **ISY0101 · Ingeniería de Soluciones con IA · Evaluación Final Transversal**
-Equipo: [NOMBRE 1] y [NOMBRE 2] · Docente: [NOMBRE] · Fecha: [FECHA]
+Equipo: Nicolás Estefanía y Ariel Espinoza · Docente: [NOMBRE DEL DOCENTE] · Fecha: [FECHA]
 Repositorio: <https://github.com/niKo-ing/PROYECTOENGINEER-AI> · Código en Colab: `notebooks/EFT_ISY0101.ipynb`
 
 > **Borrador.** Lo técnico y los datos salen del repositorio y de `evals/resultados/`. Las secciones **[EQUIPO]** las
@@ -188,7 +188,7 @@ Detalle: `docs/agente/ARQUITECTURA.md`.
 
 ### 4.1 Métricas: precisión, latencia y consistencia (IE9)
 
-El banco tiene 55 escenarios en 14 categorías y 4 conjuntos, y compara Gemini contra el modo solo reglas. Detalle y
+El banco tiene 70 escenarios del asistente en 15 categorías y 5 conjuntos (más 4 del agente), y compara Gemini contra el modo solo reglas. Detalle y
 metodología: `docs/entrega/ISY0101-EP3.md` §2.
 
 **Resultado principal: el conjunto ciego `prueba-3`.** Son 15 casos nuevos en español chileno:
@@ -344,13 +344,17 @@ el usuario confía ciegamente.]
 
 [Sin IA.]
 
-### Reflexión individual: [NOMBRE 1] **[sin IA]**
+### Reflexión individual: Nicolás Estefanía **[sin IA]**
 
-### Reflexión individual: [NOMBRE 2] **[sin IA]**
+### Reflexión individual: Ariel Espinoza **[sin IA]**
 
 ## Declaración de uso de IA
 
-[Completen con lo que realmente usaron: herramienta, para qué y cómo lo validaron. Gemini es parte de la solución.]
+[Completen con lo que realmente usaron. Por ejemplo: «Usamos Claude Code (Anthropic) como asistente de programación
+para el agente, el asistente de armado, la instrumentación, el panel, los scripts de evaluación y el notebook, y para un
+primer borrador de las secciones técnicas, que revisamos y validamos con las mediciones. Las justificaciones, las
+conclusiones y las reflexiones son nuestras. Gemini es parte de la solución evaluada.» Citen según
+<https://bibliotecas.duoc.cl/ia>.]
 
 ## Referencias
 
