@@ -1,6 +1,10 @@
 """Entrena y evalúa el modelo de emparejamiento. Uso:
 
     DATABASE_URL=sqlite:///./ep3_data.db python -m ml.train [--out EP3_ITY1102/modelo]
+    python -m ml.train --productos EP3_ITY1102/modelo/productos.csv   # sin base de datos (Colab)
+
+``productos.csv`` es la exportación de los mismos 60 productos de Paris (id, nombre, marca): con la misma semilla da las
+mismas métricas que entrenar desde la base.
 
 Compara una línea base (regla de similitud), regresión logística, random forest y gradient boosting con validación
 cruzada agrupada por producto, elige por F1 y evalúa en un conjunto de prueba que no vio el entrenamiento.
@@ -37,6 +41,11 @@ def load_products() -> list[tuple[int, str, str | None]]:
         return [(p.id, p.name, p.brand) for p in db.scalars(select(Product)) if p.name]
 
 
+def load_products_csv(path: Path) -> list[tuple[int, str, str | None]]:
+    with open(path, newline="") as handle:
+        return [(int(r["id"]), r["nombre"], r["marca"] or None) for r in csv.DictReader(handle) if r["nombre"]]
+
+
 def metrics(y_true, y_pred, y_prob) -> dict:
     tn, fp, fn, tp = confusion_matrix(y_true, y_pred, labels=[0, 1]).ravel()
     return {
@@ -52,11 +61,12 @@ def metrics(y_true, y_pred, y_prob) -> dict:
 def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("--out", default="EP3_ITY1102/modelo")
+    parser.add_argument("--productos", type=Path, help="CSV con id,nombre,marca en lugar de la base de datos")
     args = parser.parse_args()
     out = Path(args.out)
     out.mkdir(parents=True, exist_ok=True)
 
-    products = load_products()
+    products = load_products_csv(args.productos) if args.productos else load_products()
     pairs = build_pairs(products, seed=SEED)
     train, test = split_by_product(pairs, seed=SEED)
     X_train, y_train = to_matrix(train)

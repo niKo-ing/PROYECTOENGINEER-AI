@@ -12,8 +12,8 @@ img { max-width: 100%; } .fig { text-align:center; font-size: 8.5pt; color:#555;
 
 <div class="portada"><h1>TodoBarato AI — Despliegue y optimización de un modelo de emparejamiento de productos</h1>
 <p><b>Evaluación Parcial 3 · ITY1102 Arquitectura de Sistemas de Inteligencia Artificial</b></p>
-<p>Equipo 1 · Repositorio: github.com/niKo-ing/PROYECTOENGINEER-AI (rama <code>ep3-modelo-aws</code>)</p>
-<p class="mut">Nomenclatura de entrega: EP3_Equipo1_Apellidos.pdf</p></div>
+<p>Equipo 1: <b>Nicolás Estefanía, Diego Tapia y Ariel Espinoza</b></p>
+<p>Repositorio: github.com/niKo-ing/PROYECTOENGINEER-AI (rama <code>master</code>) · Notebook de entrenamiento en Colab: <code>EP3_ITY1102/notebooks/EP3_ITY1102_Colab.ipynb</code></p></div>
 
 <h2 class="pb">1. Resumen</h2>
 <p>TodoBarato AI compara precios de productos tecnológicos entre tiendas chilenas. Su problema técnico central es decidir si dos
@@ -24,7 +24,8 @@ con su contenedor, API REST segura, comunicación asíncrona con RabbitMQ, dashb
 <p>Además se unificó el chat de IA y el agente en un <b>único asistente</b> (<code>/chat</code>) y se limpió el repositorio.</p>
 <div class="nota"><b>Estado del despliegue en AWS.</b> El sistema está <b>desplegado y medido en AWS Academy</b> (EC2 t3.medium, us-east-1) con <code>EP3_ITY1102/infra/desplegar.sh</code>:
 versión escalable (ALB + Auto Scaling + HTTPS por CloudFront) con <code>infra/desplegar_asg.sh</code> y versión de una instancia con <code>desplegar.sh</code>; las direcciones del laboratorio cambian al recrearse y se recrean con los scripts.
-<b>SageMaker no pudo usarse</b>: <code>CreateModel</code> fue denegado por política IAM del laboratorio (evidencia en la sección 6).</div>
+<b>SageMaker no pudo usarse</b>: el laboratorio deniega <code>CreateModel</code>, <code>CreateEndpoint</code> e <code>iam:PassRole</code>. Por indicación del docente, el entrenamiento gestionado se hace en <b>Google Colab</b>
+y la inferencia, en el contenedor con contrato SageMaker sobre EC2 con Auto Scaling (sección 6).</div>
 
 <h2>2. Caso empresarial y arquitectura</h2>
 <p><b>Decisión que apoya:</b> qué ofertas se agrupan bajo un mismo producto para calcular el mejor precio y el historial. Hoy el emparejador determinista
@@ -68,7 +69,7 @@ la regla simple tiene más recall pero a costa de muchos falsos positivos (mezcl
 El 0,70 se eligió con esta tabla: precisión ≈ 0,94 conservando ≈ 82 % de los positivos.</p>
 <table><tr><th>Umbral</th><th>Precisión</th><th>Cobertura de positivos</th></tr><tr><td>0.5</td><td>0.915</td><td>0.9</td></tr><tr><td>0.6</td><td>0.945</td><td>0.867</td></tr><tr><td>0.7</td><td>0.942</td><td>0.817</td></tr><tr><td>0.8</td><td>0.953</td><td>0.683</td></tr><tr><td>0.9</td><td>0.972</td><td>0.583</td></tr></table>
 
-<h2 class="pb">4. Integración de servicios y seguridad</h2>
+<h2>4. Integración de servicios y seguridad</h2>
 <div class="fig"><img src="../diagramas/png/02-secuencia-asincrona.png" style="max-height:105mm"><br>Figura 2. Diagrama de secuencia del flujo asíncrono.</div>
 <table><tr><th>Endpoint</th><th>Descripción</th></tr>
 <tr><td><code>POST /api/v1/ml/match</code></td><td>Decisión síncrona (decision, probability, reasons, model_version)</td></tr>
@@ -83,8 +84,8 @@ validación estricta de entradas (422); TLS terminado en el borde (CloudFront/AL
 
 <h2>5. Pruebas y calidad</h2>
 <h3>5.1 Pruebas automatizadas</h3>
-<p>La suite completa tiene <b>939 pruebas (todas pasan)</b>; 20 son nuevas de esta entrega (<code>tests/modelo_ml/</code>): normalización, conflicto de capacidad, de color y de código de modelo,
-decisión del modelo en 3 escenarios con razones, lote, autenticación (401), validación (422), límite de tasa (429) y su ventana, flujo cola → modelo → base de datos, cola de cartas muertas y endpoints públicos.</p>
+<p>La suite completa tiene <b>1.110 pruebas que pasan</b> (5 se omiten porque requieren Gemini o un PostgreSQL reales); 20 son del modelo, la API y la cola (<code>tests/modelo_ml/</code>). Diez casos representativos:</p>
+<table><tr><th>#</th><th>Caso</th><th>Entrada</th><th>Esperado</th><th>Resultado</th></tr><tr><td>1</td><td>Autenticación</td><td><code>POST /ml/match</code> sin llave o con una llave inválida</td><td>401</td><td>✔</td></tr><tr><td>2</td><td>Validación de entrada</td><td>cuerpo vacío, sin el título <code>b</code> o con un título de 301 caracteres</td><td>422 en los tres</td><td>✔</td></tr><tr><td>3</td><td>Límite de tasa por llamador</td><td>4 llamadas con límite 2/min, cambiando <code>X-Forwarded-For</code> en cada una</td><td>200, 200, 429, 429 y <code>Retry-After</code></td><td>✔</td></tr><tr><td>4</td><td>Ventana deslizante</td><td>tercera llamada dentro de la ventana de 10 s y otra a los 11 s</td><td>bloquea ~10 s y luego libera</td><td>✔</td></tr><tr><td>5</td><td>Mismo producto reescrito</td><td>«Samsung Galaxy A54 128GB Negro» / «Celular Galaxy A54 5G 128 GB Negro»</td><td><code>match</code>, P ≥ 0,70</td><td>✔</td></tr><tr><td>6</td><td>Otra variante</td><td>«Apple iPhone 13 128GB Negro» / «… 256GB Negro»</td><td><code>no_match</code>, P ≤ 0,35 y razón «capacidades distintas»</td><td>✔</td></tr><tr><td>7</td><td>Conflictos de atributos</td><td>capacidad, color (Indigo/Amarillo) y código de modelo (15IAH8/14ABR9) distintos</td><td>la característica de conflicto vale 1</td><td>✔</td></tr><tr><td>8</td><td>Lote</td><td>2 pares en una sola llamada</td><td>mismo orden y campos <code>decision</code>, <code>probability</code>, <code>reasons</code>, <code>model_version</code></td><td>✔</td></tr><tr><td>9</td><td>Flujo asíncrono (integración)</td><td><code>POST /ml/match/async</code> → cola → worker → modelo → base de datos</td><td>202 con la cola; decisión <code>match</code> guardada</td><td>✔</td></tr><tr><td>10</td><td>Cola de mensajes fallidos</td><td>un mensaje cuyo procesamiento falla 3 veces</td><td>sale de la cola y queda en <code>.dlq</code></td><td>✔</td></tr></table>
 <h3>5.2 Pruebas de carga (Locust, 70 % match / 20 % métricas / 10 % async)</h3>
 <table><tr><th>Escenario (local, Docker)</th><th>Peticiones</th><th>Fallos</th><th>req/s</th><th>p50 ms</th><th>p95 ms</th><th>p99 ms</th></tr>
 <tr><td>20 usuarios · <b>antes</b> de la corrección</td><td>3754</td><td>44</td><td>85</td><td>59</td><td>110</td><td>140</td></tr>
@@ -121,14 +122,18 @@ Escenarios automatizados con modelo guionado (<code>tests/agent/test_escenarios_
 <tr><td>«Notebook gamer, $300.000. Avísame cuando baje.»</td><td>0 resultados → luego el más barato cuesta $349.990 (sobre el presupuesto)</td><td><b>2 replanes</b> (<code>sin_resultados</code>: ampliar términos; <code>sobre_presupuesto</code>: alerta). Crea una alerta a $300.000 e informa que faltan $49.990</td></tr>
 <tr><td>«ASUS TUF, $900.000. Guarda la lista si conviene.»</td><td>$799.990, 9,3 % sobre el promedio histórico ($731.990)</td><td><b>Replan por <code>precio_alto</code></b>: sube a P1 la adaptación, <b>no guarda la lista</b> y deja una alerta a $731.990 («esperar»)</td></tr>
 <tr><td>«Prefiero Samsung y no Huawei…» y, en otro hilo, «Recomiéndame un celular»</td><td>Memoria de largo plazo: relevancia 1,0</td><td>El segundo hilo busca Samsung sin que se lo repitan</td></tr></table>
-<p>La pantalla <code>/chat</code> muestra ese plan (con sus prioridades), los pasos en orden y las tarjetas de los productos consultados.</p>
+<p>La pantalla <code>/chat</code> resume esos pasos en lenguaje simple sobre cada respuesta y, en «Detalle técnico», muestra el plan con sus prioridades y cada herramienta en orden.</p>
 
 <h2>6. Plataforma AIaaS y costos</h2>
-<p><b>SageMaker (plan A).</b> Se diseñó el modelo con el contrato de SageMaker (<code>/ping</code>, <code>/invocations</code>, artefacto en <code>/opt/ml/model</code>). En la cuenta del laboratorio las cuotas permiten
-<code>ml.m5.large</code> (30 endpoints), pero el intento real falló: <code>sagemaker:CreateModel</code> → <b>AccessDeniedException</b> («no identity-based policy allows the sagemaker:CreateModel action») y no existe un rol de ejecución utilizable
-(<code>evidencia/sagemaker-intento.txt</code>, generado por <code>infra/intentar_sagemaker.sh</code>). <b>Plan B (el que se despliega):</b> el mismo contenedor en EC2 con Docker Compose, que migra a SageMaker sin cambios de código al contar con un rol.</p>
+<p><b>SageMaker (plan A).</b> Se diseñó el modelo con el contrato de SageMaker (<code>/ping</code>, <code>/invocations</code>, artefacto <code>model.tar.gz</code> en <code>/opt/ml/model</code>). El intento real falló:
+<code>sagemaker:CreateModel</code> → <b>AccessDeniedException</b>; la simulación de IAM del rol del laboratorio también deniega <code>CreateEndpoint</code>, <code>iam:PassRole</code> y <code>ecr:CreateRepository</code>, y no existe un rol de ejecución
+(<code>evidencia/sagemaker-intento.txt</code>, tres sesiones entre el 16 y el 23-11, generado por <code>infra/intentar_sagemaker.sh</code>).
+<b>Solución aplicada, por indicación del docente:</b> el <b>entrenamiento gestionado</b> corre en <b>Google Colab</b> (<code>notebooks/EP3_ITY1102_Colab.ipynb</code>: datos, búsqueda de hiperparámetros, métricas, matriz de confusión y <code>model.tar.gz</code>;
+con la semilla fija reproduce exactamente las métricas del modelo desplegado) y la <b>inferencia</b> corre en el mismo contenedor con contrato SageMaker sobre EC2 con Auto Scaling, que migra a un endpoint de SageMaker sin cambios de código.
+El mismo notebook consume la API desplegada en AWS. Para el lenguaje natural, el asistente usa <b>Gemini</b> (IA como servicio por API).</p>
 <table><tr><th>Opción</th><th>Costo aprox.*</th><th>Escalado</th><th>Flexibilidad</th></tr>
-<tr><td>EC2 t3.medium + Docker (desplegado)</td><td>≈ USD 0,04/h por instancia; stack escalable ≈ USD 0,15–0,25/h</td><td>ASG + ALB (medido: 2 → 4 réplicas)</td><td>Alta: cualquier contenedor</td></tr>
+<tr><td>Google Colab (entrenamiento)</td><td>Gratis en el plan base</td><td>Una sesión; GPU opcional</td><td>Alta para entrenar; no sirve para inferencia continua (sesiones efímeras)</td></tr>
+<tr><td>EC2 t3.medium + Docker (inferencia, desplegado)</td><td>≈ USD 0,04/h por instancia; stack escalable ≈ USD 0,15–0,25/h</td><td>ASG + ALB (medido: 2 → 4 réplicas)</td><td>Alta: cualquier contenedor</td></tr>
 <tr><td>SageMaker ml.m5.large (tiempo real)</td><td>≈ USD 0,12/h (≈ 85/mes)</td><td>Auto-scaling gestionado</td><td>Media: contrato fijo, monitoreo integrado</td></tr>
 <tr><td>SageMaker Serverless Inference</td><td>por invocación</td><td>Automático (con arranque en frío)</td><td>Media</td></tr></table>
 <p class="mut">*Precios de lista aproximados (us-east-1, on-demand); verificar en la calculadora de AWS antes de decidir. Para una carga baja e intermitente como esta, la opción serverless o EC2 pequeño es la económica; SageMaker en tiempo real se justifica cuando se necesita escalado y monitoreo gestionados.</p>
@@ -139,22 +144,24 @@ Escenarios automatizados con modelo guionado (<code>tests/agent/test_escenarios_
 <li><b>Lotes:</b> el endpoint ya acepta hasta 64 pares; usarlo desde la ingesta reduce la latencia por par ≈ 30 veces.</li>
 <li><b>Escalado horizontal:</b> el worker es sin estado; se escala agregando consumidores sobre la misma cola.</li>
 <li><b>Cache de pares repetidos</b> y <b>reentrenamiento programado</b> con las decisiones auditadas de <code>ai_match_decisions</code> (mejora continua).</li>
-<li><b>Asistente unificado:</b> chat y agente comparten una sola ruta de ejecución; la investigación web y la evidencia RAG del chat antiguo quedan como herramientas por migrar.</li></ul>
+<li><b>Asistente unificado:</b> chat y agente comparten una sola ruta de ejecución; la investigación web ya es una herramienta del agente (<code>research_part_web</code>).</li></ul>
 
 <h2>8. Despliegue y evidencias</h2>
 <p><b>Reproducir:</b> <code>bash EP3_ITY1102/infra/desplegar.sh</code> (S3 + EC2 + alarma CloudWatch, ≈ 6 min) · <code>bash EP3_ITY1102/pruebas/cargar.sh http://&lt;IP&gt; aws 50 60</code> · <code>bash EP3_ITY1102/infra/destruir.sh</code>.</p>
-<div class="fig"><img src="../evidencia/dashboard-aws.png" style="max-height:95mm"><br>Figura 4. Dashboard interactivo servido desde EC2 en AWS.</div>
+<div class="fig"><img src="../evidencia/dashboard-local.png" style="max-height:95mm"><br>Figura 4. Dashboard interactivo (captura local; es la misma página que sirve AWS).</div>
+
 <table><tr><th>Evidencia</th><th>Estado</th></tr>
-<tr><td>Dashboard, API y Swagger en AWS (<code>evidencia/dashboard-aws.png</code>, <code>swagger-aws.png</code>)</td><td>Hecho</td></tr>
+<tr><td>Dashboard, API y Swagger en AWS</td><td>Desplegado y medido el 16-11 (<code>pruebas/resultados/aws_*</code>); la captura con URL e instancia se toma al redesplegar con <code>infra/capturar_evidencia.sh</code></td></tr>
 <tr><td>Flujo API → RabbitMQ → worker → modelo → BD en AWS (decisiones guardadas, cola en 0)</td><td>Hecho</td></tr>
 <tr><td>Prueba de carga remota (CSV/HTML en <code>pruebas/resultados/aws_*</code>) y métricas CloudWatch (<code>evidencia/cloudwatch.txt</code>)</td><td>Hecho</td></tr>
 <tr><td>Límite de tasa (429) y autenticación (401) verificados en AWS</td><td>Hecho</td></tr>
-<tr><td>Endpoint SageMaker</td><td>Intentado; denegado por IAM del laboratorio</td></tr>
-<tr><td>Auto-scaling</td><td>No desplegado (una instancia); diseñado en EP2. Se mide la saturación (CPU 77 % a ≈ 100 req/s)</td></tr></table>
+<tr><td>Auto Scaling (ALB + ASG 2–4 réplicas, CPU 50 %)</td><td>Hecho: escaló de 2 a 4 réplicas con 150 usuarios (<code>evidencia/asg-escalado.txt</code>)</td></tr>
+<tr><td>Entrenamiento gestionado</td><td>Hecho en Google Colab (<code>notebooks/EP3_ITY1102_Colab.ipynb</code>, ejecutado y con resultados)</td></tr>
+<tr><td>Endpoint SageMaker</td><td>Intentado; denegado por IAM del laboratorio. Reemplazado por indicación del docente (sección 6)</td></tr></table>
 
 <h2>9. Conclusiones</h2>
 <p>Se entregó un modelo propio, interpretable y medible, integrado a un servicio con API segura, mensajería asíncrona, dashboard y pruebas; la prueba de carga encontró y permitió corregir un defecto real de concurrencia, y la revisión de seguridad otro (límite de tasa evadible).
-Los límites quedan explícitos: datos sintéticos de una sola tienda sin validación con pares reales, prueba de escalado desde un único generador de carga y SageMaker bloqueado por el laboratorio.</p>
+Los límites quedan explícitos: datos sintéticos de una sola tienda sin validación con pares reales, prueba de escalado desde un único generador de carga y SageMaker bloqueado por el laboratorio, que se resolvió entrenando en Colab y sirviendo el mismo artefacto con su contrato.</p>
 
 <h2>Referencias (APA)</h2>
 <p>Breiman, L. (2001). Random forests. <i>Machine Learning, 45</i>(1), 5–32. https://doi.org/10.1023/A:1010933404324</p>
@@ -163,6 +170,6 @@ Los límites quedan explícitos: datos sintéticos de una sola tienda sin valida
 <p>Ramírez, S. (2025). <i>FastAPI documentation</i>. https://fastapi.tiangolo.com/</p>
 
 <h2>Declaración de uso de IA</h2>
-<p>Se utilizó Claude (Anthropic) como asistente de programación para generar y revisar código, pruebas, scripts y la redacción de este informe. El equipo definió el problema, revisó los resultados,
-ejecutó los experimentos y es responsable del contenido. Las cifras provienen de ejecuciones reales (<code>metrics.json</code> y los CSV de Locust del repositorio).</p>
+<p>Se utilizó Claude (Anthropic) como asistente de programación para generar y revisar código, pruebas, scripts, el notebook de Colab y la redacción de este informe. El equipo definió el problema, revisó los resultados,
+ejecutó los experimentos y es responsable del contenido. Las cifras provienen de ejecuciones reales (<code>metrics.json</code>, el notebook ejecutado y los CSV de Locust del repositorio).</p>
 </body></html>
